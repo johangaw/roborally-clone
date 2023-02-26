@@ -1,35 +1,57 @@
-import com.soywiz.klock.*
+import com.soywiz.korev.*
 import com.soywiz.korge.*
+import com.soywiz.korge.input.*
 import com.soywiz.korge.scene.*
-import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
+import com.soywiz.korge.view.roundRect
 import com.soywiz.korim.color.*
 import com.soywiz.korim.format.*
 import com.soywiz.korio.file.std.*
-import com.soywiz.korma.geom.*
-import com.soywiz.korma.interpolation.*
+import com.soywiz.korma.geom.vector.*
 
-suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"]) {
+suspend fun main() = Korge(width = 1024, height = 1024, bgcolor = Colors["#2b2b2b"]) {
 	val sceneContainer = sceneContainer()
-
-	sceneContainer.changeTo({ MyScene() })
+	sceneContainer.changeTo({ GameScene() })
 }
 
-class MyScene : Scene() {
-	override suspend fun SContainer.sceneMain() {
-		val minDegrees = (-16).degrees
-		val maxDegrees = (+16).degrees
 
-		val image = image(resourcesVfs["korge.png"].readBitmap()) {
-			rotation = maxDegrees
-			anchor(.5, .5)
-			scale(0.8)
-			position(256, 256)
-		}
+class GameScene : Scene() {
+    override suspend fun SContainer.sceneMain() {
 
-		while (true) {
-			image.tween(image::rotation[minDegrees], time = 1.seconds, easing = Easing.EASE_IN_OUT)
-			image.tween(image::rotation[maxDegrees], time = 1.seconds, easing = Easing.EASE_IN_OUT)
-		}
-	}
+        val fieldSize = views.virtualWidth - 10.0 * 2.0
+        val indent = 2
+        val cellSize = (fieldSize - indent * 2) / 10.0
+
+        val bgField = roundRect(fieldSize, fieldSize, 5.0, fill = Colors["#b9aea0"]) {
+            graphics {
+                it.position(indent, indent)
+                repeat(10) { x ->
+                    repeat(10) { y ->
+                        fill(Colors["#cec0b2"]) {
+                            roundRect(cellSize * x + indent, cellSize * y + indent, cellSize - indent * 2, cellSize - indent * 2, 5.0)
+                        }
+                    }
+                }
+            }
+        }
+
+        var robotX = 4
+        var robotY = 6
+        val robot = image(resourcesVfs["robot2.png"].readBitmap()) {
+            position(indent + robotX * cellSize, indent + robotY * cellSize)
+            size(cellSize, cellSize)
+        }
+
+        keys {
+            down {
+                when(it.key) {
+                    Key.LEFT -> robot.x -= cellSize
+                    Key.RIGHT -> robot.x += cellSize
+                    Key.UP -> robot.y -= cellSize
+                    Key.DOWN -> robot.y += cellSize
+                    else -> Unit
+                }
+            }
+        }
+    }
 }
