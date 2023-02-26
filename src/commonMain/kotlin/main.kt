@@ -1,13 +1,19 @@
+import com.soywiz.klock.*
 import com.soywiz.korev.*
 import com.soywiz.korge.*
+import com.soywiz.korge.animate.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.scene.*
+import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
 import com.soywiz.korge.view.roundRect
+import com.soywiz.korge.view.tween.*
 import com.soywiz.korim.color.*
 import com.soywiz.korim.format.*
+import com.soywiz.korio.async.*
 import com.soywiz.korio.file.std.*
 import com.soywiz.korma.geom.vector.*
+import com.soywiz.korma.interpolation.*
 import gamemodel.*
 
 suspend fun main() = Korge(width = 1024, height = 1024, bgcolor = Colors["#2b2b2b"]) {
@@ -61,12 +67,21 @@ class GameScene : Scene() {
                             gameModel.controlRobot(robotId, ActionCard.MoveForward(2))) {
                             is RobotActionResult.Moved -> {
                                 val viewRobot = robots.getValue(robotId)
-                                viewRobot.x = indent + result.newPosition.x * cellSize
-                                viewRobot.y = indent + result.newPosition.y * cellSize
                                 gameModel = result.gameModel
+                                launchImmediately {
+                                    animate {
+                                        sequence(defaultTime = 1.seconds, defaultSpeed = 256.0) {
+                                            moveTo(
+                                                viewRobot, indent + result.newPosition.x * cellSize,
+                                                indent + result.newPosition.y * cellSize,
+                                                0.5.seconds,
+                                                Easing.SMOOTH
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
-
                     }
 
                     else -> Unit
