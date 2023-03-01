@@ -4,10 +4,8 @@ import com.soywiz.korge.*
 import com.soywiz.korge.animate.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.scene.*
-import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
 import com.soywiz.korge.view.roundRect
-import com.soywiz.korge.view.tween.*
 import com.soywiz.korim.color.*
 import com.soywiz.korim.format.*
 import com.soywiz.korio.async.*
@@ -29,7 +27,10 @@ class GameScene : Scene() {
         val indent = 2
         val cellSize = (fieldSize - indent * 2) / 10.0
 
-        var gameModel = GameModel(listOf(Robot(Pos(4, 4), Direction.Right)))
+        var gameModel = GameModel(listOf(
+            Robot(Pos(4, 4), Direction.Down),
+            Robot(Pos(4, 6), Direction.Right),
+        ))
 
         val bgField = roundRect(fieldSize, fieldSize, 5.0, fill = Colors["#b9aea0"]) {
             graphics {
@@ -66,17 +67,28 @@ class GameScene : Scene() {
                         when (val result =
                             gameModel.controlRobot(robotId, ActionCard.MoveForward(2))) {
                             is RobotActionResult.Moved -> {
-                                val viewRobot = robots.getValue(robotId)
                                 gameModel = result.gameModel
                                 launchImmediately {
                                     animate {
                                         sequence(defaultTime = 1.seconds, defaultSpeed = 256.0) {
-                                            moveTo(
-                                                viewRobot, indent + result.newPosition.x * cellSize,
-                                                indent + result.newPosition.y * cellSize,
-                                                0.5.seconds,
-                                                Easing.SMOOTH
-                                            )
+                                            result.moveSteps.forEachIndexed { stepIndex, movements ->
+                                                val easing = when(stepIndex) {
+                                                    0 -> Easing.EASE_IN
+                                                    result.moveSteps.lastIndex -> Easing.EASE_OUT
+                                                    else -> Easing.LINEAR
+                                                }
+                                                parallel {
+                                                    movements.forEach { (id, pos) ->
+                                                        val viewRobot = robots.getValue(id)
+                                                        moveTo(
+                                                            viewRobot, indent + pos.x * cellSize,
+                                                            indent + pos.y * cellSize,
+                                                            0.5.seconds,
+                                                            easing
+                                                        )
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
