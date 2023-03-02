@@ -8,7 +8,7 @@ fun gameModel(map: String): GameModel {
             .flatMapIndexed { y, row ->
                 row.mapIndexed { x, char ->
                     val dir = from(char)
-                    dir?.let { Robot(Pos(x, y), dir, id = ResourceId(robotIds++)) }
+                    dir?.let { Robot(Pos(x, y), dir, id = RobotId(robotIds++)) }
                 }
             }.filterNotNull()
     )

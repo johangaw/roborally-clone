@@ -13,23 +13,17 @@ sealed class ActionCard {
     data class MoveForward(val distance: Int) : ActionCard()
 }
 
-@JvmInline
-value class ResourceId(val value: Int) {
-    companion object {
-        private var freeId = 0
-        fun create() = ResourceId(freeId++)
-    }
-}
+data class Robot(val pos: Pos, val dir: Direction, val id: RobotId = RobotId.create())
 
-data class Robot(val pos: Pos, val dir: Direction, val id: ResourceId = ResourceId.create())
+data class Wall(val index: Int, val id: WallId = WallId.create())
 
-data class GameModel(val robots: List<Robot>) {
+data class GameModel(val robots: List<Robot>, val walls: List<Wall>) {
     fun robotAt(pos: Pos): Robot? = robots.firstOrNull { it.pos == pos }
 
-    fun mapRobot(id: ResourceId, mapper: (robot: Robot) -> Robot): GameModel =
+    fun mapRobot(id: RobotId, mapper: (robot: Robot) -> Robot): GameModel =
         copy(robots = robots.map { if (it.id == id) mapper(it) else it })
 
-    fun getRobot(id: ResourceId): Robot =
+    fun getRobot(id: RobotId): Robot =
         robots.firstOrNull { it.id == id } ?: throw AssertionError("No robot with id $id")
 }
 

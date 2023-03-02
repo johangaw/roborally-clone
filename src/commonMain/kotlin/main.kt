@@ -30,7 +30,8 @@ class GameScene : Scene() {
         var gameModel = GameModel(listOf(
             Robot(Pos(4, 4), Direction.Down),
             Robot(Pos(4, 6), Direction.Right),
-        ))
+        ), emptyList()
+        )
 
         val bgField = roundRect(fieldSize, fieldSize, 5.0, fill = Colors["#b9aea0"]) {
             graphics {

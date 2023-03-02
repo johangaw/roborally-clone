@@ -1,12 +1,12 @@
 package gamemodel
 
-fun GameModel.controlRobot(id: ResourceId, card: ActionCard): RobotActionResult {
+fun GameModel.controlRobot(id: RobotId, card: ActionCard): RobotActionResult {
     return when (card) {
         is ActionCard.MoveForward -> controlRobot(id, card)
     }
 }
 
-private fun GameModel.controlRobot(id: ResourceId, card: ActionCard.MoveForward): RobotActionResult {
+private fun GameModel.controlRobot(id: RobotId, card: ActionCard.MoveForward): RobotActionResult {
     val robot = getRobot(id)
     val pushDirection = robot.dir
     val path = getPath(robot.pos, pushDirection, card.distance)
@@ -32,6 +32,6 @@ fun getPath(pos: Pos, dir: Direction, distance: Int): List<Pos> =
     (1..distance).map { Pos(pos.x + dir.dx * it, pos.y + dir.dy * it) }
 
 sealed class RobotActionResult {
-    data class Moved(val gameModel: GameModel, val moveSteps: List<Map<ResourceId, Pos>>) :
+    data class Moved(val gameModel: GameModel, val moveSteps: List<Map<RobotId, Pos>>) :
         RobotActionResult()
 }
