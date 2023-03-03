@@ -8,13 +8,15 @@ class MoveRobotForwardTest {
     fun `when there is nothing blocking the robot it is moved`() {
         val model = gameModel(
             """
-            →____
+            +|+|+|+|+|+|+
+            + →         +
         """.trimIndent()
         )
         val robot = model.robots.first()
         val expectedModel = gameModel(
             """
-            ___→_
+            +|+|+|+|+|+|+
+            +       →   +
         """.trimIndent()
         )
 
@@ -33,17 +35,47 @@ class MoveRobotForwardTest {
     }
 
     @Test
+    fun `when a wall is blocking the robots path, is does not move through that wall`(){
+        val model = gameModel(
+            """
+        +|+|+|+|+|+
+        +    |  ← +
+        """.trimIndent()
+        )
+        val robot = model.robots.first()
+        val expectedModel = gameModel(
+            """
+        +|+|+|+|+|+
+        +    |←   +
+        """.trimIndent()
+        )
+
+        val result = model.controlRobot(robot.id, ActionCard.MoveForward(3))
+
+        assertEquals(
+            RobotActionResult.Moved(
+                expectedModel,
+                listOf(
+                    mapOf(robot.id to Pos(2, 0)),
+                )
+            ), result
+        )
+    }
+
+    @Test
     fun `when another robot blocks the way it is push along`() {
         val model = gameModel(
             """
-            →_↓__
+            +|+|+|+|+|+|+
+            + →   ↓     +
         """.trimIndent()
         )
         val pusher = model.robots[0]
         val pushed = model.robots[1]
         val expectedModel = gameModel(
             """
-            ___→↓
+            +|+|+|+|+|+|+
+            +       → ↓ +
         """.trimIndent()
         )
 

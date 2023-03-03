@@ -9,7 +9,10 @@ fun GameModel.controlRobot(id: RobotId, card: ActionCard): RobotActionResult {
 private fun GameModel.controlRobot(id: RobotId, card: ActionCard.MoveForward): RobotActionResult {
     val robot = getRobot(id)
     val pushDirection = robot.dir
-    val path = getPath(robot.pos, pushDirection, card.distance)
+    val path =
+        getPath(robot.pos, pushDirection, card.distance).takeWhile { p -> wallAt(p, pushDirection.opposite()) == null }
+    // TODO getClearPath
+
     // TODO make sure robot can be moved all along this path (nothing blocking her or pushed robots)
 
     val movingSteps = path.runningFold(listOf(robot.id to robot.pos)) { acc, pos ->
@@ -25,8 +28,6 @@ private fun GameModel.controlRobot(id: RobotId, card: ActionCard.MoveForward): R
         movingSteps
     )
 }
-
-private operator fun Pos.plus(dir: Direction): Pos = Pos(x + dir.dx, y + dir.dy)
 
 fun getPath(pos: Pos, dir: Direction, distance: Int): List<Pos> =
     (1..distance).map { Pos(pos.x + dir.dx * it, pos.y + dir.dy * it) }
