@@ -39,6 +39,8 @@ data class GameModel(val robots: List<Robot>, val walls: List<Wall>) {
         return walls.firstOrNull { it.pos == pos && it.dir == dir }
             ?: walls.firstOrNull { it.pos == pos + dir && it.dir == dir.opposite() }
     }
+
+    fun wallsAt(pos: Pos): List<Wall> = walls.filter { it.pos == pos }
 }
 
 

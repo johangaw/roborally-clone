@@ -24,13 +24,20 @@ class GameScene : Scene() {
     override suspend fun SContainer.sceneMain() {
 
         val fieldSize = views.virtualWidth - 10.0 * 2.0
-        val indent = 2
+        val indent = 10
         val cellSize = (fieldSize - indent * 2) / 10.0
 
-        var gameModel = GameModel(listOf(
-            Robot(Pos(4, 4), Direction.Down),
-            Robot(Pos(4, 6), Direction.Right),
-        ), emptyList()
+        var gameModel = GameModel(
+            listOf(
+                Robot(Pos(4, 4), Direction.Down),
+                Robot(Pos(4, 6), Direction.Right),
+            ),
+            listOf(
+                Wall(Pos(2,2), Direction.Left),
+                Wall(Pos(2,2), Direction.Right),
+                Wall(Pos(2,2), Direction.Up),
+                Wall(Pos(2,2), Direction.Down),
+            )
         )
 
         val bgField = roundRect(fieldSize, fieldSize, 5.0, fill = Colors["#b9aea0"]) {
@@ -46,6 +53,18 @@ class GameScene : Scene() {
                                 cellSize - indent * 2,
                                 5.0
                             )
+                        }
+                        val wallThickness = indent * 1.5
+                        val roundness = 3.0
+                        fill(Colors.YELLOW) {
+                            gameModel.wallsAt(Pos(x, y)).forEach { wall ->
+                                when (wall.dir) {
+                                    Direction.Up -> roundRect(cellSize * x, cellSize * y, cellSize, wallThickness, roundness)
+                                    Direction.Down -> roundRect(cellSize * x, cellSize * (y + 1) - wallThickness, cellSize, wallThickness, roundness)
+                                    Direction.Right -> roundRect(cellSize * (x+1)-wallThickness, cellSize * y, wallThickness, cellSize, roundness)
+                                    Direction.Left -> roundRect(cellSize * x, cellSize * y, wallThickness, cellSize, roundness)
+                                }
+                            }
                         }
                     }
                 }
@@ -73,7 +92,7 @@ class GameScene : Scene() {
                                     animate {
                                         sequence(defaultTime = 1.seconds, defaultSpeed = 256.0) {
                                             result.moveSteps.forEachIndexed { stepIndex, movements ->
-                                                val easing = when(stepIndex) {
+                                                val easing = when (stepIndex) {
                                                     0 -> Easing.EASE_IN
                                                     result.moveSteps.lastIndex -> Easing.EASE_OUT
                                                     else -> Easing.LINEAR
@@ -96,7 +115,6 @@ class GameScene : Scene() {
                             }
                         }
                     }
-
                     else -> Unit
                 }
             }

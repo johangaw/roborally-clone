@@ -17,14 +17,16 @@ private fun GameModel.controlRobot(id: RobotId, card: ActionCard.MoveForward): R
         .takeWhile { p -> wallAt(p, pushDirection.opposite()) == null }
     val robotsInFreePath = maxFreePath.count { robotAt(it) != null }
     val maxMovableDistance = min(maxFreePath.size - robotsInFreePath, maxWantToMovePath.size)
-    val movablePath =  getPath(robot.pos, pushDirection, maxMovableDistance)
+    val movablePath = getPath(robot.pos, pushDirection, maxMovableDistance)
 
-    val movingSteps = movablePath.runningFold(listOf(robot.id to robot.pos)) { acc, pos ->
-        val robotAtCurrent = robotAt(pos)
-        (robotAtCurrent?.let { acc + (it.id to pos) } ?: acc)
-            .map { (id, p) -> id to p + pushDirection }
-    }.map { it.toMap() }
-        .drop(1)
+    val movingSteps = movablePath
+        .runningFold(
+            listOf(robot.id to robot.pos) // Start with robots original position
+        ) { acc, pos ->
+            (robotAt(pos)?.let { acc + (it.id to pos) } ?: acc)
+                .map { (id, p) -> id to p + pushDirection }
+        }.map { it.toMap() }
+        .drop(1) // Remove robots original position
 
     val finalPositions = movingSteps.last()
     return RobotActionResult.Moved(
