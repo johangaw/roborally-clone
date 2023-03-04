@@ -1,4 +1,5 @@
 import com.soywiz.klock.*
+import com.soywiz.klock.min
 import com.soywiz.korev.*
 import com.soywiz.korge.*
 import com.soywiz.korge.animate.*
@@ -13,6 +14,8 @@ import com.soywiz.korio.file.std.*
 import com.soywiz.korma.geom.vector.*
 import com.soywiz.korma.interpolation.*
 import gamemodel.*
+import ui.*
+import kotlin.math.*
 
 suspend fun main() = Korge(width = 1024, height = 1024, bgcolor = Colors["#2b2b2b"]) {
     val sceneContainer = sceneContainer()
@@ -23,8 +26,8 @@ suspend fun main() = Korge(width = 1024, height = 1024, bgcolor = Colors["#2b2b2
 class GameScene : Scene() {
     override suspend fun SContainer.sceneMain() {
 
-        val fieldSize = views.virtualWidth - 10.0 * 2.0
-        val indent = 10
+        val fieldSize = min(views.virtualWidth - 10.0 * 2.0, views.virtualHeight - 200.0)
+        val indent = 2
         val cellSize = (fieldSize - indent * 2) / 10.0
 
         var gameModel = GameModel(
@@ -54,7 +57,7 @@ class GameScene : Scene() {
                                 5.0
                             )
                         }
-                        val wallThickness = indent * 1.5
+                        val wallThickness = 10.0
                         val roundness = 3.0
                         fill(Colors.YELLOW) {
                             gameModel.wallsAt(Pos(x, y)).forEach { wall ->
@@ -78,6 +81,10 @@ class GameScene : Scene() {
             }
             it.id to robotView
         }.toMap()
+
+        val programSheet = programArea(cellSize) {
+            alignTopToBottomOf(bgField)
+        }
 
         keys {
             down {
