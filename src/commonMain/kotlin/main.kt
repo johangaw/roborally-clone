@@ -82,9 +82,14 @@ class GameScene : Scene() {
             it.id to robotView
         }.toMap()
 
-        val programSheet = programArea(cellSize) {
+        val programArea = programArea(cellSize) {
             alignTopToBottomOf(bgField)
         }
+
+        val cards = (-5..8).map { ActionCard.MoveForward(it) }
+        programArea.dealCards(cards)
+
+
 
         keys {
             down {

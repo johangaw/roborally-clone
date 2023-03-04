@@ -42,9 +42,3 @@ data class GameModel(val robots: List<Robot>, val walls: List<Wall>) {
 
     fun wallsAt(pos: Pos): List<Wall> = walls.filter { it.pos == pos }
 }
-
-
-
-
-
-
