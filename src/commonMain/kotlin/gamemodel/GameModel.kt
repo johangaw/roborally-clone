@@ -18,15 +18,19 @@ fun Direction.opposite(): Direction = when (this) {
     Direction.Left -> Direction.Right
 }
 
-sealed class ActionCard {
-    data class MoveForward(val distance: Int) : ActionCard()
-}
-
 data class Robot(val pos: Pos, val dir: Direction, val id: RobotId = RobotId.create())
 
 data class Wall(val pos: Pos, val dir: Direction, val id: WallId = WallId.create())
 
-data class GameModel(val robots: List<Robot>, val walls: List<Wall>) {
+data class Player(val robotId: RobotId, val hand: List<ActionCard> = emptyList(), val id: PlayerId = PlayerId.create())
+
+data class GameModel(
+    val robots: List<Robot>,
+    val walls: List<Wall>,
+    val players: List<Player>,
+    val actionDrawPile: List<ActionCard> = actionCardDeck().shuffled(),
+    val actionDiscardPile: List<ActionCard> = emptyList()
+) {
     fun robotAt(pos: Pos): Robot? = robots.firstOrNull { it.pos == pos }
 
     fun mapRobot(id: RobotId, mapper: (robot: Robot) -> Robot): GameModel =

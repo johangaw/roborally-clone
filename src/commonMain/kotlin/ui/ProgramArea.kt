@@ -1,11 +1,9 @@
 package ui
 
-import com.soywiz.kmem.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
 import gamemodel.*
-import kotlin.collections.indexOf
 import kotlin.math.*
 
 class ProgramArea(cellSize: Double) : Container() {

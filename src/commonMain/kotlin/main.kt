@@ -1,5 +1,4 @@
 import com.soywiz.klock.*
-import com.soywiz.klock.min
 import com.soywiz.korev.*
 import com.soywiz.korge.*
 import com.soywiz.korge.animate.*
@@ -33,9 +32,11 @@ class GameScene : Scene() {
     override suspend fun SContainer.sceneMain() {
         fieldSize = min(views.virtualWidth - 10.0 * 2.0, views.virtualHeight - 200.0)
 
+        val playerOneRobot = Robot(Pos(4, 4), Direction.Down)
+
         var gameModel = GameModel(
             listOf(
-                Robot(Pos(4, 4), Direction.Down),
+                playerOneRobot,
                 Robot(Pos(4, 6), Direction.Right),
             ),
             listOf(
@@ -43,6 +44,9 @@ class GameScene : Scene() {
                 Wall(Pos(2,2), Direction.Right),
                 Wall(Pos(2,2), Direction.Up),
                 Wall(Pos(2,2), Direction.Down),
+            ),
+            listOf(
+                Player(robotId = playerOneRobot.id)
             )
         )
 
@@ -89,12 +93,17 @@ class GameScene : Scene() {
             alignTopToBottomOf(bgField)
         }
 
-        val cards = (-5..8).map { ActionCard.MoveForward(it) }
-        programArea.dealCards(cards)
-
         keys {
             down {
                 when (it.key) {
+                    Key.D -> {
+                        val result = gameModel.dealActionCards()
+                        gameModel = result.gameModel
+
+                        // TODO have different programAreas for different players
+                        val (playerId, hand) = result.hands.entries.first()
+                        programArea.dealCards(hand)
+                    }
                     Key.SPACE -> {
                         val robotId = gameModel.robots.first().id
                         val actionCard = programArea.selectedCards.first() ?: return@down

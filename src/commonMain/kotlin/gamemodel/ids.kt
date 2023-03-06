@@ -15,3 +15,11 @@ value class WallId(val value: Int) {
         fun create() = WallId(freeId++)
     }
 }
+
+@JvmInline
+value class PlayerId(val value: Int) {
+    companion object {
+        private var freeId = 0
+        fun create() = PlayerId(freeId++)
+    }
+}
