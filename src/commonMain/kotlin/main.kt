@@ -96,8 +96,10 @@ class GameScene : Scene() {
                 when (it.key) {
                     Key.SPACE -> {
                         val robotId = gameModel.robots.first().id
+                        val actionCard = programArea.selectedCards.first() ?: return@down
+
                         when (val result =
-                            gameModel.controlRobot(robotId, ActionCard.MoveForward(2))) {
+                            gameModel.controlRobot(robotId, actionCard)) {
                             is RobotActionResult.Moved -> {
                                 gameModel = result.gameModel
                                 launchImmediately {

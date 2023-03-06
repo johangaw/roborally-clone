@@ -1,9 +1,11 @@
 package ui
 
+import com.soywiz.kmem.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
 import gamemodel.*
+import kotlin.collections.indexOf
 import kotlin.math.*
 
 class ProgramArea(cellSize: Double) : Container() {
@@ -19,7 +21,7 @@ class ProgramArea(cellSize: Double) : Container() {
     private var cards = mapOf<ActionCard, RoundRect>()
     private lateinit var programmingSlots: Map<Int, RoundRect>
 
-    var selectedCards = mapOf<Int, ActionCard>()
+    var selectedCards = arrayOf<ActionCard?>(null,null,null,null,null)
         private set
 
     init {
@@ -95,12 +97,15 @@ class ProgramArea(cellSize: Double) : Container() {
                     }?.let { (slotIndex, slot) ->
                         card.centerOn(slot)
                         dragOriginalPos = card.pos
-                        selectedCards = selectedCards + (slotIndex to cardModel)
+                        selectedCards[slotIndex] = cardModel
                     } ?: run {
                         card.pos = originalPos
                         card.scale = 1.0
                         dragOriginalPos = originalPos
-                        selectedCards = selectedCards.filterValues { it != cardModel }
+
+                        if(selectedCards.contains(cardModel)) {
+                            selectedCards[selectedCards.indexOf(cardModel)] = null
+                        }
                     }
                 }
             }
