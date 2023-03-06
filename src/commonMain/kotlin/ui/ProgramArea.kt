@@ -83,8 +83,10 @@ class ProgramArea(cellSize: Double) : Container() {
                     card.zIndex = 1.0
                 }
 
-                card.x = dragOriginalPos.x + it.dx
-                card.y = dragOriginalPos.y + it.dy
+                val widthScalingCompensation = cardWidth * 0.5
+                val heightScalingCompensation = cardHeight * 0.5
+                card.x = dragOriginalPos.x + it.dx - widthScalingCompensation
+                card.y = dragOriginalPos.y + it.dy - heightScalingCompensation
 
                 if(it.end) {
                     card.zIndex = 0.0
