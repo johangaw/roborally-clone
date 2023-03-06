@@ -11,6 +11,7 @@ import com.soywiz.korim.color.*
 import com.soywiz.korim.format.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.std.*
+import com.soywiz.korma.geom.*
 import com.soywiz.korma.geom.vector.*
 import com.soywiz.korma.interpolation.*
 import gamemodel.*
@@ -24,11 +25,13 @@ suspend fun main() = Korge(width = 1024, height = 1024, bgcolor = Colors["#2b2b2
 
 
 class GameScene : Scene() {
-    override suspend fun SContainer.sceneMain() {
 
-        val fieldSize = min(views.virtualWidth - 10.0 * 2.0, views.virtualHeight - 200.0)
-        val indent = 2
-        val cellSize = (fieldSize - indent * 2) / 10.0
+    var fieldSize: Double = 0.0
+    val indent = 2
+    val cellSize: Double get() = (fieldSize - indent * 2) / 10.0
+
+    override suspend fun SContainer.sceneMain() {
+        fieldSize = min(views.virtualWidth - 10.0 * 2.0, views.virtualHeight - 200.0)
 
         var gameModel = GameModel(
             listOf(
@@ -76,7 +79,7 @@ class GameScene : Scene() {
 
         val robots = gameModel.robots.map {
             val robotView = image(resourcesVfs["robot2.png"].readBitmap()) {
-                position(indent + it.pos.x * cellSize, indent + it.pos.y * cellSize)
+                position(robotPosition(it.pos))
                 size(cellSize, cellSize)
             }
             it.id to robotView
@@ -89,47 +92,53 @@ class GameScene : Scene() {
         val cards = (-5..8).map { ActionCard.MoveForward(it) }
         programArea.dealCards(cards)
 
-
-
         keys {
             down {
                 when (it.key) {
                     Key.SPACE -> {
                         val robotId = gameModel.robots.first().id
                         val actionCard = programArea.selectedCards.first() ?: return@down
+                        val result = gameModel.controlRobot(robotId, actionCard)
 
-                        when (val result =
-                            gameModel.controlRobot(robotId, actionCard)) {
+                        when (result) {
                             is RobotActionResult.Moved -> {
                                 gameModel = result.gameModel
                                 launchImmediately {
-                                    animate {
-                                        sequence(defaultTime = 1.seconds, defaultSpeed = 256.0) {
-                                            result.moveSteps.forEachIndexed { stepIndex, movements ->
-                                                val easing = when (stepIndex) {
-                                                    0 -> Easing.EASE_IN
-                                                    result.moveSteps.lastIndex -> Easing.EASE_OUT
-                                                    else -> Easing.LINEAR
-                                                }
-                                                parallel {
-                                                    movements.forEach { (id, pos) ->
-                                                        val viewRobot = robots.getValue(id)
-                                                        moveTo(
-                                                            viewRobot, indent + pos.x * cellSize,
-                                                            indent + pos.y * cellSize,
-                                                            0.5.seconds,
-                                                            easing
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
+                                    animateMovedResult(result, robots)
                                 }
                             }
                         }
                     }
                     else -> Unit
+                }
+            }
+        }
+    }
+
+    private fun robotPosition(pos: Pos): IPoint = IPoint(indent + pos.x * cellSize, indent + pos.y * cellSize)
+
+    private suspend fun Container.animateMovedResult(result: RobotActionResult.Moved, robots: Map<RobotId, View>) {
+        animate {
+            sequence(defaultTime = 1.seconds, defaultSpeed = 256.0) {
+                result.moveSteps.forEachIndexed { stepIndex, movements ->
+                    val easing = when (stepIndex) {
+                        0 -> Easing.EASE_IN
+                        result.moveSteps.lastIndex -> Easing.EASE_OUT
+                        else -> Easing.LINEAR
+                    }
+                    parallel {
+                        movements.forEach { (id, pos) ->
+                            val viewRobot = robots.getValue(id)
+                            val newPos = robotPosition(pos)
+                            moveTo(
+                                viewRobot,
+                                newPos.x,
+                                newPos.y,
+                                0.5.seconds,
+                                easing
+                            )
+                        }
+                    }
                 }
             }
         }
