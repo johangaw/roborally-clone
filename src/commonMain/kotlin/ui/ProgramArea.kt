@@ -50,7 +50,7 @@ class ProgramArea(cellSize: Double) : Container() {
 
         cards = newCards.associate {cardModel ->
             cardModel to roundRect(cardWidth, cardHeight, 3.0) {
-                alignTopToTopOf(parent!!,cardPadding)
+                alignTopToTopOf(parent!!,programingSlotPadding)
                 alignRightToRightOf(parent!!, programingSlotPadding)
                 fill = Colors.BLUE
 
@@ -59,7 +59,6 @@ class ProgramArea(cellSize: Double) : Container() {
                         centerOn(this@roundRect)
                     }
                 }
-
             }
         }
 
@@ -69,6 +68,9 @@ class ProgramArea(cellSize: Double) : Container() {
             second.alignRightToLeftOf(first, cardPadding)
         }
 
+        lowerRow.first().apply {
+            alignTopToBottomOf(upperRow.first(), cardPadding)
+        }
         lowerRow.windowed(2, 1).forEach { (first, second) ->
             second.alignRightToLeftOf(first, cardPadding)
             second.alignTopToBottomOf(upperRow.first(), cardPadding)
