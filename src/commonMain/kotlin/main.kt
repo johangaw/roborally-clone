@@ -14,6 +14,7 @@ import com.soywiz.korma.geom.*
 import com.soywiz.korma.geom.vector.*
 import com.soywiz.korma.interpolation.*
 import gamemodel.*
+import kotlinx.coroutines.*
 import ui.*
 import kotlin.math.*
 
@@ -38,14 +39,12 @@ class GameScene : Scene() {
             listOf(
                 playerOneRobot,
                 Robot(Pos(4, 6), Direction.Right),
-            ),
-            listOf(
-                Wall(Pos(2,2), Direction.Left),
-                Wall(Pos(2,2), Direction.Right),
-                Wall(Pos(2,2), Direction.Up),
-                Wall(Pos(2,2), Direction.Down),
-            ),
-            listOf(
+            ), listOf(
+                Wall(Pos(2, 2), Direction.Left),
+                Wall(Pos(2, 2), Direction.Right),
+                Wall(Pos(2, 2), Direction.Up),
+                Wall(Pos(2, 2), Direction.Down),
+            ), listOf(
                 Player(robotId = playerOneRobot.id)
             )
         )
@@ -69,10 +68,29 @@ class GameScene : Scene() {
                         fill(Colors.YELLOW) {
                             gameModel.wallsAt(Pos(x, y)).forEach { wall ->
                                 when (wall.dir) {
-                                    Direction.Up -> roundRect(cellSize * x, cellSize * y, cellSize, wallThickness, roundness)
-                                    Direction.Down -> roundRect(cellSize * x, cellSize * (y + 1) - wallThickness, cellSize, wallThickness, roundness)
-                                    Direction.Right -> roundRect(cellSize * (x+1)-wallThickness, cellSize * y, wallThickness, cellSize, roundness)
-                                    Direction.Left -> roundRect(cellSize * x, cellSize * y, wallThickness, cellSize, roundness)
+                                    Direction.Up -> roundRect(
+                                        cellSize * x, cellSize * y, cellSize, wallThickness, roundness
+                                    )
+
+                                    Direction.Down -> roundRect(
+                                        cellSize * x,
+                                        cellSize * (y + 1) - wallThickness,
+                                        cellSize,
+                                        wallThickness,
+                                        roundness
+                                    )
+
+                                    Direction.Right -> roundRect(
+                                        cellSize * (x + 1) - wallThickness,
+                                        cellSize * y,
+                                        wallThickness,
+                                        cellSize,
+                                        roundness
+                                    )
+
+                                    Direction.Left -> roundRect(
+                                        cellSize * x, cellSize * y, wallThickness, cellSize, roundness
+                                    )
                                 }
                             }
                         }
@@ -104,7 +122,8 @@ class GameScene : Scene() {
                         val (playerId, hand) = result.hands.entries.first()
                         programArea.dealCards(hand)
                     }
-                    Key.SPACE -> {
+
+                    Key.R -> {
                         val robotId = gameModel.robots.first().id
                         val actionCard = programArea.selectedCards.first() ?: return@down
                         val result = gameModel.controlRobot(robotId, actionCard)
@@ -113,12 +132,41 @@ class GameScene : Scene() {
                             is RobotActionResult.Moved -> {
                                 gameModel = result.gameModel
                                 launchImmediately {
-                                    animateMovedResult(result, robots)
+                                    animate {
+                                        animateMovedResult(result, robots)
+                                    }
                                 }
                             }
                         }
                     }
+
+                    Key.SPACE -> {
+                        val robotId = gameModel.robots.first().id
+                        val cards = programArea.selectedCards.filterNotNull()
+
+                        val results = gameModel.controlRobot(robotId, cards)
+
+                        animateAllResults(results, robots)
+                        gameModel = results.last().gameModel
+                    }
+
                     else -> Unit
+                }
+            }
+        }
+    }
+
+    private fun Container.animateAllResults(results: List<RobotActionResult>, robots: Map<RobotId, View>) {
+        launchImmediately {
+            animate {
+                sequence {
+                    results.forEach { result ->
+                        when (result) {
+                            is RobotActionResult.Moved -> {
+                                animateMovedResult(result, robots)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -126,30 +174,33 @@ class GameScene : Scene() {
 
     private fun robotPosition(pos: Pos): IPoint = IPoint(indent + pos.x * cellSize, indent + pos.y * cellSize)
 
-    private suspend fun Container.animateMovedResult(result: RobotActionResult.Moved, robots: Map<RobotId, View>) {
-        animate {
-            sequence(defaultTime = 1.seconds, defaultSpeed = 256.0) {
-                result.moveSteps.forEachIndexed { stepIndex, movements ->
-                    val easing = when (stepIndex) {
-                        0 -> Easing.EASE_IN
-                        result.moveSteps.lastIndex -> Easing.EASE_OUT
-                        else -> Easing.LINEAR
-                    }
-                    parallel {
-                        movements.forEach { (id, pos) ->
-                            val viewRobot = robots.getValue(id)
-                            val newPos = robotPosition(pos)
-                            moveTo(
-                                viewRobot,
-                                newPos.x,
-                                newPos.y,
-                                0.5.seconds,
-                                easing
-                            )
-                        }
+    private fun Animator.animateMovedResult(result: RobotActionResult.Moved, robots: Map<RobotId, View>) {
+        sequence(defaultTime = 1.seconds, defaultSpeed = 256.0) {
+            result.moveSteps.forEachIndexed { stepIndex, movements ->
+                val easing = when (stepIndex) {
+                    0 -> Easing.EASE_IN
+                    result.moveSteps.lastIndex -> Easing.EASE_OUT
+                    else -> Easing.LINEAR
+                }
+                parallel {
+                    movements.forEach { (id, pos) ->
+                        val viewRobot = robots.getValue(id)
+                        val newPos = robotPosition(pos)
+                        moveTo(
+                            viewRobot, newPos.x, newPos.y, 0.5.seconds, easing
+                        )
                     }
                 }
             }
         }
     }
 }
+
+
+private fun GameModel.controlRobot(robotId: RobotId, cards: List<ActionCard>): List<RobotActionResult> =
+    cards.runningFold<ActionCard, Pair<GameModel, RobotActionResult?>>(this to null) { (gameModel, _), card ->
+        gameModel.controlRobot(robotId, card).let { result ->
+            result.gameModel to result
+        }
+    }.mapNotNull { (_, result) -> result }
+

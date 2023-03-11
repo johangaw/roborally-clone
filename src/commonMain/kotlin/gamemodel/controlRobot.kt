@@ -38,7 +38,7 @@ private fun GameModel.controlRobot(id: RobotId, card: ActionCard.MoveForward): R
 fun getPath(pos: Pos, dir: Direction, distance: Int): List<Pos> =
     (1..distance).map { Pos(pos.x + dir.dx * it, pos.y + dir.dy * it) }
 
-sealed class RobotActionResult {
-    data class Moved(val gameModel: GameModel, val moveSteps: List<Map<RobotId, Pos>>) :
-        RobotActionResult()
+sealed class RobotActionResult(val gameModel: GameModel) {
+    class Moved(gameModel: GameModel, val moveSteps: List<Map<RobotId, Pos>>) :
+        RobotActionResult(gameModel)
 }
