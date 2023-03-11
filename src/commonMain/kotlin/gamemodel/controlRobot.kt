@@ -1,6 +1,7 @@
 package gamemodel
 
 import java.lang.Integer.min
+import kotlin.math.*
 
 fun GameModel.controlRobot(id: RobotId, card: ActionCard): RobotActionResult {
     return when (card) {
@@ -10,9 +11,9 @@ fun GameModel.controlRobot(id: RobotId, card: ActionCard): RobotActionResult {
 
 private fun GameModel.controlRobot(id: RobotId, card: ActionCard.MoveForward): RobotActionResult {
     val robot = getRobot(id)
-    val pushDirection = robot.dir
+    val pushDirection = if(card.distance > 0) robot.dir else robot.dir.opposite()
 
-    val maxWantToMovePath = getPath(robot.pos, pushDirection, card.distance)
+    val maxWantToMovePath = getPath(robot.pos, pushDirection, abs(card.distance))
     val maxFreePath = getPath(robot.pos, pushDirection, 100 /* TODO up till end of board */)
         .takeWhile { p -> wallAt(p, pushDirection.opposite()) == null }
     val robotsInFreePath = maxFreePath.count { robotAt(it) != null }
@@ -38,7 +39,8 @@ private fun GameModel.controlRobot(id: RobotId, card: ActionCard.MoveForward): R
 fun getPath(pos: Pos, dir: Direction, distance: Int): List<Pos> =
     (1..distance).map { Pos(pos.x + dir.dx * it, pos.y + dir.dy * it) }
 
-sealed class RobotActionResult(val gameModel: GameModel) {
-    class Moved(gameModel: GameModel, val moveSteps: List<Map<RobotId, Pos>>) :
-        RobotActionResult(gameModel)
+sealed class RobotActionResult {
+    abstract val gameModel: GameModel
+    data class Moved(override val gameModel: GameModel, val moveSteps: List<Map<RobotId, Pos>>) :
+        RobotActionResult()
 }

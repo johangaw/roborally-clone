@@ -2,7 +2,7 @@ package gamemodel
 
 import kotlin.test.*
 
-class MoveRobotForwardTest {
+class MoveRobotTest {
 
     @Test
     fun `when there is nothing blocking the robot it is moved`() {
@@ -118,6 +118,34 @@ class MoveRobotForwardTest {
                 listOf(
                     mapOf(pusher.id to Pos(1, 0)),
                     mapOf(pusher.id to Pos(2, 0), pushed.id to Pos(3, 0)),
+                )
+            ), result
+        )
+    }
+
+    @Test
+    fun `when the robot tries to moves backwards and nothing is blocking the way, It moved backwards`() {
+        val model = gameModel(
+            """
+            +|+|+|+|+|+|+
+            +     →     +
+        """.trimIndent()
+        )
+        val robot = model.robots[0]
+        val expectedModel = gameModel(
+            """
+            +|+|+|+|+|+|+
+            +   →       +
+        """.trimIndent()
+        )
+
+        val result = model.controlRobot(robot.id, ActionCard.MoveForward(-1, 0))
+
+        assertEquals(
+            RobotActionResult.Moved(
+                expectedModel,
+                listOf(
+                    mapOf(robot.id to Pos(1, 0)),
                 )
             ), result
         )

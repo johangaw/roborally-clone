@@ -1,7 +1,9 @@
 package gamemodel
 
-sealed class ActionCard(val initiative: Int) {
-    class MoveForward(val distance: Int, initiative: Int) : ActionCard(initiative)
+sealed class ActionCard {
+
+    abstract val initiative: Int
+    data class MoveForward(val distance: Int, override val initiative: Int) : ActionCard()
 //    class Rotate(val degrees: Int, initiative: Int): ActionCard(initiative)
 }
 

@@ -39,7 +39,9 @@ fun gameModel(map: String): GameModel {
                     .mapIndexed { x, char ->
                         if (char == '|') Wall(Pos(x, y), Direction.Left, id = WallId(wallIds++)) else null
                     }
-            }.filterNotNull()
+            }.filterNotNull(),
+        actionDrawPile = actionCardDeck(),
+        players = emptyList()
     )
 }
 
