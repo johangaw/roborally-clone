@@ -20,7 +20,7 @@ class MoveRobotForwardTest {
         """.trimIndent()
         )
 
-        val result = model.controlRobot(robot.id, ActionCard.MoveForward(3))
+        val result = model.controlRobot(robot.id, ActionCard.MoveForward(3, 0))
 
         assertEquals(
             RobotActionResult.Moved(
@@ -50,7 +50,7 @@ class MoveRobotForwardTest {
         """.trimIndent()
         )
 
-        val result = model.controlRobot(robot.id, ActionCard.MoveForward(3))
+        val result = model.controlRobot(robot.id, ActionCard.MoveForward(3, 0))
 
         assertEquals(
             RobotActionResult.Moved(
@@ -79,7 +79,7 @@ class MoveRobotForwardTest {
         """.trimIndent()
         )
 
-        val result = model.controlRobot(pusher.id, ActionCard.MoveForward(3))
+        val result = model.controlRobot(pusher.id, ActionCard.MoveForward(3, 0))
 
         assertEquals(
             RobotActionResult.Moved(
@@ -110,7 +110,7 @@ class MoveRobotForwardTest {
         """.trimIndent()
         )
 
-        val result = model.controlRobot(pusher.id, ActionCard.MoveForward(3))
+        val result = model.controlRobot(pusher.id, ActionCard.MoveForward(3, 0))
 
         assertEquals(
             RobotActionResult.Moved(
