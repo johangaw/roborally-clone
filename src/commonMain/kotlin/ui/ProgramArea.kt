@@ -6,7 +6,7 @@ import com.soywiz.korim.color.*
 import gamemodel.*
 import kotlin.math.*
 
-class ProgramArea(cellSize: Double) : Container() {
+class ProgramArea(cellSize: Double, val playerId: PlayerId) : Container() {
 
     private val programingSlotWidth = cellSize
     private val programingSlotHeight = cellSize * 1.5
@@ -113,5 +113,5 @@ class ProgramArea(cellSize: Double) : Container() {
     }
 }
 
-fun Container.programArea(cellSize: Double, callback: @ViewDslMarker() (ProgramArea.() -> Unit) = {}) =
-    ProgramArea(cellSize).addTo(this, callback)
+fun Container.programArea(cellSize: Double, playerId: PlayerId, callback: @ViewDslMarker() (ProgramArea.() -> Unit) = {}) =
+    ProgramArea(cellSize, playerId).addTo(this, callback)

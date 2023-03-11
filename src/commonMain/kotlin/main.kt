@@ -14,7 +14,6 @@ import com.soywiz.korma.geom.*
 import com.soywiz.korma.geom.vector.*
 import com.soywiz.korma.interpolation.*
 import gamemodel.*
-import kotlinx.coroutines.*
 import ui.*
 import kotlin.math.*
 
@@ -34,18 +33,20 @@ class GameScene : Scene() {
         fieldSize = min(views.virtualWidth - 10.0 * 2.0, views.virtualHeight - 200.0)
 
         val playerOneRobot = Robot(Pos(4, 4), Direction.Down)
+        val playerTwoRobot = Robot(Pos(4, 6), Direction.Right)
 
         var gameModel = GameModel(
             listOf(
                 playerOneRobot,
-                Robot(Pos(4, 6), Direction.Right),
+                playerTwoRobot,
             ), listOf(
                 Wall(Pos(2, 2), Direction.Left),
                 Wall(Pos(2, 2), Direction.Right),
                 Wall(Pos(2, 2), Direction.Up),
                 Wall(Pos(2, 2), Direction.Down),
             ), listOf(
-                Player(robotId = playerOneRobot.id)
+                Player(robotId = playerOneRobot.id),
+                Player(robotId = playerTwoRobot.id),
             )
         )
 
@@ -107,9 +108,17 @@ class GameScene : Scene() {
             it.id to robotView
         }.toMap()
 
-        val programArea = programArea(cellSize) {
-            alignTopToBottomOf(bgField)
+        val programAreas = gameModel.players.map { player ->
+            programArea(cellSize, player.id) {
+                alignTopToBottomOf(bgField)
+                text(player.id.value.toString(), textSize = 30.0, color = Colors.BLACK) {
+                    val textPadding = 10.0
+                    alignTopToTopOf(parent!!, textPadding)
+                    alignLeftToLeftOf(parent!!, textPadding)
+                }
+            }
         }
+        programAreas.first().zIndex = 1.0
 
         keys {
             down {
@@ -118,14 +127,22 @@ class GameScene : Scene() {
                         val result = gameModel.dealActionCards()
                         gameModel = result.gameModel
 
-                        // TODO have different programAreas for different players
-                        val (playerId, hand) = result.hands.entries.first()
-                        programArea.dealCards(hand)
+                        result.hands.forEach {(playerId, hand) ->
+                            programAreas.first { it.playerId == playerId }.dealCards(hand)
+                        }
+                    }
+
+                    Key.S -> {
+                        val focusedProgrammingAreaIndex = programAreas.indexOfFirst { it.zIndex > 0 }
+                        programAreas.forEach {
+                            it.zIndex = 0.0
+                        }
+                        programAreas[(focusedProgrammingAreaIndex + 1) % programAreas.size].zIndex = 1.0
                     }
 
                     Key.R -> {
                         val robotId = gameModel.robots.first().id
-                        val actionCard = programArea.selectedCards.first() ?: return@down
+                        val actionCard = programAreas.first().selectedCards.first() ?: return@down
                         val result = gameModel.controlRobot(robotId, actionCard)
 
                         when (result) {
@@ -142,7 +159,7 @@ class GameScene : Scene() {
 
                     Key.SPACE -> {
                         val robotId = gameModel.robots.first().id
-                        val cards = programArea.selectedCards.filterNotNull()
+                        val cards = programAreas.first().selectedCards.filterNotNull()
 
                         val results = gameModel.controlRobot(robotId, cards)
 
