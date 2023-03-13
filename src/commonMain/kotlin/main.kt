@@ -6,8 +6,8 @@ import com.soywiz.korge.input.*
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.view.*
 import com.soywiz.korge.view.roundRect
+import com.soywiz.korim.atlas.*
 import com.soywiz.korim.color.*
-import com.soywiz.korim.format.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.std.*
 import com.soywiz.korma.geom.*
@@ -100,13 +100,12 @@ class GameScene : Scene() {
             }
         }
 
-        val robots = gameModel.robots.map {
-            val robotView = image(resourcesVfs["robot2.png"].readBitmap()) {
+        val sprites = resourcesVfs["sprites.xml"].readAtlas()
+        val robots = gameModel.robots.associate {
+            it.id to robotView(it.id, it.dir, sprites, cellSize) {
                 position(robotPosition(it.pos))
-                size(cellSize, cellSize)
             }
-            it.id to robotView
-        }.toMap()
+        }
 
         val programAreas = gameModel.players.map { player ->
             programArea(cellSize, player.id) {
@@ -144,8 +143,8 @@ class GameScene : Scene() {
                     Key.F -> {
                         val (p1, p2) = gameModel.players
                         val cards: Map<PlayerId, List<ActionCard>> = mapOf(
-                            p1.id to listOf(ActionCard.MoveForward(2, 100)),
-                            p2.id to listOf(ActionCard.MoveForward(2, 101))
+                            p1.id to listOf(ActionCard.Turn(Turn.Right, 100)),
+                            p2.id to listOf(ActionCard.Turn(Turn.UTurn, 101))
                         )
                         val result = gameModel.resolveRound(cards)
                         animateAllResults(result.steps, robots)
@@ -165,7 +164,7 @@ class GameScene : Scene() {
         }
     }
 
-    private fun Container.animateAllResults(results: List<ResolutionStep>, robots: Map<RobotId, View>) {
+    private fun Container.animateAllResults(results: List<ResolutionStep>, robots: Map<RobotId, RobotView>) {
         launchImmediately {
             animate {
                 sequence {
@@ -175,11 +174,28 @@ class GameScene : Scene() {
                                 animateMovedResult(result.steps, robots)
                             }
 
-                            is ResolutionStep.RotateRobot -> TODO()
+                            is ResolutionStep.RotateRobot -> {
+                                animateTurn(result.robotId, result.newDirection, robots)
+                            }
                         }
                     }
                 }
             }
+        }
+    }
+
+    private fun Animator.animateTurn(robotId: RobotId, newDirection: Direction, robots: Map<RobotId, RobotView>) {
+        val robot = robots.getValue(robotId)
+        val originalPos = robot.pos
+        sequence(defaultTime = 250.milliseconds) {
+            moveBy(robot, -8.0, 0.0)
+            moveBy(robot, 16.0, 0.0)
+            moveTo(robot, originalPos.x, originalPos.y)
+            wait()
+            block {
+                robot.direction = newDirection
+            }
+            wait()
         }
     }
 

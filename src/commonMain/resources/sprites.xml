@@ -1,0 +1,6 @@
+<TextureAtlas imagePath="sprites.png" width="607" height="569">
+    <sprite n="red-down-00.png" x="50" y="0" w="50" h="71" />
+    <sprite n="red-left-00.png" x="50" y="71" w="50" h="71" />
+    <sprite n="red-right-00.png" x="50" y="142" w="50" h="71" />
+    <sprite n="red-up-00.png" x="50" y="213" w="50" h="71" />
+</TextureAtlas>
