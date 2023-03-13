@@ -174,6 +174,8 @@ class GameScene : Scene() {
                             is ResolutionStep.MoveRobot -> {
                                 animateMovedResult(result.steps, robots)
                             }
+
+                            is ResolutionStep.RotateRobot -> TODO()
                         }
                     }
                 }

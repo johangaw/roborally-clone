@@ -65,7 +65,6 @@ class ProgramArea(cellSize: Double, val playerId: PlayerId) : Container() {
                         useOriginalPos()
                         selectedCards.remove(this)
                     }
-
                 }
             }
         }

@@ -13,6 +13,7 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): Resolv
             gameModel.controlRobot(gameModel.getPlayer(playerId).robotId, card).let { result ->
                 when(result) {
                     is RobotActionResult.Moved -> result.gameModel to ResolutionStep.MoveRobot(result.moveSteps)
+                    is RobotActionResult.Turned -> result.gameModel to ResolutionStep.RotateRobot(result.robotId, result.newDirection)
                 }
             }
         }
@@ -32,4 +33,5 @@ data class ResolveRoundResult(val gameModel: GameModel, val steps: List<Resoluti
 
 sealed class ResolutionStep {
     data class MoveRobot(val steps: List<Map<RobotId, Pos>>): ResolutionStep()
+    data class RotateRobot(val robotId: RobotId, val newDirection: Direction): ResolutionStep()
 }
