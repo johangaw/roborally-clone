@@ -39,6 +39,11 @@ data class GameModel(
     fun getRobot(id: RobotId): Robot =
         robots.firstOrNull { it.id == id } ?: throw AssertionError("No robot with id $id")
 
+    fun getRobot(id: PlayerId): Robot = getRobot(getPlayer(id).robotId)
+
+    fun getPlayer(id: PlayerId): Player =
+        players.firstOrNull { it.id == id } ?: throw AssertionError("No player with id $id")
+
     fun wallAt(pos: Pos, dir: Direction): Wall? {
         return walls.firstOrNull { it.pos == pos && it.dir == dir }
             ?: walls.firstOrNull { it.pos == pos + dir && it.dir == dir.opposite() }

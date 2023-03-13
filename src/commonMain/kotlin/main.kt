@@ -127,7 +127,7 @@ class GameScene : Scene() {
                         val result = gameModel.dealActionCards()
                         gameModel = result.gameModel
 
-                        result.hands.forEach {(playerId, hand) ->
+                        result.hands.forEach { (playerId, hand) ->
                             programAreas.first { it.playerId == playerId }.dealCards(hand)
                         }
                     }
@@ -140,31 +140,22 @@ class GameScene : Scene() {
                         programAreas[(focusedProgrammingAreaIndex + 1) % programAreas.size].zIndex = 1.0
                     }
 
-                    Key.R -> {
-                        val robotId = gameModel.robots.first().id
-                        val actionCard = programAreas.first().selectedCards.first() ?: return@down
-                        val result = gameModel.controlRobot(robotId, actionCard)
-
-                        when (result) {
-                            is RobotActionResult.Moved -> {
-                                gameModel = result.gameModel
-                                launchImmediately {
-                                    animate {
-                                        animateMovedResult(result, robots)
-                                    }
-                                }
-                            }
-                        }
+                    Key.F -> {
+                        val (p1, p2) = gameModel.players
+                        val cards: Map<PlayerId, List<ActionCard>> = mapOf(
+                            p1.id to listOf(ActionCard.MoveForward(2, 100)),
+                            p2.id to listOf(ActionCard.MoveForward(2, 101))
+                        )
+                        val result = gameModel.resolveRound(cards)
+                        animateAllResults(result.steps, robots)
+                        gameModel = result.gameModel
                     }
 
                     Key.SPACE -> {
-                        val robotId = gameModel.robots.first().id
-                        val cards = programAreas.first().selectedCards.filterNotNull()
-
-                        val results = gameModel.controlRobot(robotId, cards)
-
-                        animateAllResults(results, robots)
-                        gameModel = results.last().gameModel
+                        val cards = programAreas.associate { it.playerId to it.selectedCards.filterNotNull() }
+                        val result = gameModel.resolveRound(cards)
+                        animateAllResults(result.steps, robots)
+                        gameModel = result.gameModel
                     }
 
                     else -> Unit
@@ -173,14 +164,14 @@ class GameScene : Scene() {
         }
     }
 
-    private fun Container.animateAllResults(results: List<RobotActionResult>, robots: Map<RobotId, View>) {
+    private fun Container.animateAllResults(results: List<ResolutionStep>, robots: Map<RobotId, View>) {
         launchImmediately {
             animate {
                 sequence {
                     results.forEach { result ->
                         when (result) {
-                            is RobotActionResult.Moved -> {
-                                animateMovedResult(result, robots)
+                            is ResolutionStep.MoveRobot -> {
+                                animateMovedResult(result.steps, robots)
                             }
                         }
                     }
@@ -191,12 +182,12 @@ class GameScene : Scene() {
 
     private fun robotPosition(pos: Pos): IPoint = IPoint(indent + pos.x * cellSize, indent + pos.y * cellSize)
 
-    private fun Animator.animateMovedResult(result: RobotActionResult.Moved, robots: Map<RobotId, View>) {
+    private fun Animator.animateMovedResult(steps: List<Map<RobotId, Pos>>, robots: Map<RobotId, View>) {
         sequence(defaultTime = 1.seconds, defaultSpeed = 256.0) {
-            result.moveSteps.forEachIndexed { stepIndex, movements ->
+            steps.forEachIndexed { stepIndex, movements ->
                 val easing = when (stepIndex) {
                     0 -> Easing.EASE_IN
-                    result.moveSteps.lastIndex -> Easing.EASE_OUT
+                    steps.lastIndex -> Easing.EASE_OUT
                     else -> Easing.LINEAR
                 }
                 parallel {
@@ -213,11 +204,4 @@ class GameScene : Scene() {
     }
 }
 
-
-private fun GameModel.controlRobot(robotId: RobotId, cards: List<ActionCard>): List<RobotActionResult> =
-    cards.runningFold<ActionCard, Pair<GameModel, RobotActionResult?>>(this to null) { (gameModel, _), card ->
-        gameModel.controlRobot(robotId, card).let { result ->
-            result.gameModel to result
-        }
-    }.mapNotNull { (_, result) -> result }
 

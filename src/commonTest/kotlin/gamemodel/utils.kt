@@ -20,19 +20,22 @@ import com.soywiz.kmem.*
 fun gameModel(map: String): GameModel {
     var robotIds = 0
     var wallIds = 0
+    var playerId = 0
     assertValidMap(map)
 
     val mapBody = map.split("\n").drop(1).map { it.drop(1).dropLast(1) }
 
+    val robots = mapBody
+        .flatMapIndexed { y, row ->
+            row.filterIndexed { index, _ -> index.isOdd }
+                .mapIndexed { x, char ->
+                    val dir = from(char)
+                    dir?.let { Robot(Pos(x, y), dir, id = RobotId(robotIds++)) }
+                }
+        }.filterNotNull()
+
     return GameModel(
-        robots = mapBody
-            .flatMapIndexed { y, row ->
-                row.filterIndexed { index, _ -> index.isOdd }
-                    .mapIndexed { x, char ->
-                        val dir = from(char)
-                        dir?.let { Robot(Pos(x, y), dir, id = RobotId(robotIds++)) }
-                    }
-            }.filterNotNull(),
+        robots = robots,
         walls = mapBody
             .flatMapIndexed { y, row ->
                 row.filterIndexed { index, _ -> index.isEven }
@@ -41,7 +44,7 @@ fun gameModel(map: String): GameModel {
                     }
             }.filterNotNull(),
         actionDrawPile = actionCardDeck(),
-        players = emptyList()
+        players = robots.map { Player(it.id, id = PlayerId(playerId++)) }
     )
 }
 
