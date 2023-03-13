@@ -153,7 +153,7 @@ class GameScene : Scene() {
                     }
 
                     Key.SPACE -> {
-                        val cards = programAreas.associate { it.playerId to it.selectedCards.filterNotNull() }
+                        val cards = programAreas.associate { it.playerId to it.getSelectedCards() }
                         val result = gameModel.resolveRound(cards)
                         animateAllResults(result.steps, robots)
                         gameModel = result.gameModel

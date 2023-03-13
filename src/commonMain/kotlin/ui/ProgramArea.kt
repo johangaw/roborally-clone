@@ -16,11 +16,9 @@ class ProgramArea(cellSize: Double, val playerId: PlayerId) : Container() {
     private val cardHeight = programingSlotHeight / 2
     private val cardPadding = programingSlotPadding / 2
 
-    private var cards = mapOf<ActionCard, Card>()
+    private var cards = listOf<Card>()
     private lateinit var programmingSlots: Map<Int, RoundRect>
-
-    var selectedCards = arrayOf<ActionCard?>(null, null, null, null, null)
-        private set
+    private val selectedCards = arrayOf<Card?>(null, null, null, null, null)
 
     init {
         roundRect(800.0, 200.0, 0.0) {
@@ -39,17 +37,17 @@ class ProgramArea(cellSize: Double, val playerId: PlayerId) : Container() {
     }
 
     fun clearCards() {
-        cards.values.forEach {
+        cards.forEach {
             it.removeFromParent()
         }
-        cards = emptyMap()
+        cards = emptyList()
     }
 
     fun dealCards(newCards: List<ActionCard>) {
         clearCards()
 
-        cards = newCards.associate { cardModel ->
-            cardModel to card(cardModel, cardWidth, cardHeight) {
+        cards = newCards.map { cardModel ->
+            card(cardModel, cardWidth, cardHeight) {
                 alignTopToTopOf(parent!!, programingSlotPadding)
                 alignRightToRightOf(parent!!, programingSlotPadding)
 
@@ -59,19 +57,20 @@ class ProgramArea(cellSize: Double, val playerId: PlayerId) : Container() {
                     }?.let { (slotIndex, slot) ->
                         scale = 2.0
                         centerOn(slot)
-                        selectedCards[slotIndex] = cardModel
+
+                        selectedCards[slotIndex]?.useOriginalPos()
+                        selectedCards.remove(this)
+                        selectedCards[slotIndex] = this
                     } ?: run {
                         useOriginalPos()
-                        if (selectedCards.contains(cardModel)) {
-                            selectedCards[selectedCards.indexOf(cardModel)] = null
-                        }
+                        selectedCards.remove(this)
                     }
 
                 }
             }
         }
 
-        val (upperRow, lowerRow) = cards.values.chunked(ceil(cards.size / 2.0).toInt())
+        val (upperRow, lowerRow) = cards.chunked(ceil(cards.size / 2.0).toInt())
 
         upperRow.windowed(2, 1).forEach { (first, second) ->
             second.alignRightToLeftOf(first, cardPadding)
@@ -85,8 +84,12 @@ class ProgramArea(cellSize: Double, val playerId: PlayerId) : Container() {
             second.alignTopToBottomOf(upperRow.first(), cardPadding)
         }
 
-        cards.values.forEach { it.storeOriginalPos() }
+        cards.forEach { it.storeOriginalPos() }
     }
+
+    fun getSelectedCards(): List<ActionCard> =
+        selectedCards.map { it?.actionCard }.filterNotNull()
+
 }
 
 fun Container.programArea(
@@ -149,6 +152,7 @@ private class Card(val actionCard: ActionCard, cardWidth: Double, cardHeight: Do
 
     fun useOriginalPos() {
         pos = originalPos
+        scale = 1.0
     }
 }
 
@@ -159,3 +163,9 @@ private fun Container.card(
     callback: @ViewDslMarker() (Card.() -> Unit) = {}
 ) =
     Card(actionCard, cardWidth, cardHeight).addTo(this, callback)
+
+fun <T>Array<T?>.remove(item: T) {
+    if(contains(item)) {
+        set(indexOf(item), null)
+    }
+}
