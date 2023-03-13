@@ -16,10 +16,10 @@ class ProgramArea(cellSize: Double, val playerId: PlayerId) : Container() {
     private val cardHeight = programingSlotHeight / 2
     private val cardPadding = programingSlotPadding / 2
 
-    private var cards = mapOf<ActionCard, RoundRect>()
+    private var cards = mapOf<ActionCard, Card>()
     private lateinit var programmingSlots: Map<Int, RoundRect>
 
-    var selectedCards = arrayOf<ActionCard?>(null,null,null,null,null)
+    var selectedCards = arrayOf<ActionCard?>(null, null, null, null, null)
         private set
 
     init {
@@ -48,16 +48,25 @@ class ProgramArea(cellSize: Double, val playerId: PlayerId) : Container() {
     fun dealCards(newCards: List<ActionCard>) {
         clearCards()
 
-        cards = newCards.associate {cardModel ->
-            cardModel to roundRect(cardWidth, cardHeight, 3.0) {
-                alignTopToTopOf(parent!!,programingSlotPadding)
+        cards = newCards.associate { cardModel ->
+            cardModel to card(cardModel, cardWidth, cardHeight) {
+                alignTopToTopOf(parent!!, programingSlotPadding)
                 alignRightToRightOf(parent!!, programingSlotPadding)
-                fill = Colors.BLUE
 
-                if( cardModel is ActionCard.MoveForward ) {
-                    text(cardModel.distance.toString()) {
-                        centerOn(this@roundRect)
+                onDrop {
+                    programmingSlots.entries.firstOrNull { (_, slot) ->
+                        collidesWith(slot)
+                    }?.let { (slotIndex, slot) ->
+                        scale = 2.0
+                        centerOn(slot)
+                        selectedCards[slotIndex] = cardModel
+                    } ?: run {
+                        useOriginalPos()
+                        if (selectedCards.contains(cardModel)) {
+                            selectedCards[selectedCards.indexOf(cardModel)] = null
+                        }
                     }
+
                 }
             }
         }
@@ -76,42 +85,77 @@ class ProgramArea(cellSize: Double, val playerId: PlayerId) : Container() {
             second.alignTopToBottomOf(upperRow.first(), cardPadding)
         }
 
-        cards.forEach {(cardModel, card) ->
-            val originalPos = card.pos
-            var dragOriginalPos = originalPos
-            card.onMouseDrag {
-                if(it.start) {
-                    card.scale = 2.0
-                    card.zIndex = 1.0
-                }
-
-                val widthScalingCompensation = cardWidth * 0.5
-                val heightScalingCompensation = cardHeight * 0.5
-                card.x = dragOriginalPos.x + it.dx - widthScalingCompensation
-                card.y = dragOriginalPos.y + it.dy - heightScalingCompensation
-
-                if(it.end) {
-                    card.zIndex = 0.0
-                    programmingSlots.entries.firstOrNull { (_, slot) ->
-                        card.collidesWith(slot)
-                    }?.let { (slotIndex, slot) ->
-                        card.centerOn(slot)
-                        dragOriginalPos = card.pos
-                        selectedCards[slotIndex] = cardModel
-                    } ?: run {
-                        card.pos = originalPos
-                        card.scale = 1.0
-                        dragOriginalPos = originalPos
-
-                        if(selectedCards.contains(cardModel)) {
-                            selectedCards[selectedCards.indexOf(cardModel)] = null
-                        }
-                    }
-                }
-            }
-        }
+        cards.values.forEach { it.storeOriginalPos() }
     }
 }
 
-fun Container.programArea(cellSize: Double, playerId: PlayerId, callback: @ViewDslMarker() (ProgramArea.() -> Unit) = {}) =
+fun Container.programArea(
+    cellSize: Double,
+    playerId: PlayerId,
+    callback: @ViewDslMarker() (ProgramArea.() -> Unit) = {}
+) =
     ProgramArea(cellSize, playerId).addTo(this, callback)
+
+
+private class Card(val actionCard: ActionCard, cardWidth: Double, cardHeight: Double) : Container() {
+
+    private var _onDrop: Card.(info: MouseDragInfo) -> Unit = {}
+    private var pickupPos = pos
+    private var originalPos = pos
+
+
+    init {
+        roundRect(cardWidth, cardHeight, 3.0) {
+            fill = Colors.BLUE
+            if (actionCard is ActionCard.MoveForward) {
+                text(actionCard.distance.toString()) {
+                    centerOn(this@roundRect)
+                }
+            }
+        }
+
+        var scalingWidthChange = 0.0
+        var scalingHeightChange = 0.0
+        onMouseDrag {
+            if (it.start) {
+                val newScale = 2.0
+                scalingWidthChange = cardWidth * (newScale - scaleX)
+                scalingHeightChange = cardHeight * (newScale - scaleY)
+                scale = newScale
+                zIndex = 1.0
+                pickupPos = pos
+            }
+
+            val widthScalingCompensation = scalingWidthChange / 2
+            val heightScalingCompensation = scalingHeightChange / 2
+            x = pickupPos.x + it.dx - widthScalingCompensation
+            y = pickupPos.y + it.dy - heightScalingCompensation
+
+            if (it.end) {
+                scale = 1.0
+                zIndex = 0.0
+                _onDrop(it)
+            }
+        }
+    }
+
+    fun onDrop(callback: Card.(info: MouseDragInfo) -> Unit) {
+        _onDrop = callback
+    }
+
+    fun storeOriginalPos() {
+        originalPos = pos
+    }
+
+    fun useOriginalPos() {
+        pos = originalPos
+    }
+}
+
+private fun Container.card(
+    actionCard: ActionCard,
+    cardWidth: Double,
+    cardHeight: Double,
+    callback: @ViewDslMarker() (Card.() -> Unit) = {}
+) =
+    Card(actionCard, cardWidth, cardHeight).addTo(this, callback)
