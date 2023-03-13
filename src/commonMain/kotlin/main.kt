@@ -116,9 +116,10 @@ class GameScene : Scene() {
                     alignTopToTopOf(parent!!, textPadding)
                     alignLeftToLeftOf(parent!!, textPadding)
                 }
+                visible = false
             }
         }
-        programAreas.first().zIndex = 1.0
+        programAreas.first().visible = true
 
         keys {
             down {
@@ -133,11 +134,11 @@ class GameScene : Scene() {
                     }
 
                     Key.S -> {
-                        val focusedProgrammingAreaIndex = programAreas.indexOfFirst { it.zIndex > 0 }
+                        val focusedProgrammingAreaIndex = programAreas.indexOfFirst { it.visible }
                         programAreas.forEach {
-                            it.zIndex = 0.0
+                            it.visible = false
                         }
-                        programAreas[(focusedProgrammingAreaIndex + 1) % programAreas.size].zIndex = 1.0
+                        programAreas[(focusedProgrammingAreaIndex + 1) % programAreas.size].visible = true
                     }
 
                     Key.F -> {
