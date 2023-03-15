@@ -100,6 +100,15 @@ class GameScene : Scene() {
             }
         }
 
+        /**
+         * X altas formula
+         * width 46
+         * gap 5
+         *
+         * Y atlas formula
+         * height 65
+         * gap 7
+         */
         val sprites = resourcesVfs["sprites.xml"].readAtlas()
         val robots = gameModel.robots.associate {
             it.id to robotView(it.id, it.dir, sprites, cellSize) {
