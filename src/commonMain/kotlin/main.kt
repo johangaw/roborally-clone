@@ -195,11 +195,10 @@ class GameScene : Scene() {
 
     private fun Animator.animateTurn(robotId: RobotId, newDirection: Direction, robots: Map<RobotId, RobotView>) {
         val robot = robots.getValue(robotId)
-        val originalPos = robot.pos
         sequence(defaultTime = 250.milliseconds) {
             moveBy(robot, -8.0, 0.0)
             moveBy(robot, 16.0, 0.0)
-            moveTo(robot, originalPos.x, originalPos.y)
+            moveBy(robot, -8.0, 0.0)
             wait()
             block {
                 robot.direction = newDirection
