@@ -43,7 +43,7 @@ class ProgramArea(cellSize: Double, val playerId: PlayerId) : Container() {
         cards = emptyList()
     }
 
-    fun dealCards(newCards: List<ActionCard>) {
+    suspend fun dealCards(newCards: List<ActionCard>) {
         clearCards()
 
         cards = newCards.map { cardModel ->
@@ -97,71 +97,6 @@ fun Container.programArea(
     callback: @ViewDslMarker() (ProgramArea.() -> Unit) = {}
 ) =
     ProgramArea(cellSize, playerId).addTo(this, callback)
-
-
-private class Card(val actionCard: ActionCard, cardWidth: Double, cardHeight: Double) : Container() {
-
-    private var _onDrop: Card.(info: MouseDragInfo) -> Unit = {}
-    private var pickupPos = pos
-    private var originalPos = pos
-
-
-    init {
-        roundRect(cardWidth, cardHeight, 3.0) {
-            fill = Colors.BLUE
-            if (actionCard is ActionCard.MoveForward) {
-                text(actionCard.distance.toString()) {
-                    centerOn(this@roundRect)
-                }
-            }
-        }
-
-        var scalingWidthChange = 0.0
-        var scalingHeightChange = 0.0
-        onMouseDrag {
-            if (it.start) {
-                val newScale = 2.0
-                scalingWidthChange = cardWidth * (newScale - scaleX)
-                scalingHeightChange = cardHeight * (newScale - scaleY)
-                scale = newScale
-                zIndex = 1.0
-                pickupPos = pos
-            }
-
-            val widthScalingCompensation = scalingWidthChange / 2
-            val heightScalingCompensation = scalingHeightChange / 2
-            x = pickupPos.x + it.dx - widthScalingCompensation
-            y = pickupPos.y + it.dy - heightScalingCompensation
-
-            if (it.end) {
-                scale = 1.0
-                zIndex = 0.0
-                _onDrop(it)
-            }
-        }
-    }
-
-    fun onDrop(callback: Card.(info: MouseDragInfo) -> Unit) {
-        _onDrop = callback
-    }
-
-    fun storeOriginalPos() {
-        originalPos = pos
-    }
-
-    fun useOriginalPos() {
-        pos = originalPos
-        scale = 1.0
-    }
-}
-
-private fun Container.card(
-    actionCard: ActionCard,
-    cardWidth: Double,
-    cardHeight: Double,
-    callback: @ViewDslMarker() (Card.() -> Unit) = {}
-) =
-    Card(actionCard, cardWidth, cardHeight).addTo(this, callback)
 
 fun <T>Array<T?>.remove(item: T) {
     if(contains(item)) {
