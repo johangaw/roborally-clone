@@ -23,3 +23,11 @@ value class PlayerId(val value: Int) {
         fun create() = PlayerId(freeId++)
     }
 }
+
+@JvmInline
+value class CheckpointId(val value: Int) {
+    companion object {
+        private var freeId = 0
+        fun create() = CheckpointId(freeId++)
+    }
+}

@@ -24,12 +24,15 @@ data class Wall(val pos: Pos, val dir: Direction, val id: WallId = WallId.create
 
 data class Player(val robotId: RobotId, val hand: List<ActionCard> = emptyList(), val id: PlayerId = PlayerId.create())
 
+data class Checkpoint(val order: Int, val pos: Pos, val id: CheckpointId = CheckpointId.create())
+
 data class GameModel(
     val robots: List<Robot>,
     val walls: List<Wall>,
     val players: List<Player>,
     val actionDrawPile: List<ActionCard> = actionCardDeck().shuffled(),
-    val actionDiscardPile: List<ActionCard> = emptyList()
+    val actionDiscardPile: List<ActionCard> = emptyList(),
+    val checkpoints: List<Checkpoint> = emptyList(),
 ) {
     fun robotAt(pos: Pos): Robot? = robots.firstOrNull { it.pos == pos }
 
