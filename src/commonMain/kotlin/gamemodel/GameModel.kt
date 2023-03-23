@@ -22,7 +22,12 @@ data class Robot(val pos: Pos, val dir: Direction, val id: RobotId = RobotId.cre
 
 data class Wall(val pos: Pos, val dir: Direction, val id: WallId = WallId.create())
 
-data class Player(val robotId: RobotId, val hand: List<ActionCard> = emptyList(), val id: PlayerId = PlayerId.create())
+data class Player(
+    val robotId: RobotId,
+    val hand: List<ActionCard> = emptyList(),
+    val completedCheckpoints: List<Checkpoint> = emptyList(),
+    val id: PlayerId = PlayerId.create()
+)
 
 data class Checkpoint(val order: Int, val pos: Pos, val id: CheckpointId = CheckpointId.create())
 

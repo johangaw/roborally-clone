@@ -27,10 +27,12 @@ class RotateRobotTest {
 
 
     private fun validateRotation(originalDirection: Direction, rot: Turn, expectedDirection: Direction) {
-        val (r1, model) = gameModel("""
+        val (r1, model) = gameModel(
+            """
             +|+|+|+|+|+|+
             + →         +
-        """.trimIndent()).let { model ->
+        """.trimIndent()
+        ).let { model ->
             val robot = model.robots.first()
             robot to model.mapRobot(robot.id) { it.copy(dir = originalDirection) }
         }
@@ -38,12 +40,13 @@ class RotateRobotTest {
         val result = model.controlRobot(r1.id, ActionCard.Turn(rot, 0))
 
         assertEquals(
-            RobotActionResult.Turned(
-                model.mapRobot(r1.id) { it.copy(dir = expectedDirection) },
-                r1.id,
-                expectedDirection
-            ),
-            result
+            model.mapRobot(r1.id) { it.copy(dir = expectedDirection) },
+            result.gameModel
+        )
+
+        assertEquals(
+            listOf(ActionCardResolutionStep.TurningStep(r1.id, expectedDirection)),
+            result.steps
         )
     }
 }

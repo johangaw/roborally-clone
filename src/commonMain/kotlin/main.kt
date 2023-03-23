@@ -156,14 +156,14 @@ class GameScene : Scene() {
                             p2.id to listOf(ActionCard.Turn(Turn.UTurn, 101))
                         )
                         val result = gameModel.resolveRound(cards)
-                        animateAllResults(result.steps, robots)
+                        animateAllResults(result.resolutions, robots)
                         gameModel = result.gameModel
                     }
 
                     Key.SPACE -> {
                         val cards = programAreas.associate { it.playerId to it.getSelectedCards() }
                         val result = gameModel.resolveRound(cards)
-                        animateAllResults(result.steps, robots)
+                        animateAllResults(result.resolutions, robots)
                         gameModel = result.gameModel
                     }
 
@@ -173,22 +173,35 @@ class GameScene : Scene() {
         }
     }
 
-    private fun Container.animateAllResults(results: List<ResolutionStep>, robots: Map<RobotId, RobotView>) {
+    private fun Container.animateAllResults(resolutions: List<ActionCardResolution>, robots: Map<RobotId, RobotView>) {
         launchImmediately {
             animate {
                 sequence {
-                    results.forEach { result ->
-                        when (result) {
-                            is ResolutionStep.MoveRobot -> {
-                                animateMovedResult(result.steps, robots)
-                            }
-
-                            is ResolutionStep.RotateRobot -> {
-                                animateTurn(result.robotId, result.newDirection, robots)
-                            }
-                        }
+                    resolutions.forEach { resolution ->
+                        animateResolution(resolution, robots)
+                        wait()
                     }
                 }
+            }
+        }
+    }
+
+    private fun Animator.animateResolution(resolution: ActionCardResolution, robots: Map<RobotId, RobotView>) {
+        sequence(defaultTime = 500.milliseconds, defaultSpeed = 256.0) {
+            resolution.steps.forEachIndexed { stepIndex, step ->
+                when (step) {
+                    is ActionCardResolutionStep.MovementStep -> {
+                        val easing = when (stepIndex) {
+                            0 -> Easing.EASE_IN
+                            resolution.steps.lastIndex -> Easing.EASE_OUT
+                            else -> Easing.LINEAR
+                        }
+                        animateMovementParts(step.parts, easing, robots)
+                    }
+
+                    is ActionCardResolutionStep.TurningStep -> animateTurn(step.robotId, step.newDirection, robots)
+                }
+
             }
         }
     }
@@ -209,23 +222,16 @@ class GameScene : Scene() {
 
     private fun robotPosition(pos: Pos): IPoint = IPoint(indent + pos.x * cellSize, indent + pos.y * cellSize)
 
-    private fun Animator.animateMovedResult(steps: List<Map<RobotId, Pos>>, robots: Map<RobotId, View>) {
-        sequence(defaultTime = 1.seconds, defaultSpeed = 256.0) {
-            steps.forEachIndexed { stepIndex, movements ->
-                val easing = when (stepIndex) {
-                    0 -> Easing.EASE_IN
-                    steps.lastIndex -> Easing.EASE_OUT
-                    else -> Easing.LINEAR
-                }
-                parallel {
-                    movements.forEach { (id, pos) ->
-                        val viewRobot = robots.getValue(id)
-                        val newPos = robotPosition(pos)
-                        moveTo(
-                            viewRobot, newPos.x, newPos.y, 0.5.seconds, easing
-                        )
-                    }
-                }
+    private fun Animator.animateMovementParts(
+        parts: List<ActionCardResolutionStep.MovementStep.MovementPart>,
+        easing: Easing,
+        robots: Map<RobotId, RobotView>
+    ) {
+        parallel {
+            parts.forEach { part ->
+                val viewRobot = robots.getValue(part.robotId)
+                val newPos = robotPosition(part.newPos)
+                moveTo(viewRobot, newPos.x, newPos.y, easing = easing)
             }
         }
     }

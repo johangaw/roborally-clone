@@ -1,5 +1,6 @@
 package gamemodel
 
+import gamemodel.ActionCardResolutionStep.MovementStep
 import kotlin.test.*
 
 class MoveRobotTest {
@@ -23,14 +24,17 @@ class MoveRobotTest {
         val result = model.controlRobot(robot.id, ActionCard.MoveForward(3, 0))
 
         assertEquals(
-            RobotActionResult.Moved(
-                expectedModel,
-                listOf(
-                    mapOf(robot.id to Pos(1, 0)),
-                    mapOf(robot.id to Pos(2, 0)),
-                    mapOf(robot.id to Pos(3, 0))
-                )
-            ), result
+            expectedModel,
+            result.gameModel
+        )
+
+        assertEquals(
+            listOf(
+                MovementStep(robot.id to Pos(1, 0)),
+                MovementStep(robot.id to Pos(2, 0)),
+                MovementStep(robot.id to Pos(3, 0)),
+            ),
+            result.steps
         )
     }
 
@@ -53,12 +57,14 @@ class MoveRobotTest {
         val result = model.controlRobot(robot.id, ActionCard.MoveForward(3, 0))
 
         assertEquals(
-            RobotActionResult.Moved(
-                expectedModel,
-                listOf(
-                    mapOf(robot.id to Pos(2, 0)),
-                )
-            ), result
+            expectedModel,
+            result.gameModel
+        )
+        assertEquals(
+            listOf(
+                MovementStep(robot.id to Pos(2, 0))
+            ),
+            result.steps
         )
     }
 
@@ -82,14 +88,21 @@ class MoveRobotTest {
         val result = model.controlRobot(pusher.id, ActionCard.MoveForward(3, 0))
 
         assertEquals(
-            RobotActionResult.Moved(
-                expectedModel,
-                listOf(
-                    mapOf(pusher.id to Pos(1, 0)),
-                    mapOf(pusher.id to Pos(2, 0), pushed.id to Pos(3, 0)),
-                    mapOf(pusher.id to Pos(3, 0), pushed.id to Pos(4, 0))
+            expectedModel,
+            result.gameModel
+        )
+        assertEquals(
+            listOf(
+                MovementStep(pusher.id to Pos(1, 0)),
+                MovementStep(
+                    pusher.id to Pos(2, 0),
+                    pushed.id to Pos(3, 0),
+                ),
+                MovementStep(
+                    pusher.id to Pos(3, 0),
+                    pushed.id to Pos(4, 0),
                 )
-            ), result
+            ), result.steps
         )
     }
 
@@ -113,13 +126,17 @@ class MoveRobotTest {
         val result = model.controlRobot(pusher.id, ActionCard.MoveForward(3, 0))
 
         assertEquals(
-            RobotActionResult.Moved(
-                expectedModel,
-                listOf(
-                    mapOf(pusher.id to Pos(1, 0)),
-                    mapOf(pusher.id to Pos(2, 0), pushed.id to Pos(3, 0)),
+            expectedModel,
+            result.gameModel
+        )
+        assertEquals(
+            listOf(
+                MovementStep(pusher.id to Pos(1, 0)),
+                MovementStep(
+                    pusher.id to Pos(2, 0),
+                    pushed.id to Pos(3, 0),
                 )
-            ), result
+            ), result.steps
         )
     }
 
@@ -142,12 +159,12 @@ class MoveRobotTest {
         val result = model.controlRobot(robot.id, ActionCard.MoveForward(-1, 0))
 
         assertEquals(
-            RobotActionResult.Moved(
-                expectedModel,
-                listOf(
-                    mapOf(robot.id to Pos(1, 0)),
-                )
-            ), result
+            expectedModel,
+            result.gameModel
+        )
+        assertEquals(
+            listOf(MovementStep(robot.id to Pos(1, 0))),
+            result.steps
         )
     }
 }

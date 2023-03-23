@@ -1,16 +1,17 @@
 package gamemodel
 
+import gamemodel.ActionCardResolutionStep.MovementStep.MovementPart
 import java.lang.Integer.min
 import kotlin.math.*
 
-fun GameModel.controlRobot(id: RobotId, card: ActionCard): RobotActionResult {
+fun GameModel.controlRobot(id: RobotId, card: ActionCard): ActionCardResolutionResult {
     return when (card) {
         is ActionCard.MoveForward -> controlRobot(id, card)
         is ActionCard.Turn -> controlRobot(id, card)
     }
 }
 
-private fun GameModel.controlRobot(id: RobotId, card: ActionCard.MoveForward): RobotActionResult {
+private fun GameModel.controlRobot(id: RobotId, card: ActionCard.MoveForward): ActionCardResolutionResult {
     val robot = getRobot(id)
     val pushDirection = if (card.distance > 0) robot.dir else robot.dir.opposite()
 
@@ -23,28 +24,32 @@ private fun GameModel.controlRobot(id: RobotId, card: ActionCard.MoveForward): R
 
     val movingSteps = movablePath
         .runningFold(
-            listOf(robot.id to robot.pos) // Start with robots original position
+            listOf(MovementPart(robot.id, robot.pos)) // Start with robots original position
         ) { acc, pos ->
-            (robotAt(pos)?.let { acc + (it.id to pos) } ?: acc)
-                .map { (id, p) -> id to p + pushDirection }
-        }.map { it.toMap() }
+            (robotAt(pos)?.let { acc + MovementPart(it.id, pos) } ?: acc)
+                .map { (id, p) -> MovementPart(robotId = id, newPos = p + pushDirection) }
+        }
         .drop(1) // Remove robots original position
 
-    val finalPositions = movingSteps.last()
-    return RobotActionResult.Moved(
-        copy(robots = robots.map { it.copy(pos = finalPositions.getOrDefault(it.id, it.pos)) }),
-        movingSteps
+    val finalPositions = movingSteps.last().associate { (id, p) -> id to p }
+    return ActionCardResolutionResult(
+        gameModel = copy(robots = robots.map { it.copy(pos = finalPositions.getOrDefault(it.id, it.pos)) }),
+        steps = movingSteps.map { ActionCardResolutionStep.MovementStep(it) }
     )
 }
 
-private fun GameModel.controlRobot(robotId: RobotId, card: ActionCard.Turn): RobotActionResult {
+private fun GameModel.controlRobot(robotId: RobotId, card: ActionCard.Turn): ActionCardResolutionResult {
     val robot = getRobot(robotId)
     val dir = robot.dir + card.type
 
-    return RobotActionResult.Turned(
+    return ActionCardResolutionResult(
         gameModel = mapRobot(robotId) { it.copy(dir = dir) },
-        robotId = robotId,
-        newDirection = dir
+        steps = listOf(
+            ActionCardResolutionStep.TurningStep(
+                robotId = robotId,
+                newDirection = dir
+            )
+        )
     )
 }
 
@@ -79,12 +84,19 @@ private operator fun Direction.plus(rotation: Turn): Direction =
 private fun getPath(pos: Pos, dir: Direction, distance: Int): List<Pos> =
     (1..distance).map { Pos(pos.x + dir.dx * it, pos.y + dir.dy * it) }
 
-sealed class RobotActionResult {
-    abstract val gameModel: GameModel
+data class ActionCardResolutionResult(val gameModel: GameModel, val steps: List<ActionCardResolutionStep>)
 
-    data class Moved(override val gameModel: GameModel, val moveSteps: List<Map<RobotId, Pos>>) :
-        RobotActionResult()
 
-    data class Turned(override val gameModel: GameModel, val robotId: RobotId, val newDirection: Direction) :
-        RobotActionResult()
+sealed class ActionCardResolutionStep() {
+    data class TurningStep(val robotId: RobotId, val newDirection: Direction) : ActionCardResolutionStep()
+
+    data class MovementStep(val parts: List<MovementPart>) : ActionCardResolutionStep() {
+
+        constructor(vararg parts: MovementPart) : this(parts.toList())
+        constructor(vararg parts: Pair<RobotId, Pos>) : this(parts.map { (id, pos) -> MovementPart(id, pos) })
+
+        data class MovementPart(val robotId: RobotId, val newPos: Pos)
+
+    }
+
 }
