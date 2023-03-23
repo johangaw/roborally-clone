@@ -4,14 +4,14 @@ import gamemodel.MovementPart.Move
 import java.lang.Integer.min
 import kotlin.math.*
 
-fun GameModel.controlRobot(id: RobotId, card: ActionCard): ActionCardResolutionResult {
+fun GameModel.resolveActionCard(id: RobotId, card: ActionCard): ActionCardResolutionResult {
     return when (card) {
-        is ActionCard.MoveForward -> controlRobot(id, card)
-        is ActionCard.Turn -> controlRobot(id, card)
+        is ActionCard.MoveForward -> resolveActionCard(id, card)
+        is ActionCard.Turn -> resolveActionCard(id, card)
     }
 }
 
-private fun GameModel.controlRobot(id: RobotId, card: ActionCard.MoveForward): ActionCardResolutionResult {
+private fun GameModel.resolveActionCard(id: RobotId, card: ActionCard.MoveForward): ActionCardResolutionResult {
     val robot = getRobot(id)
     val pushDirection = if (card.distance > 0) robot.dir else robot.dir.opposite()
 
@@ -58,7 +58,7 @@ private fun GameModel.controlRobot(id: RobotId, card: ActionCard.MoveForward): A
     )
 }
 
-private fun GameModel.controlRobot(robotId: RobotId, card: ActionCard.Turn): ActionCardResolutionResult {
+private fun GameModel.resolveActionCard(robotId: RobotId, card: ActionCard.Turn): ActionCardResolutionResult {
     val robot = getRobot(robotId)
     val dir = robot.dir + card.type
 

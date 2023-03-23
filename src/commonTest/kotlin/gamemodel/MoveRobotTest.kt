@@ -21,7 +21,7 @@ class MoveRobotTest {
         """.trimIndent()
         )
 
-        val result = model.controlRobot(robot.id, ActionCard.MoveForward(3, 0))
+        val result = model.resolveActionCard(robot.id, ActionCard.MoveForward(3, 0))
 
         assertEquals(
             expectedModel,
@@ -54,7 +54,7 @@ class MoveRobotTest {
         """.trimIndent()
         )
 
-        val result = model.controlRobot(robot.id, ActionCard.MoveForward(3, 0))
+        val result = model.resolveActionCard(robot.id, ActionCard.MoveForward(3, 0))
 
         assertEquals(
             expectedModel,
@@ -85,7 +85,7 @@ class MoveRobotTest {
         """.trimIndent()
         )
 
-        val result = model.controlRobot(pusher.id, ActionCard.MoveForward(3, 0))
+        val result = model.resolveActionCard(pusher.id, ActionCard.MoveForward(3, 0))
 
         assertEquals(
             expectedModel,
@@ -123,7 +123,7 @@ class MoveRobotTest {
         """.trimIndent()
         )
 
-        val result = model.controlRobot(pusher.id, ActionCard.MoveForward(3, 0))
+        val result = model.resolveActionCard(pusher.id, ActionCard.MoveForward(3, 0))
 
         assertEquals(
             expectedModel,
@@ -156,7 +156,7 @@ class MoveRobotTest {
         """.trimIndent()
         )
 
-        val result = model.controlRobot(robot.id, ActionCard.MoveForward(-1, 0))
+        val result = model.resolveActionCard(robot.id, ActionCard.MoveForward(-1, 0))
 
         assertEquals(
             expectedModel,
@@ -186,7 +186,7 @@ class MoveRobotTest {
         """.trimIndent()
         ).copy(players = listOf(player.copy(completedCheckpoints = listOf(checkpoint.id))))
 
-        val result = model.controlRobot(robot.id, ActionCard.MoveForward(2, 0))
+        val result = model.resolveActionCard(robot.id, ActionCard.MoveForward(2, 0))
 
         assertEquals(
             expectedModel,
@@ -226,7 +226,7 @@ class MoveRobotTest {
             )
         )
 
-        val result = model.controlRobot(r1.id, ActionCard.MoveForward(1, 0))
+        val result = model.resolveActionCard(r1.id, ActionCard.MoveForward(1, 0))
 
         assertEquals(
             expectedModel,
@@ -262,7 +262,7 @@ class MoveRobotTest {
             players = listOf(p1)
         )
 
-        val result = model.controlRobot(r1.id, ActionCard.MoveForward(2, 0))
+        val result = model.resolveActionCard(r1.id, ActionCard.MoveForward(2, 0))
 
         assertEquals(
             expectedModel,
@@ -299,7 +299,7 @@ class MoveRobotTest {
             )
         )
 
-        val result = model.controlRobot(r1.id, ActionCard.MoveForward(3, 0))
+        val result = model.resolveActionCard(r1.id, ActionCard.MoveForward(3, 0))
 
         assertEquals(
             expectedModel,

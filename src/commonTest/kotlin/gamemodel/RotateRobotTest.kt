@@ -37,7 +37,7 @@ class RotateRobotTest {
             robot to model.mapRobot(robot.id) { it.copy(dir = originalDirection) }
         }
 
-        val result = model.controlRobot(r1.id, ActionCard.Turn(rot, 0))
+        val result = model.resolveActionCard(r1.id, ActionCard.Turn(rot, 0))
 
         assertEquals(
             model.mapRobot(r1.id) { it.copy(dir = expectedDirection) },

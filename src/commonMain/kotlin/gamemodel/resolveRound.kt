@@ -12,7 +12,7 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
         .map { it.sortedBy { (_, card) -> card.initiative } }
         .flatten()
         .fold(RoundResolutionResult(this, emptyList())) { current, (playerId, card) ->
-            val result = current.gameModel.controlRobot(current.gameModel.getPlayer(playerId).robotId, card)
+            val result = current.gameModel.resolveActionCard(current.gameModel.getPlayer(playerId).robotId, card)
             RoundResolutionResult(
                 gameModel = result.gameModel,
                 resolutions = current.resolutions + ActionCardResolution(result.steps)
