@@ -93,7 +93,7 @@ suspend fun Container.card(
         is ActionCard.Turn -> when(actionCard.type) {
             Turn.Right -> resourcesVfs["right.png"].readBitmap()
             Turn.Left -> resourcesVfs["left.png"].readBitmap()
-            Turn.UTurn -> resourcesVfs["back_up.png"].readBitmap()
+            Turn.UTurn -> resourcesVfs["u_turn.png"].readBitmap()
         }
     }
 
