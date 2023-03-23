@@ -1,6 +1,6 @@
 package gamemodel
 
-import gamemodel.ActionCardResolutionStep.MovementStep.MovementPart
+import gamemodel.MovementPart.Move
 import java.lang.Integer.min
 import kotlin.math.*
 
@@ -22,19 +22,39 @@ private fun GameModel.controlRobot(id: RobotId, card: ActionCard.MoveForward): A
     val maxMovableDistance = min(maxFreePath.size - robotsInFreePath, maxWantToMovePath.size)
     val movablePath = getPath(robot.pos, pushDirection, maxMovableDistance)
 
-    val movingSteps = movablePath
+    val movementPartsPerStep = movablePath
         .runningFold(
-            listOf(MovementPart(robot.id, robot.pos)) // Start with robots original position
+            listOf(Move(robot.id, robot.pos)) // Start with robots original position
         ) { acc, pos ->
-            (robotAt(pos)?.let { acc + MovementPart(it.id, pos) } ?: acc)
-                .map { (id, p) -> MovementPart(robotId = id, newPos = p + pushDirection) }
+            (robotAt(pos)?.let { acc + Move(it.id, pos) } ?: acc)
+                .map { (id, p) -> Move(robotId = id, newPos = p + pushDirection) }
         }
         .drop(1) // Remove robots original position
 
-    val finalPositions = movingSteps.last().associate { (id, p) -> id to p }
+    val checkpointPartsPerStep = movementPartsPerStep.map { moves ->
+        moves.mapNotNull {
+            val nextCheckpoint = nextCheckpoint(it.robotId)
+            val player = getPlayer(it.robotId)
+            if (nextCheckpoint?.pos == it.newPos)
+                MovementPart.TakeCheckpoint(player.id, nextCheckpoint.id)
+            else
+                null
+        }
+    }
+
+    val finalPositions = movementPartsPerStep.last().associate { (id, p) -> id to p }
     return ActionCardResolutionResult(
-        gameModel = copy(robots = robots.map { it.copy(pos = finalPositions.getOrDefault(it.id, it.pos)) }),
-        steps = movingSteps.map { ActionCardResolutionStep.MovementStep(it) }
+        gameModel = copy(
+            robots = robots.map { it.copy(pos = finalPositions.getOrDefault(it.id, it.pos)) },
+            players = players.map { player ->
+                player.copy(completedCheckpoints = player.completedCheckpoints + checkpointPartsPerStep.flatten()
+                    .filter { it.playerId == player.id }.map { it.checkpointId })
+            }
+        ),
+        steps =
+            movementPartsPerStep.mapIndexed { index, parts ->
+                ActionCardResolutionStep.MovementStep(parts + checkpointPartsPerStep[index])
+            }
     )
 }
 
@@ -93,10 +113,11 @@ sealed class ActionCardResolutionStep() {
     data class MovementStep(val parts: List<MovementPart>) : ActionCardResolutionStep() {
 
         constructor(vararg parts: MovementPart) : this(parts.toList())
-        constructor(vararg parts: Pair<RobotId, Pos>) : this(parts.map { (id, pos) -> MovementPart(id, pos) })
-
-        data class MovementPart(val robotId: RobotId, val newPos: Pos)
-
+        constructor(vararg parts: Pair<RobotId, Pos>) : this(parts.map { (id, pos) -> Move(id, pos) })
     }
+}
 
+sealed class MovementPart {
+    data class Move(val robotId: RobotId, val newPos: Pos) : MovementPart()
+    data class TakeCheckpoint(val playerId: PlayerId, val checkpointId: CheckpointId) : MovementPart()
 }

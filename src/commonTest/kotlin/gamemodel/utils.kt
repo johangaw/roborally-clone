@@ -107,13 +107,3 @@ private fun <T> List<String>.mapPrePos(cb: (x: Int, y: Int, char: Char) -> T?): 
                 cb(x, y, char)
             }
     }.filterNotNull()
-
-
-//@OptIn(ExperimentalContracts::class)
-//fun assertIsRobotActionResultMoved(obj: Any) {
-//    contract {
-//        returns() implies (obj is RobotActionResult.Moved)
-//    }
-//
-//    assertTrue(obj is RobotActionResult.Moved)
-//}

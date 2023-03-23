@@ -223,15 +223,21 @@ class GameScene : Scene() {
     private fun robotPosition(pos: Pos): IPoint = IPoint(indent + pos.x * cellSize, indent + pos.y * cellSize)
 
     private fun Animator.animateMovementParts(
-        parts: List<ActionCardResolutionStep.MovementStep.MovementPart>,
+        parts: List<MovementPart>,
         easing: Easing,
         robots: Map<RobotId, RobotView>
     ) {
         parallel {
             parts.forEach { part ->
-                val viewRobot = robots.getValue(part.robotId)
-                val newPos = robotPosition(part.newPos)
-                moveTo(viewRobot, newPos.x, newPos.y, easing = easing)
+                when(part) {
+                    is MovementPart.Move -> {
+                        val viewRobot = robots.getValue(part.robotId)
+                        val newPos = robotPosition(part.newPos)
+                        moveTo(viewRobot, newPos.x, newPos.y, easing = easing)
+                    }
+
+                    is MovementPart.TakeCheckpoint -> TODO()
+                }
             }
         }
     }
