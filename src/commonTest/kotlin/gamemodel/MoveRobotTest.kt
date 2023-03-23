@@ -278,7 +278,6 @@ class MoveRobotTest {
     }
 
     @Test
-    @Ignore("Not implemented")
     fun `when the robot moves over the multiple checkpoints in correct order, The checkpoints are all registered as taken`() {
         val model = gameModel(
             """

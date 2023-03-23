@@ -1,5 +1,7 @@
 package gamemodel
 
+import java.lang.Integer.max
+
 data class Pos(val x: Int, val y: Int)
 
 enum class Direction(val dx: Int, val dy: Int) {
@@ -66,10 +68,11 @@ data class GameModel(
     fun getCheckpoint(id: CheckpointId) =
         checkpoints.firstOrNull { it.id == id } ?: throw AssertionError("No checkpoint with id $id")
 
-    fun nextCheckpoint(robotId: RobotId): Checkpoint? =
-        getPlayer(robotId).completedCheckpoints
-            .map { getCheckpoint(it) }
-            .maxByOrNull { it.order }
-            ?.let { completed -> checkpoints.first { it.order == completed.order + 1 } }
-            ?: checkpoints.minByOrNull { it.order }
+    fun nextCheckpoint(robotId: RobotId): Checkpoint? = getPlayer(robotId).completedCheckpoints
+        .map { getCheckpoint(it) }
+        .map { it.order }
+        .fold(-1) { maxOrder, order -> max(maxOrder, order) }
+        .let {maxOrderCompleted ->
+            checkpoints.sortedBy { it.order }.firstOrNull { maxOrderCompleted < it.order }
+        }
 }
