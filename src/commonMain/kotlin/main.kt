@@ -14,6 +14,7 @@ import com.soywiz.korma.geom.*
 import com.soywiz.korma.geom.vector.*
 import com.soywiz.korma.interpolation.*
 import gamemodel.*
+import gamemodel.RoundResolution.ActionCardResolution
 import ui.*
 import kotlin.math.*
 
@@ -77,33 +78,35 @@ class GameScene : Scene() {
                         val wallThickness = 10.0
                         val roundness = 3.0
                         fill(Colors.YELLOW) {
-                            gameModel.wallsAt(Pos(x, y)).forEach { wall ->
-                                when (wall.dir) {
-                                    Direction.Up -> roundRect(
-                                        cellSize * x, cellSize * y, cellSize, wallThickness, roundness
-                                    )
+                            gameModel
+                                .wallsAt(Pos(x, y))
+                                .forEach { wall ->
+                                    when (wall.dir) {
+                                        Direction.Up -> roundRect(
+                                            cellSize * x, cellSize * y, cellSize, wallThickness, roundness
+                                        )
 
-                                    Direction.Down -> roundRect(
-                                        cellSize * x,
-                                        cellSize * (y + 1) - wallThickness,
-                                        cellSize,
-                                        wallThickness,
-                                        roundness
-                                    )
+                                        Direction.Down -> roundRect(
+                                            cellSize * x,
+                                            cellSize * (y + 1) - wallThickness,
+                                            cellSize,
+                                            wallThickness,
+                                            roundness
+                                        )
 
-                                    Direction.Right -> roundRect(
-                                        cellSize * (x + 1) - wallThickness,
-                                        cellSize * y,
-                                        wallThickness,
-                                        cellSize,
-                                        roundness
-                                    )
+                                        Direction.Right -> roundRect(
+                                            cellSize * (x + 1) - wallThickness,
+                                            cellSize * y,
+                                            wallThickness,
+                                            cellSize,
+                                            roundness
+                                        )
 
-                                    Direction.Left -> roundRect(
-                                        cellSize * x, cellSize * y, wallThickness, cellSize, roundness
-                                    )
+                                        Direction.Left -> roundRect(
+                                            cellSize * x, cellSize * y, wallThickness, cellSize, roundness
+                                        )
+                                    }
                                 }
-                            }
                         }
                     }
                 }
@@ -167,7 +170,9 @@ class GameScene : Scene() {
                         gameModel = result.gameModel
 
                         result.hands.forEach { (playerId, hand) ->
-                            programAreas.first { it.playerId == playerId }.dealCards(hand)
+                            programAreas
+                                .first { it.playerId == playerId }
+                                .dealCards(hand)
                         }
                     }
 
@@ -210,7 +215,7 @@ class GameScene : Scene() {
         }
     }
 
-    private fun Container.animateAllResults(resolutions: List<ActionCardResolution>, robots: Map<RobotId, RobotView>) {
+    private fun Container.animateAllResults(resolutions: List<RoundResolution>, robots: Map<RobotId, RobotView>) {
         launchImmediately {
             animate {
                 sequence {
@@ -223,22 +228,26 @@ class GameScene : Scene() {
         }
     }
 
-    private fun Animator.animateResolution(resolution: ActionCardResolution, robots: Map<RobotId, RobotView>) {
+    private fun Animator.animateResolution(resolution: RoundResolution, robots: Map<RobotId, RobotView>) {
         sequence(defaultTime = 500.milliseconds, defaultSpeed = 256.0) {
-            resolution.steps.forEachIndexed { stepIndex, step ->
-                when (step) {
-                    is ActionCardResolutionStep.MovementStep -> {
-                        val easing = when (stepIndex) {
-                            0 -> Easing.EASE_IN
-                            resolution.steps.lastIndex -> Easing.EASE_OUT
-                            else -> Easing.LINEAR
+            when (resolution) {
+                is ActionCardResolution -> resolution.steps.forEachIndexed { stepIndex, step ->
+                    when (step) {
+                        is ActionCardResolutionStep.MovementStep -> {
+                            val easing = when (stepIndex) {
+                                0 -> Easing.EASE_IN
+                                resolution.steps.lastIndex -> Easing.EASE_OUT
+                                else -> Easing.LINEAR
+                            }
+                            animateMovementParts(step.parts, easing, robots)
                         }
-                        animateMovementParts(step.parts, easing, robots)
+
+                        is ActionCardResolutionStep.TurningStep -> animateTurn(step.robotId, step.newDirection, robots)
                     }
 
-                    is ActionCardResolutionStep.TurningStep -> animateTurn(step.robotId, step.newDirection, robots)
                 }
 
+                is RoundResolution.CheckpointResolution -> TODO()
             }
         }
     }
@@ -266,7 +275,7 @@ class GameScene : Scene() {
     ) {
         parallel {
             parts.forEach { part ->
-                when(part) {
+                when (part) {
                     is MovementPart.Move -> {
                         val viewRobot = robots.getValue(part.robotId)
                         val newPos = robotPosition(part.newPos)
@@ -274,7 +283,7 @@ class GameScene : Scene() {
                     }
 
                     is MovementPart.TakeCheckpoint -> {
-                        val programArea = programAreas.first {it.playerId == part.playerId}
+                        val programArea = programAreas.first { it.playerId == part.playerId }
                         sequence {
                             val blinkSpeed = 500.milliseconds
                             repeat(1) {
@@ -284,7 +293,8 @@ class GameScene : Scene() {
                                 wait(blinkSpeed)
                             }
                             block { programArea.markCheckpoint(part.checkpointId, true) }
-                        }                    }
+                        }
+                    }
                 }
             }
         }

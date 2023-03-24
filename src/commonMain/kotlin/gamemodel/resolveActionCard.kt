@@ -45,26 +45,10 @@ private fun GameModel.resolveMovement(robotId: RobotId, dir: Direction): Movemen
         .takeWhile { robotAt(it) != null }
         .mapNotNull { robotAt(it) }
     val newPositions = (listOf(robot) + robotsToPush).associate { it.id to it.pos + dir }
-    val completedCheckpoints = newPositions
-        .filter { (id, pos) -> nextCheckpoint(id)?.pos == pos }
-        .map { (id, _) -> getPlayer(id).id to nextCheckpoint(id)!!.id }
-        .toMap()
-
     return MovementResolution(
         gameModel = this.copy(
-            robots = robots.map { it.copy(pos = newPositions.getOrDefault(it.id, it.pos)) },
-            players = players.map {
-                if (it.id in completedCheckpoints) it.copy(
-                    completedCheckpoints = it.completedCheckpoints + completedCheckpoints.getValue(it.id)
-                )
-                else it
-            }),
-        parts = newPositions.map { (id, pos) -> Move(id, pos) }
-            + completedCheckpoints.map { (playerId, checkpointId) ->
-            TakeCheckpoint(
-                playerId, checkpointId
-            )
-        })
+            robots = robots.map { it.copy(pos = newPositions.getOrDefault(it.id, it.pos)) }),
+        parts = newPositions.map { (id, pos) -> Move(id, pos) })
 }
 
 private data class MovementResolution(val gameModel: GameModel, val parts: List<MovementPart>)

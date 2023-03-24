@@ -27,7 +27,7 @@ data class Wall(val pos: Pos, val dir: Direction, val id: WallId = WallId.create
 data class Player(
     val robotId: RobotId,
     val hand: List<ActionCard> = emptyList(),
-    val completedCheckpoints: List<CheckpointId> = emptyList(),
+    val capturedCheckpoints: List<CheckpointId> = emptyList(),
     val id: PlayerId = PlayerId.create()
 )
 
@@ -68,7 +68,7 @@ data class GameModel(
     fun getCheckpoint(id: CheckpointId) =
         checkpoints.firstOrNull { it.id == id } ?: throw AssertionError("No checkpoint with id $id")
 
-    fun nextCheckpoint(robotId: RobotId): Checkpoint? = getPlayer(robotId).completedCheckpoints
+    fun nextCheckpoint(robotId: RobotId): Checkpoint? = getPlayer(robotId).capturedCheckpoints
         .map { getCheckpoint(it) }
         .map { it.order }
         .fold(-1) { maxOrder, order -> max(maxOrder, order) }
