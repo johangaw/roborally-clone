@@ -25,28 +25,38 @@ suspend fun main() = Korge(width = 1024, height = 1024, bgcolor = Colors["#2b2b2
 
 class GameScene : Scene() {
 
+    private lateinit var programAreas: List<ProgramArea>
+    private lateinit var bitmapCache: BitmapCache
     var fieldSize: Double = 0.0
     val indent = 2
     val cellSize: Double get() = (fieldSize - indent * 2) / 10.0
 
     override suspend fun SContainer.sceneMain() {
+        bitmapCache = BitmapCache.create()
         fieldSize = min(views.virtualWidth - 10.0 * 2.0, views.virtualHeight - 200.0)
 
         val playerOneRobot = Robot(Pos(4, 4), Direction.Down)
         val playerTwoRobot = Robot(Pos(4, 6), Direction.Right)
 
         var gameModel = GameModel(
-            listOf(
+            robots = listOf(
                 playerOneRobot,
                 playerTwoRobot,
-            ), listOf(
+            ),
+            walls = listOf(
                 Wall(Pos(2, 2), Direction.Left),
                 Wall(Pos(2, 2), Direction.Right),
                 Wall(Pos(2, 2), Direction.Up),
                 Wall(Pos(2, 2), Direction.Down),
-            ), listOf(
+            ),
+            players = listOf(
                 Player(robotId = playerOneRobot.id),
                 Player(robotId = playerTwoRobot.id),
+            ),
+            checkpoints = listOf(
+                Checkpoint(0, Pos(4, 8)),
+                Checkpoint(1, Pos(2, 4)),
+                Checkpoint(2, Pos(9, 9)),
             )
         )
 
@@ -100,6 +110,26 @@ class GameScene : Scene() {
             }
         }
 
+        gameModel.checkpoints.forEach {
+            fixedSizeContainer(cellSize, cellSize) {
+                position(robotPosition(it.pos))
+
+                val image = image(bitmapCache.checkpoint) {
+                    val checkpointSize = cellSize * 0.8
+                    size(checkpointSize, checkpointSize)
+                    centerOn(parent!!)
+                }
+
+                text(it.order.toString()) {
+                    fontSize = 25.0
+                    color = Colors.WHITE
+                    centerOn(image)
+                    alignTopToTopOf(image, cellSize * 0.1)
+                }
+            }
+
+        }
+
         /**
          * X altas formula
          * width 46
@@ -116,8 +146,8 @@ class GameScene : Scene() {
             }
         }
 
-        val programAreas = gameModel.players.map { player ->
-            programArea(cellSize, player.id) {
+        programAreas = gameModel.players.map { player ->
+            programArea(cellSize, gameModel.checkpoints.map { it.id }, player.id, bitmapCache) {
                 alignTopToBottomOf(bgField)
                 text(player.id.value.toString(), textSize = 30.0, color = Colors.BLACK) {
                     val textPadding = 10.0
@@ -150,14 +180,21 @@ class GameScene : Scene() {
                     }
 
                     Key.F -> {
-                        val (p1, p2) = gameModel.players
-                        val cards: Map<PlayerId, List<ActionCard>> = mapOf(
-                            p1.id to listOf(ActionCard.Turn(Turn.Right, 100)),
-                            p2.id to listOf(ActionCard.Turn(Turn.UTurn, 101))
-                        )
-                        val result = gameModel.resolveRound(cards)
-                        animateAllResults(result.resolutions, robots)
-                        gameModel = result.gameModel
+                        val checkpointId = gameModel.checkpoints.last().id
+                        val programArea = programAreas.first()
+                        animate {
+                            sequence() {
+                                val blinkSpeed = 500.milliseconds
+                                repeat(2) {
+                                    block { programArea.markCheckpoint(checkpointId, true) }
+                                    wait(blinkSpeed)
+                                    block { programArea.markCheckpoint(checkpointId, false) }
+                                    wait(blinkSpeed)
+                                }
+                                block { programArea.markCheckpoint(checkpointId, true) }
+                            }
+                        }
+
                     }
 
                     Key.SPACE -> {
@@ -236,7 +273,18 @@ class GameScene : Scene() {
                         moveTo(viewRobot, newPos.x, newPos.y, easing = easing)
                     }
 
-                    is MovementPart.TakeCheckpoint -> TODO()
+                    is MovementPart.TakeCheckpoint -> {
+                        val programArea = programAreas.first {it.playerId == part.playerId}
+                        sequence {
+                            val blinkSpeed = 500.milliseconds
+                            repeat(1) {
+                                block { programArea.markCheckpoint(part.checkpointId, true) }
+                                wait(blinkSpeed)
+                                block { programArea.markCheckpoint(part.checkpointId, false) }
+                                wait(blinkSpeed)
+                            }
+                            block { programArea.markCheckpoint(part.checkpointId, true) }
+                        }                    }
                 }
             }
         }
