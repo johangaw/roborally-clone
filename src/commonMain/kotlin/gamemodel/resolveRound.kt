@@ -1,16 +1,18 @@
 package gamemodel
 
-import gamemodel.RoundResolution.ActionCardResolution
-import gamemodel.RoundResolution.CheckpointResolution
+import gamemodel.RoundResolution.*
 import gamemodel.RoundStep.ResolveActionCard
 import gamemodel.RoundStep.ResolveCheckpoints
+import gamemodel.RoundStep.ResolveLasers
 
 fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundResolutionResult {
+    val phases = 1..programming.values.maxOf { it.size }
     return programming
         .map { (id, cards) -> cards.map { ResolveActionCard(id, it) } }
+        .plus(listOf(phases.map { ResolveCheckpoints }))
+        .plus(listOf(phases.map { ResolveLasers }))
         .zipAll()
-        .map { it.sortedBy { (_, card) -> card.initiative } }
-        .plus(listOf((1..programming.values.maxOf { it.size }).map { ResolveCheckpoints }))
+        .map { it.sort() }
         .flatten()
         .fold(RoundResolutionResult(this, emptyList())) { current, step ->
             when (step) {
@@ -35,10 +37,30 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
                             )
                         }
                 }
+
+                ResolveLasers -> {
+                    current.gameModel
+                        .resolveLasers()
+                        .let {
+                            RoundResolutionResult(
+                                gameModel = it.gameModel,
+                                resolutions = current.resolutions + LaserResolution(it.laserPaths, it.damage)
+                            )
+                        }
+                }
             }
         }
 }
 
+
+private fun List<RoundStep>.sort(): List<RoundStep> =
+    this.sortedBy {
+        when(it) {
+            is ResolveActionCard -> it.card.initiative
+            ResolveCheckpoints -> Int.MAX_VALUE
+            ResolveLasers -> Int.MAX_VALUE
+        }
+    }
 
 private fun <T> List<List<T>>.zipAll(): List<List<T>> {
     return (0..this.minOf { it.lastIndex })
@@ -49,6 +71,8 @@ private sealed class RoundStep {
     data class ResolveActionCard(val playerId: PlayerId, val card: ActionCard) : RoundStep()
 
     object ResolveCheckpoints : RoundStep()
+
+    object ResolveLasers : RoundStep()
 }
 
 data class RoundResolutionResult(val gameModel: GameModel, val resolutions: List<RoundResolution>)
@@ -59,4 +83,6 @@ sealed class RoundResolution {
     }
 
     data class CheckpointResolution(val capturedCheckpoints: Map<PlayerId, CheckpointId>) : RoundResolution()
+
+    data class LaserResolution(val laserPaths: Set<List<Pos>>, val damage: Map<RobotId, Int>) : RoundResolution()
 }

@@ -20,7 +20,7 @@ fun Direction.opposite(): Direction = when (this) {
     Direction.Left -> Direction.Right
 }
 
-data class Robot(val pos: Pos, val dir: Direction, val id: RobotId = RobotId.create())
+data class Robot(val pos: Pos, val dir: Direction, val health: Int = 10, val id: RobotId = RobotId.create())
 
 data class Wall(val pos: Pos, val dir: Direction, val id: WallId = WallId.create())
 

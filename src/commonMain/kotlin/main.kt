@@ -248,6 +248,7 @@ class GameScene : Scene() {
                 }
 
                 is RoundResolution.CheckpointResolution -> TODO()
+                is RoundResolution.LaserResolution -> TODO()
             }
         }
     }

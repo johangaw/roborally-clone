@@ -28,21 +28,34 @@ class ResolveRoundTest {
             +|+|+|+|+|+|+
             +|  → ←    |+
         """.trimIndent()
-        )
+        ).let {
+            val (r1, r2) = it.robots
+            it.copy(
+                robots = listOf(r1.copy(health = 8), r2.copy(health = 8))
+            )
+        }
         assertEquals(result.gameModel, expectedModel)
 
         assertEquals(
-            result.resolutions, listOf(
+            listOf(
                 ActionCardResolution(
                     MovementStep(
-                        r1.id to  Pos(1, 0)
+                        r1.id to Pos(1, 0)
                     )
                 ),
                 ActionCardResolution(
                     MovementStep(r2.id to Pos(3, 0))
                 ),
+                CheckpointResolution(emptyMap()),
+                LaserResolution(
+                    laserPaths = setOf(
+                        listOf(Pos(2, 0), Pos(3, 0)),
+                        listOf(Pos(2, 0), Pos(1, 0)),
+                    ),
+                    damage = mapOf(r1.id to 1, r2.id to 1)
+                ),
                 ActionCardResolution(
-                    MovementStep(r2.id to  Pos(2, 0)),
+                    MovementStep(r2.id to Pos(2, 0)),
                     MovementStep(
                         r2.id to Pos(1, 0),
                         r1.id to Pos(0, 0),
@@ -53,8 +66,17 @@ class ResolveRoundTest {
                         r1.id to Pos(1, 0),
                         r2.id to Pos(2, 0),
                     )
-                )
-            )
+                ),
+                CheckpointResolution(emptyMap()),
+                LaserResolution(
+                    laserPaths = setOf(
+                        listOf(Pos(2, 0)),
+                        listOf(Pos(1, 0)),
+                    ),
+                    damage = mapOf(r1.id to 1, r2.id to 1)
+                ),
+            ),
+            result.resolutions
         )
     }
 
@@ -73,7 +95,7 @@ class ResolveRoundTest {
             p1.id to listOf(ActionCard.MoveForward(2, 10)),
         )
         val expectedModel = model.copy(
-            robots = listOf(r1.copy(pos = Pos(2,0))),
+            robots = listOf(r1.copy(pos = Pos(2, 0))),
             players = listOf(p1.copy(capturedCheckpoints = listOf(c1.id)))
         )
 
@@ -83,10 +105,17 @@ class ResolveRoundTest {
         assertEquals(
             listOf(
                 ActionCardResolution(
-                    MovementStep(r1.id to Pos(1,0)),
-                    MovementStep(r1.id to Pos(2,0)),
+                    MovementStep(r1.id to Pos(1, 0)),
+                    MovementStep(r1.id to Pos(2, 0)),
                 ),
-                CheckpointResolution(mapOf(p1.id to c1.id))
+                CheckpointResolution(mapOf(p1.id to c1.id)),
+                LaserResolution(
+                    laserPaths = setOf(
+                        (1..101).map { Pos(2 + it, 0) },
+                    ),
+                    damage = emptyMap()
+                )
+
             ),
             result.resolutions
         )
