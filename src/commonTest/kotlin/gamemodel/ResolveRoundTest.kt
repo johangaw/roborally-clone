@@ -49,8 +49,8 @@ class ResolveRoundTest {
                 CheckpointResolution(emptyMap()),
                 LaserResolution(
                     laserPaths = setOf(
-                        listOf(Pos(2, 0), Pos(3, 0)),
-                        listOf(Pos(2, 0), Pos(1, 0)),
+                        LaserPath(listOf(Pos(2, 0), Pos(3, 0)),LaserDirection.Right),
+                        LaserPath(listOf(Pos(2, 0), Pos(1, 0)),LaserDirection.Left),
                     ),
                     damage = mapOf(r1.id to 1, r2.id to 1)
                 ),
@@ -70,8 +70,8 @@ class ResolveRoundTest {
                 CheckpointResolution(emptyMap()),
                 LaserResolution(
                     laserPaths = setOf(
-                        listOf(Pos(2, 0)),
-                        listOf(Pos(1, 0)),
+                        LaserPath(listOf(Pos(2, 0)),LaserDirection.Right),
+                        LaserPath(listOf(Pos(1, 0)),LaserDirection.Left),
                     ),
                     damage = mapOf(r1.id to 1, r2.id to 1)
                 ),
@@ -111,7 +111,7 @@ class ResolveRoundTest {
                 CheckpointResolution(mapOf(p1.id to c1.id)),
                 LaserResolution(
                     laserPaths = setOf(
-                        (1..101).map { Pos(2 + it, 0) },
+                        LaserPath((1..101).map { Pos(2 + it, 0) }, LaserDirection.Right),
                     ),
                     damage = emptyMap()
                 )

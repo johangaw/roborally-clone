@@ -1,12 +1,15 @@
 package gamemodel
 
+// TODO lock cards on damage
+
 fun GameModel.resolveLasers(): LaserResolutionResult {
     val laserPaths = robots
-        .map { laserPath(it.pos, it.dir) }
+        .map { robot -> laserPath(robot.pos, robot.dir).let { LaserPath(it, laserDirection(robot.pos, it.first())) } }
         .toSet()
     val hitRobots = laserPaths
         .mapNotNull {
             it
+                .path
                 .lastOrNull()
                 ?.let { robotAt(it) }
         }
@@ -17,6 +20,17 @@ fun GameModel.resolveLasers(): LaserResolutionResult {
         hitRobots,
         laserPaths
     )
+}
+
+fun laserDirection(robotPos: Pos, beginningOfLaserPath: Pos): LaserDirection {
+    val dx = beginningOfLaserPath.x - robotPos.x
+    val dy = beginningOfLaserPath.y - robotPos.y
+    return if (dx == 0)
+        if (dy > 0) LaserDirection.Down
+        else LaserDirection.Up
+    else
+        if (dx > 0) LaserDirection.Right
+        else LaserDirection.Left
 }
 
 private fun GameModel.laserPath(pos: Pos, dir: Direction): List<Pos> {
@@ -35,5 +49,14 @@ private fun <T> List<T>.takeWhileIncludingStop(predicate: (T) -> Boolean): List<
 data class LaserResolutionResult(
     val gameModel: GameModel,
     val damage: Map<RobotId, Int>,
-    val laserPaths: Set<List<Pos>>,
+    val laserPaths: Set<LaserPath>,
 )
+
+enum class LaserDirection {
+    Right,
+    Left,
+    Down,
+    Up
+}
+
+data class LaserPath(val path: List<Pos>, val dir: LaserDirection)

@@ -19,8 +19,14 @@ class ResolveLasersTest {
         assertEquals(model, result.gameModel)
         assertEquals(emptyMap(), result.damage)
         assertEquals(setOf(
-            (-1 downTo -101).map { Pos(0, it) },
-            (1 .. 101).map { Pos(2 + it, 0) },
+            LaserPath(
+                (-1 downTo -101).map { Pos(0, it) },
+                LaserDirection.Up,
+            ),
+            LaserPath(
+                (1 .. 101).map { Pos(2 + it, 0) },
+                LaserDirection.Right
+            )
         ), result.laserPaths)
     }
 
@@ -43,8 +49,8 @@ class ResolveLasersTest {
         assertEquals(mapOf(r2.id to 1), result.damage)
         assertEquals(
             setOf(
-                (1..4).map { Pos(it, 0) },
-                (-1 downTo -101).map { Pos(4, it) },
+                LaserPath((1..4).map { Pos(it, 0) },LaserDirection.Right),
+                LaserPath((-1 downTo -101).map { Pos(4, it) },LaserDirection.Up),
             ),
             result.laserPaths
         )
@@ -69,10 +75,9 @@ class ResolveLasersTest {
         assertEquals(mapOf(r2.id to 1), result.damage)
         assertEquals(
             setOf(
-                (1..3).map { Pos(it, 0) },
-                (1..101).map { Pos(3, it) },
-                (-1 downTo -101).map { Pos(4, it) }
-
+                LaserPath((1..3).map { Pos(it, 0) },LaserDirection.Right),
+                LaserPath((1..101).map { Pos(3, it) },LaserDirection.Down),
+                LaserPath((-1 downTo -101).map { Pos(4, it) },LaserDirection.Up),
             ),
             result.laserPaths
         )
@@ -93,8 +98,8 @@ class ResolveLasersTest {
         assertEquals(emptyMap(), result.damage)
         assertEquals(
             setOf(
-                listOf(Pos( 1, 0)),
-                (1..101).map { Pos(2, it) }
+                LaserPath(listOf(Pos( 1, 0)),LaserDirection.Right),
+                LaserPath((1..101).map { Pos(2, it) }, LaserDirection.Down),
             ),
             result.laserPaths
         )

@@ -14,7 +14,6 @@ import com.soywiz.korma.geom.*
 import com.soywiz.korma.geom.vector.*
 import com.soywiz.korma.interpolation.*
 import gamemodel.*
-import gamemodel.RoundResolution.ActionCardResolution
 import ui.*
 import kotlin.math.*
 
@@ -26,6 +25,7 @@ suspend fun main() = Korge(width = 1024, height = 1024, bgcolor = Colors["#2b2b2
 
 class GameScene : Scene() {
 
+    private lateinit var laserBeam: RoundRect
     private lateinit var programAreas: List<ProgramArea>
     private lateinit var bitmapCache: BitmapCache
     var fieldSize: Double = 0.0
@@ -130,7 +130,6 @@ class GameScene : Scene() {
                     alignTopToTopOf(image, cellSize * 0.1)
                 }
             }
-
         }
 
         /**
@@ -185,18 +184,29 @@ class GameScene : Scene() {
                     }
 
                     Key.F -> {
-                        val checkpointId = gameModel.checkpoints.last().id
-                        val programArea = programAreas.first()
                         animate {
-                            sequence() {
-                                val blinkSpeed = 500.milliseconds
-                                repeat(2) {
-                                    block { programArea.markCheckpoint(checkpointId, true) }
-                                    wait(blinkSpeed)
-                                    block { programArea.markCheckpoint(checkpointId, false) }
-                                    wait(blinkSpeed)
-                                }
-                                block { programArea.markCheckpoint(checkpointId, true) }
+                            sequence {
+                                animateLasers(
+                                    RoundResolution.LaserResolution(
+                                        setOf(
+                                            LaserPath(
+                                                listOf(
+                                                    Pos(5, 6),
+                                                    Pos(6, 6),
+                                                    Pos(7, 6),
+                                                    Pos(8, 6),
+                                                    Pos(9, 6),
+                                                ),
+                                                LaserDirection.Right
+                                            ),
+                                            LaserPath(
+                                                listOf(Pos(4, 5), Pos(4, 6)),
+                                                LaserDirection.Down
+                                            )
+                                        ),
+                                        emptyMap()
+                                    )
+                                )
                             }
                         }
 
@@ -231,7 +241,7 @@ class GameScene : Scene() {
     private fun Animator.animateResolution(resolution: RoundResolution, robots: Map<RobotId, RobotView>) {
         sequence(defaultTime = 500.milliseconds, defaultSpeed = 256.0) {
             when (resolution) {
-                is ActionCardResolution -> resolution.steps.forEachIndexed { stepIndex, step ->
+                is RoundResolution.ActionCardResolution -> resolution.steps.forEachIndexed { stepIndex, step ->
                     when (step) {
                         is ActionCardResolutionStep.MovementStep -> {
                             val easing = when (stepIndex) {
@@ -248,7 +258,27 @@ class GameScene : Scene() {
                 }
 
                 is RoundResolution.CheckpointResolution -> TODO()
-                is RoundResolution.LaserResolution -> TODO()
+                is RoundResolution.LaserResolution -> animateLasers(resolution)
+            }
+        }
+    }
+
+    private fun Animator.animateLasers(resolution: RoundResolution.LaserResolution) {
+        val beams = resolution.laserPaths.map {
+            LaserBeam(cellSize, it.path.size, it.dir).apply {
+                alpha = 0.0
+                addTo(this@GameScene.sceneContainer)
+                position(robotPosition(it.path.first(), pos))
+            }
+        }
+        sequence {
+            parallel { beams.forEach { alpha(it, 1.0, 100.milliseconds) } }
+            parallel { beams.forEach { alpha(it, 0.0, 100.milliseconds) } }
+            parallel { beams.forEach { alpha(it, 1.0, 500.milliseconds) } }
+            wait(500.milliseconds)
+            parallel { beams.forEach { alpha(it, 0.0, 500.milliseconds) } }
+            block {
+                beams.forEach { it.removeFromParent() }
             }
         }
     }
@@ -267,12 +297,13 @@ class GameScene : Scene() {
         }
     }
 
-    private fun robotPosition(pos: Pos): IPoint = IPoint(indent + pos.x * cellSize, indent + pos.y * cellSize)
+    private fun robotPosition(pos: Pos, basePoint: IPoint = Point(0, 0)): IPoint =
+        IPoint(indent + pos.x * cellSize + basePoint.x, indent + pos.y * cellSize + +basePoint.y)
 
     private fun Animator.animateMovementParts(
         parts: List<MovementPart>,
         easing: Easing,
-        robots: Map<RobotId, RobotView>
+        robots: Map<RobotId, RobotView>,
     ) {
         parallel {
             parts.forEach { part ->
@@ -301,5 +332,3 @@ class GameScene : Scene() {
         }
     }
 }
-
-

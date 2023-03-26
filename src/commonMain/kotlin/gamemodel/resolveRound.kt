@@ -84,5 +84,5 @@ sealed class RoundResolution {
 
     data class CheckpointResolution(val capturedCheckpoints: Map<PlayerId, CheckpointId>) : RoundResolution()
 
-    data class LaserResolution(val laserPaths: Set<List<Pos>>, val damage: Map<RobotId, Int>) : RoundResolution()
+    data class LaserResolution(val laserPaths: Set<LaserPath>, val damage: Map<RobotId, Int>) : RoundResolution()
 }
