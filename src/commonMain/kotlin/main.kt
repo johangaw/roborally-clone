@@ -4,6 +4,7 @@ import com.soywiz.korge.*
 import com.soywiz.korge.animate.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.scene.*
+import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
 import com.soywiz.korge.view.roundRect
 import com.soywiz.korim.atlas.*
@@ -25,6 +26,7 @@ suspend fun main() = Korge(width = 1024, height = 1024, bgcolor = Colors["#2b2b2
 
 class GameScene : Scene() {
 
+    private lateinit var robots: Map<RobotId, RobotView>
     private lateinit var laserBeam: RoundRect
     private lateinit var programAreas: List<ProgramArea>
     private lateinit var bitmapCache: BitmapCache
@@ -142,7 +144,7 @@ class GameScene : Scene() {
          * gap 7
          */
         val sprites = resourcesVfs["sprites.xml"].readAtlas()
-        val robots = gameModel.robots.associate {
+        robots = gameModel.robots.associate {
             it.id to robotView(it.id, it.dir, sprites, cellSize) {
                 position(robotPosition(it.pos))
             }
@@ -204,7 +206,7 @@ class GameScene : Scene() {
                                                 LaserDirection.Down
                                             )
                                         ),
-                                        emptyMap()
+                                        mapOf(playerTwoRobot.id to 1)
                                     )
                                 )
                             }
@@ -271,12 +273,25 @@ class GameScene : Scene() {
                 position(robotPosition(it.path.first(), pos))
             }
         }
+        val damagedRobots = resolution.damage.keys.map { robots.getValue(it) }
         sequence {
-            parallel { beams.forEach { alpha(it, 1.0, 100.milliseconds) } }
-            parallel { beams.forEach { alpha(it, 0.0, 100.milliseconds) } }
-            parallel { beams.forEach { alpha(it, 1.0, 500.milliseconds) } }
-            wait(500.milliseconds)
-            parallel { beams.forEach { alpha(it, 0.0, 500.milliseconds) } }
+            parallel(time = 100.milliseconds) {
+                beams.forEach { alpha(it, 1.0) }
+                damagedRobots.forEach { tween(it::burning[1.0]) }
+            }
+            parallel(time = 100.milliseconds) {
+                beams.forEach { alpha(it, 0.0) }
+                damagedRobots.forEach { tween(it::burning[0.0]) }
+            }
+            parallel(time = 500.milliseconds) {
+                beams.forEach { alpha(it, 1.0) }
+                damagedRobots.forEach { tween(it::burning[1.0]) }
+            }
+            wait(time = 500.milliseconds)
+            parallel(time = 500.milliseconds) {
+                beams.forEach { alpha(it, 0.0) }
+                damagedRobots.forEach { tween(it::burning[0.0]) }
+            }
             block {
                 beams.forEach { it.removeFromParent() }
             }

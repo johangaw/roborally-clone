@@ -1,7 +1,11 @@
 package ui
 
+import com.soywiz.klock.*
+import com.soywiz.korge.animate.*
 import com.soywiz.korge.view.*
+import com.soywiz.korge.view.mask.*
 import com.soywiz.korim.atlas.*
+import com.soywiz.korim.color.*
 import gamemodel.*
 
 class RobotView(val robotId: RobotId, direction: Direction, atlas: Atlas, cellSize: Double) : Container() {
@@ -27,6 +31,14 @@ class RobotView(val robotId: RobotId, direction: Direction, atlas: Atlas, cellSi
         set(value) {
             field = value
             spriteView.playAnimation(dirMap.getValue(value))
+            spriteView.currentSpriteIndex
+        }
+
+    var burning: Double = 0.0
+        set(value) {
+            field = value
+            val color = value.interpolate(Colors.WHITE, Colors.BLACK)
+            spriteView.colorMul = color
         }
 }
 
