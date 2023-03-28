@@ -151,7 +151,7 @@ class GameScene : Scene() {
         }
 
         programAreas = gameModel.players.map { player ->
-            programArea(cellSize, gameModel.checkpoints.map { it.id }, player.id, bitmapCache) {
+            programArea(cellSize, gameModel.checkpoints.map { it.id }, player.id, player.robotId, bitmapCache) {
                 alignTopToBottomOf(bgField)
                 text(player.id.value.toString(), textSize = 30.0, color = Colors.BLACK) {
                     val textPadding = 10.0
@@ -281,7 +281,7 @@ class GameScene : Scene() {
             block {
                 beams.forEach { it.removeFromParent() }
                 resolution.lockedRegisters.forEach { (robotId, lockedRegisters) ->
-                    val programArea = programAreas.first { it.playerId == gameModel.getPlayer(robotId).id }
+                    val programArea = programAreas.first { it.robotId == robotId }
                     lockedRegisters.forEach { programArea.lockRegister(it.index, it.card) }
                 }
             }

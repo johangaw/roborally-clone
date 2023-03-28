@@ -79,31 +79,6 @@ class Card(
     }
 }
 
-suspend fun Container.card(
-    actionCard: ActionCard,
-    cardWidth: Double,
-    cardHeight: Double,
-    callback: @ViewDslMarker() (Card.() -> Unit) = {}
-): Card {
-    val bitmap = when (actionCard) {
-        is ActionCard.MoveForward -> when (actionCard.distance) {
-            1 -> resourcesVfs["forward1.png"].readBitmap()
-            2 -> resourcesVfs["forward2.png"].readBitmap()
-            3 -> resourcesVfs["forward3.png"].readBitmap()
-            -1 -> resourcesVfs["back_up.png"].readBitmap()
-            else -> throw IllegalArgumentException("Unable to find a bitmap for card $actionCard")
-        }
-
-        is ActionCard.Turn -> when(actionCard.type) {
-            Turn.Right -> resourcesVfs["right.png"].readBitmap()
-            Turn.Left -> resourcesVfs["left.png"].readBitmap()
-            Turn.UTurn -> resourcesVfs["u_turn.png"].readBitmap()
-        }
-    }
-
-    return Card(actionCard, cardWidth, cardHeight, bitmap).addTo(this, callback)
-}
-
 fun Container.card(
     actionCard: ActionCard,
     cardWidth: Double,

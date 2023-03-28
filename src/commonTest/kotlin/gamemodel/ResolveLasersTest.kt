@@ -186,7 +186,7 @@ class ResolveLasersTest {
 
         assertEquals(expectedModel, result.gameModel)
         assertEquals(
-            mapOf(r2.id to listOf(r2.registers.last().card)),
+            mapOf(r2.id to listOf(r2.registers.last().let { LockedRegister(it.index, it.card) })),
             result.lockedRegisters,
         )
     }
@@ -221,7 +221,7 @@ class ResolveLasersTest {
         assertEquals(
             mapOf(r2.id to r2.registers
                 .filter { it.index in listOf(3, 4) }
-                .map { it.card }),
+                .map { LockedRegister(it.index, it.card) }),
             result.lockedRegisters,
         )
     }
