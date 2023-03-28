@@ -9,8 +9,8 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
     val phases = 1..programming.values.maxOf { it.size }
     return programming
         .map { (id, cards) -> cards.map { ResolveActionCard(id, it) } }
-        .plus(listOf(phases.map { ResolveCheckpoints }))
         .plus(listOf(phases.map { ResolveLasers }))
+        .plus(listOf(phases.map { ResolveCheckpoints }))
         .zipAll()
         .map { it.sort() }
         .flatten()

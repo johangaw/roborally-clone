@@ -52,13 +52,13 @@ class ResolveRoundTest {
                 ActionCardResolution(
                     MovementStep(r2.id to Pos(3, 0))
                 ),
-                CheckpointResolution(emptyMap()),
                 LaserResolution(
                     laserPaths = setOf(
                         LaserPath(listOf(Pos(2, 0), Pos(3, 0)), LaserDirection.Right),
                         LaserPath(listOf(Pos(2, 0), Pos(1, 0)), LaserDirection.Left),
                     ), damage = mapOf(r1.id to 1, r2.id to 1), lockedRegisters = emptyMap()
                 ),
+                CheckpointResolution(emptyMap()),
                 ActionCardResolution(
                     MovementStep(r2.id to Pos(2, 0)), MovementStep(
                         r2.id to Pos(1, 0),
@@ -71,13 +71,13 @@ class ResolveRoundTest {
                         r2.id to Pos(2, 0),
                     )
                 ),
-                CheckpointResolution(emptyMap()),
                 LaserResolution(
                     laserPaths = setOf(
                         LaserPath(listOf(Pos(2, 0)), LaserDirection.Right),
                         LaserPath(listOf(Pos(1, 0)), LaserDirection.Left),
                     ), damage = mapOf(r1.id to 1, r2.id to 1), lockedRegisters = emptyMap()
                 ),
+                CheckpointResolution(emptyMap()),
             ), result.resolutions
         )
     }
@@ -110,11 +110,13 @@ class ResolveRoundTest {
                 ActionCardResolution(
                     MovementStep(r1.id to Pos(1, 0)),
                     MovementStep(r1.id to Pos(2, 0)),
-                ), CheckpointResolution(mapOf(p1.id to c1.id)), LaserResolution(
+                ),
+                LaserResolution(
                     laserPaths = setOf(
                         LaserPath((1..101).map { Pos(2 + it, 0) }, LaserDirection.Right),
                     ), damage = emptyMap(), lockedRegisters = emptyMap()
-                )
+                ),
+                CheckpointResolution(mapOf(p1.id to c1.id)),
             ), result.resolutions
         )
     }
