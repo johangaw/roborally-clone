@@ -20,6 +20,8 @@ class Card(
     private var pickupPos = pos
     private var originalPos = pos
 
+    var draggable = true
+
     init {
         if (bitmap == null) {
             roundRect(cardWidth, cardHeight, 3.0) {
@@ -39,6 +41,8 @@ class Card(
         var scalingWidthChange = 0.0
         var scalingHeightChange = 0.0
         onMouseDrag {
+            if(!draggable) return@onMouseDrag
+
             if (it.start) {
                 val newScale = 2.0
                 scalingWidthChange = cardWidth * (newScale - scaleX)
@@ -94,6 +98,32 @@ suspend fun Container.card(
             Turn.Right -> resourcesVfs["right.png"].readBitmap()
             Turn.Left -> resourcesVfs["left.png"].readBitmap()
             Turn.UTurn -> resourcesVfs["u_turn.png"].readBitmap()
+        }
+    }
+
+    return Card(actionCard, cardWidth, cardHeight, bitmap).addTo(this, callback)
+}
+
+fun Container.card(
+    actionCard: ActionCard,
+    cardWidth: Double,
+    cardHeight: Double,
+    bitmapCache: BitmapCache,
+    callback: @ViewDslMarker() (Card.() -> Unit) = {}
+): Card {
+    val bitmap = when (actionCard) {
+        is ActionCard.MoveForward -> when (actionCard.distance) {
+            1 -> bitmapCache.forward1
+            2 -> bitmapCache.forward2
+            3 -> bitmapCache.forward3
+            -1 -> bitmapCache.backUp
+            else -> throw IllegalArgumentException("Unable to find a bitmap for card $actionCard")
+        }
+
+        is ActionCard.Turn -> when(actionCard.type) {
+            Turn.Right -> bitmapCache.right
+            Turn.Left -> bitmapCache.left
+            Turn.UTurn -> bitmapCache.uTurn
         }
     }
 

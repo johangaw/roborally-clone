@@ -44,7 +44,7 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
                         .let {
                             RoundResolutionResult(
                                 gameModel = it.gameModel,
-                                resolutions = current.resolutions + LaserResolution(it.laserPaths, it.damage)
+                                resolutions = current.resolutions + LaserResolution(it.laserPaths, it.damage, it.lockedRegisters)
                             )
                         }
                 }
@@ -90,5 +90,9 @@ sealed class RoundResolution {
 
     data class CheckpointResolution(val capturedCheckpoints: Map<PlayerId, CheckpointId>) : RoundResolution()
 
-    data class LaserResolution(val laserPaths: Set<LaserPath>, val damage: Map<RobotId, Int>) : RoundResolution()
+    data class LaserResolution(
+        val laserPaths: Set<LaserPath>,
+        val damage: Map<RobotId, Int>,
+        val lockedRegisters: Map<RobotId, List<LockedRegister>>
+    ) : RoundResolution()
 }

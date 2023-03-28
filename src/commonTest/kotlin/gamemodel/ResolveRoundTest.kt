@@ -57,7 +57,7 @@ class ResolveRoundTest {
                     laserPaths = setOf(
                         LaserPath(listOf(Pos(2, 0), Pos(3, 0)), LaserDirection.Right),
                         LaserPath(listOf(Pos(2, 0), Pos(1, 0)), LaserDirection.Left),
-                    ), damage = mapOf(r1.id to 1, r2.id to 1)
+                    ), damage = mapOf(r1.id to 1, r2.id to 1), lockedRegisters = emptyMap()
                 ),
                 ActionCardResolution(
                     MovementStep(r2.id to Pos(2, 0)), MovementStep(
@@ -76,7 +76,7 @@ class ResolveRoundTest {
                     laserPaths = setOf(
                         LaserPath(listOf(Pos(2, 0)), LaserDirection.Right),
                         LaserPath(listOf(Pos(1, 0)), LaserDirection.Left),
-                    ), damage = mapOf(r1.id to 1, r2.id to 1)
+                    ), damage = mapOf(r1.id to 1, r2.id to 1), lockedRegisters = emptyMap()
                 ),
             ), result.resolutions
         )
@@ -113,9 +113,8 @@ class ResolveRoundTest {
                 ), CheckpointResolution(mapOf(p1.id to c1.id)), LaserResolution(
                     laserPaths = setOf(
                         LaserPath((1..101).map { Pos(2 + it, 0) }, LaserDirection.Right),
-                    ), damage = emptyMap()
+                    ), damage = emptyMap(), lockedRegisters = emptyMap()
                 )
-
             ), result.resolutions
         )
     }

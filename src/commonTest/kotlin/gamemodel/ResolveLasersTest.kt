@@ -156,7 +156,7 @@ class ResolveLasersTest {
         val result = model.resolveLasers().gameModel.resolveLasers().gameModel.resolveLasers().gameModel.resolveLasers()
 
         assertEquals(expectedModel, result.gameModel)
-        assertEquals(mapOf(), result.lockedCards)
+        assertEquals(mapOf(), result.lockedRegisters)
     }
 
     @Test
@@ -187,7 +187,7 @@ class ResolveLasersTest {
         assertEquals(expectedModel, result.gameModel)
         assertEquals(
             mapOf(r2.id to listOf(r2.registers.last().card)),
-            result.lockedCards,
+            result.lockedRegisters,
         )
     }
 
@@ -222,7 +222,7 @@ class ResolveLasersTest {
             mapOf(r2.id to r2.registers
                 .filter { it.index in listOf(3, 4) }
                 .map { it.card }),
-            result.lockedCards,
+            result.lockedRegisters,
         )
     }
 }

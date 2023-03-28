@@ -24,6 +24,7 @@ class ProgramArea(cellSize: Double, checkpointIds: List<CheckpointId>, val playe
     private val selectedCards = arrayOf<Card?>(null, null, null, null, null)
 
     private lateinit var checkpoints: Map<CheckpointId, Image>
+    private var lockedSlots = emptySet<Int>()
 
     init {
         roundRect(800.0, 200.0, 0.0) {
@@ -73,8 +74,8 @@ class ProgramArea(cellSize: Double, checkpointIds: List<CheckpointId>, val playe
                 alignRightToRightOf(parent!!, programingSlotPadding)
 
                 onDrop {
-                    programmingSlots.entries.firstOrNull { (_, slot) ->
-                        collidesWith(slot)
+                    programmingSlots.entries.firstOrNull { (slotIndex, slot) ->
+                        collidesWith(slot) && slotIndex !in lockedSlots
                     }?.let { (slotIndex, slot) ->
                         scale = 2.0
                         centerOn(slot)
@@ -115,6 +116,19 @@ class ProgramArea(cellSize: Double, checkpointIds: List<CheckpointId>, val playe
         checkpoints[id]?.bitmap = newBitmap.slice()
     }
 
+    fun lockRegister(registerIndex: Int, card: ActionCard) {
+        val slot = programmingSlots.getValue(registerIndex)
+        val cardView = cards.first { it.actionCard == card }
+        selectedCards.remove(cardView)
+        selectedCards[registerIndex] = cardView
+        lockedSlots += registerIndex
+        cardView.apply {
+            draggable = false
+            scale(2.0)
+            centerOn(slot)
+            colorMul = RGBA(0xFF, 0xFF, 0xFF, 0x88)
+        }
+    }
 }
 
 fun Container.programArea(

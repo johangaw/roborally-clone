@@ -26,6 +26,7 @@ suspend fun main() = Korge(width = 1024, height = 1024, bgcolor = Colors["#2b2b2
 
 class GameScene : Scene() {
 
+    private lateinit var gameModel: GameModel
     private lateinit var robots: Map<RobotId, RobotView>
     private lateinit var programAreas: List<ProgramArea>
     private lateinit var bitmapCache: BitmapCache
@@ -40,7 +41,7 @@ class GameScene : Scene() {
         val playerOneRobot = Robot(Pos(4, 4), Direction.Down)
         val playerTwoRobot = Robot(Pos(4, 6), Direction.Right)
 
-        var gameModel = GameModel(
+        gameModel = GameModel(
             robots = listOf(
                 playerOneRobot,
                 playerTwoRobot,
@@ -185,32 +186,18 @@ class GameScene : Scene() {
                     }
 
                     Key.F -> {
-                        animate {
-                            sequence {
-                                animateLasers(
-                                    RoundResolution.LaserResolution(
-                                        setOf(
-                                            LaserPath(
-                                                listOf(
-                                                    Pos(5, 6),
-                                                    Pos(6, 6),
-                                                    Pos(7, 6),
-                                                    Pos(8, 6),
-                                                    Pos(9, 6),
-                                                ),
-                                                LaserDirection.Right
-                                            ),
-                                            LaserPath(
-                                                listOf(Pos(4, 5), Pos(4, 6)),
-                                                LaserDirection.Down
-                                            )
-                                        ),
-                                        mapOf(playerTwoRobot.id to 1)
-                                    )
-                                )
-                            }
+                        val result = gameModel.dealActionCards()
+                        gameModel = result.gameModel
+
+                        result.hands.forEach { (playerId, hand) ->
+                            programAreas
+                                .first { it.playerId == playerId }
+                                .dealCards(hand)
                         }
 
+                        programAreas.first().apply {
+                            lockRegister(4, result.hands.getValue(this.playerId).first())
+                        }
                     }
 
                     Key.SPACE -> {
@@ -293,6 +280,10 @@ class GameScene : Scene() {
             }
             block {
                 beams.forEach { it.removeFromParent() }
+                resolution.lockedRegisters.forEach { (robotId, lockedRegisters) ->
+                    val programArea = programAreas.first { it.playerId == gameModel.getPlayer(robotId).id }
+                    lockedRegisters.forEach { programArea.lockRegister(it.index, it.card) }
+                }
             }
         }
     }

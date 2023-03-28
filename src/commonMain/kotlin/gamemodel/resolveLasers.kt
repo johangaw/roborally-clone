@@ -13,7 +13,7 @@ fun GameModel.resolveLasers(): LaserResolutionResult {
         }
         .groupBy { it.id }
         .mapValues { (_, hits) -> hits.size }
-    val lockedProgramming = hitRobots
+    val lockedRegisters = hitRobots
         .mapKeys { (id, _) -> getRobot(id) }
         .mapValues { (r, hits) ->
             r.registers
@@ -21,23 +21,27 @@ fun GameModel.resolveLasers(): LaserResolutionResult {
                 .filter { it.index >= r.health - hits - 1 }
         }
         .mapKeys { it.key.id }
-        .mapValues { it.value.map { card -> card.card } }
+        .mapValues { it.value.map { card -> LockedRegister(card.index, card.card) } }
         .filterValues { it.isNotEmpty() }
     return LaserResolutionResult(
         copy(robots = robots.map {
             it.copy(
                 health = it.health - hitRobots.getOrDefault(it.id, 0),
-                registers = it.registers.map { prog ->
-                    if(prog.card in lockedProgramming.getOrDefault(it.id, emptyList()))
-                        prog.copy(locked = true)
-                    else
-                        prog
-                }.toSet()
+                registers = it.registers
+                    .mapToSet { register ->
+                        if (register.card in lockedRegisters
+                                .getOrDefault(it.id, emptyList())
+                                .map { lockedRegister -> lockedRegister.card }
+                        )
+                            register.copy(locked = true)
+                        else
+                            register
+                    }
             )
         }),
         hitRobots,
         laserPaths,
-        lockedProgramming
+        lockedRegisters
     )
 }
 
@@ -68,8 +72,10 @@ data class LaserResolutionResult(
     val gameModel: GameModel,
     val damage: Map<RobotId, Int>,
     val laserPaths: Set<LaserPath>,
-    val lockedCards: Map<RobotId, List<ActionCard>>,
+    val lockedRegisters: Map<RobotId, List<LockedRegister>>,
 )
+
+data class LockedRegister(val index: Int, val card: ActionCard)
 
 enum class LaserDirection {
     Right,
