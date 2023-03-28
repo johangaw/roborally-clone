@@ -1,9 +1,6 @@
 package gamemodel
 
-import com.soywiz.kds.*
 import gamemodel.MovementPart.Move
-import gamemodel.MovementPart.TakeCheckpoint
-import java.lang.Integer.min
 import kotlin.math.*
 
 fun GameModel.resolveActionCard(id: RobotId, card: ActionCard): ActionCardResolutionResult {
@@ -111,5 +108,4 @@ sealed class ActionCardResolutionStep() {
 
 sealed class MovementPart {
     data class Move(val robotId: RobotId, val newPos: Pos) : MovementPart()
-    data class TakeCheckpoint(val playerId: PlayerId, val checkpointId: CheckpointId) : MovementPart()
 }

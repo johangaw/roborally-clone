@@ -56,7 +56,7 @@ class GameScene : Scene() {
                 Player(robotId = playerTwoRobot.id),
             ),
             checkpoints = listOf(
-                Checkpoint(0, Pos(4, 8)),
+                Checkpoint(0, Pos(5, 6)),
                 Checkpoint(1, Pos(2, 4)),
                 Checkpoint(2, Pos(9, 9)),
             )
@@ -258,7 +258,7 @@ class GameScene : Scene() {
 
                 }
 
-                is RoundResolution.CheckpointResolution -> TODO()
+                is RoundResolution.CheckpointResolution -> animateCaptureCheckpoint(resolution)
                 is RoundResolution.LaserResolution -> animateLasers(resolution)
             }
         }
@@ -314,6 +314,21 @@ class GameScene : Scene() {
     private fun robotPosition(pos: Pos, basePoint: IPoint = Point(0, 0)): IPoint =
         IPoint(indent + pos.x * cellSize + basePoint.x, indent + pos.y * cellSize + +basePoint.y)
 
+    private fun Animator.animateCaptureCheckpoint(resolution: RoundResolution.CheckpointResolution) {
+        parallel {
+            resolution.capturedCheckpoints.forEach { (playerId, checkpointId) ->
+                val programArea = programAreas.first { it.playerId == playerId }
+                sequence(defaultTime = 500.milliseconds) {
+                    block { programArea.markCheckpoint(checkpointId, true) }
+                    wait()
+                    block { programArea.markCheckpoint(checkpointId, false) }
+                    wait()
+                    block { programArea.markCheckpoint(checkpointId, true) }
+                }
+            }
+        }
+    }
+
     private fun Animator.animateMovementParts(
         parts: List<MovementPart>,
         easing: Easing,
@@ -326,20 +341,6 @@ class GameScene : Scene() {
                         val viewRobot = robots.getValue(part.robotId)
                         val newPos = robotPosition(part.newPos)
                         moveTo(viewRobot, newPos.x, newPos.y, easing = easing)
-                    }
-
-                    is MovementPart.TakeCheckpoint -> {
-                        val programArea = programAreas.first { it.playerId == part.playerId }
-                        sequence {
-                            val blinkSpeed = 500.milliseconds
-                            repeat(1) {
-                                block { programArea.markCheckpoint(part.checkpointId, true) }
-                                wait(blinkSpeed)
-                                block { programArea.markCheckpoint(part.checkpointId, false) }
-                                wait(blinkSpeed)
-                            }
-                            block { programArea.markCheckpoint(part.checkpointId, true) }
-                        }
                     }
                 }
             }
