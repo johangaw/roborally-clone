@@ -14,7 +14,7 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
         .zipAll()
         .map { it.sort() }
         .flatten()
-        .fold(RoundResolutionResult(this, emptyList())) { current, step ->
+        .fold(RoundResolutionResult(assignRegisters(programming), emptyList())) { current, step ->
             when (step) {
                 is ResolveActionCard -> {
                     current.gameModel
@@ -51,6 +51,12 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
             }
         }
 }
+
+private fun GameModel.assignRegisters(prog: Map<PlayerId, List<ActionCard>>): GameModel = copy(
+    robots = robots.map { it.copy(
+        registers = prog[getPlayer(it.id).id]?.mapIndexed {index, card -> Register(card, index, false) }?.toSet() ?: emptySet()
+    ) }
+)
 
 
 private fun List<RoundStep>.sort(): List<RoundStep> =

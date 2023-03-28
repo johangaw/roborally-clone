@@ -1,8 +1,6 @@
 package gamemodel
 
 import com.soywiz.kmem.*
-import kotlin.contracts.*
-import kotlin.test.*
 
 /**
  * Full map (not yet implemented)
@@ -107,3 +105,13 @@ private fun <T> List<String>.mapPrePos(cb: (x: Int, y: Int, char: Char) -> T?): 
                 cb(x, y, char)
             }
     }.filterNotNull()
+
+
+fun GameModel.programAllRobots(): GameModel = copy(
+    robots = robots.mapIndexed { index, r ->
+        val cards = actionDrawPile.drop(5 * index).take(5)
+        r.copy(registers = cards.mapIndexed { index, card -> Register(card, index, false) }.toSet())
+    },
+    actionDrawPile = actionDrawPile.drop(5 * robots.size),
+    actionDiscardPile = actionDiscardPile + actionDrawPile.take(5 * robots.size),
+)

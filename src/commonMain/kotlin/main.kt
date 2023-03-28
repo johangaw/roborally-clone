@@ -27,7 +27,6 @@ suspend fun main() = Korge(width = 1024, height = 1024, bgcolor = Colors["#2b2b2
 class GameScene : Scene() {
 
     private lateinit var robots: Map<RobotId, RobotView>
-    private lateinit var laserBeam: RoundRect
     private lateinit var programAreas: List<ProgramArea>
     private lateinit var bitmapCache: BitmapCache
     var fieldSize: Double = 0.0

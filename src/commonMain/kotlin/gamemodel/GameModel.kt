@@ -19,8 +19,21 @@ fun Direction.opposite(): Direction = when (this) {
     Direction.Right -> Direction.Left
     Direction.Left -> Direction.Right
 }
+data class Robot(
+    val pos: Pos,
+    val dir: Direction,
+    val health: Int = 10,
+    val registers: Set<Register> = emptySet(),
+    val id: RobotId = RobotId.create()
+)
 
-data class Robot(val pos: Pos, val dir: Direction, val health: Int = 10, val id: RobotId = RobotId.create())
+fun Set<Register>.mapToSet(transform: (Register) -> Register): Set<Register> = map(transform).toSet()
+
+data class Register(
+    val card: ActionCard,
+    val index: Int,
+    val locked: Boolean = false,
+)
 
 data class Wall(val pos: Pos, val dir: Direction, val id: WallId = WallId.create())
 
