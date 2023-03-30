@@ -1,19 +1,16 @@
 package ui
 
-import com.soywiz.klock.*
-import com.soywiz.korge.animate.*
 import com.soywiz.korge.view.*
-import com.soywiz.korge.view.mask.*
 import com.soywiz.korim.atlas.*
 import com.soywiz.korim.color.*
 import gamemodel.*
 
-class RobotView(val robotId: RobotId, direction: Direction, atlas: Atlas, cellSize: Double) : Container() {
-
-    private val downAnimation = atlas.getSpriteAnimation(prefix = "red-down")
-    private val rightAnimation = atlas.getSpriteAnimation(prefix = "red-right")
-    private val leftAnimation = atlas.getSpriteAnimation(prefix = "red-left")
-    private val upAnimation = atlas.getSpriteAnimation(prefix = "red-up")
+class RobotView(val robotId: RobotId, playerNumber: PlayerNumber, direction: Direction, atlas: Atlas, cellSize: Double) : Container() {
+    private val downAnimation = atlas.getSpriteAnimation(prefix = "robot${playerNumber.number}-down")
+    private val rightAnimation = atlas.getSpriteAnimation(prefix = "robot${playerNumber.number}-right")
+    private val leftAnimation = atlas.getSpriteAnimation(prefix = "robot${playerNumber.number}-left")
+    private val upAnimation = atlas.getSpriteAnimation(prefix = "robot${playerNumber.number}-up")
+    private val idleFrame = 1
 
     private val dirMap = mapOf(
         Direction.Left to leftAnimation,
@@ -24,13 +21,14 @@ class RobotView(val robotId: RobotId, direction: Direction, atlas: Atlas, cellSi
 
     private val spriteView: Sprite = sprite(downAnimation) {
         size(cellSize, cellSize)
-        playAnimation(dirMap.getValue(direction))
+        setFrame(idleFrame)
     }
 
     var direction: Direction = direction
         set(value) {
             field = value
             spriteView.playAnimation(dirMap.getValue(value))
+            spriteView.setFrame(idleFrame)
             spriteView.currentSpriteIndex
         }
 
@@ -44,9 +42,10 @@ class RobotView(val robotId: RobotId, direction: Direction, atlas: Atlas, cellSi
 
 fun Container.robotView(
     robotId: RobotId,
+    playerNumber: PlayerNumber,
     direction: Direction,
     atlas: Atlas,
     cellSize: Double,
     callback: @ViewDslMarker() (RobotView.() -> Unit) = {}
 ) =
-    RobotView(robotId, direction, atlas, cellSize).addTo(this, callback)
+    RobotView(robotId, playerNumber, direction, atlas, cellSize).addTo(this, callback)

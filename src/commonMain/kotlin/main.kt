@@ -134,21 +134,12 @@ class GameScene : Scene() {
             }
         }
 
-        /**
-         * X altas formula
-         * width 46
-         * gap 5
-         *
-         * Y atlas formula
-         * height 65
-         * gap 7
-         */
         val sprites = resourcesVfs["sprites.xml"].readAtlas()
-        robots = gameModel.robots.associate {
-            it.id to robotView(it.id, it.dir, sprites, cellSize) {
-                position(robotPosition(it.pos))
+        robots = gameModel.robots.mapIndexed {index, robot ->
+            robot.id to robotView(robot.id, playerNumber(index), robot.dir, sprites, cellSize) {
+                position(robotPosition(robot.pos))
             }
-        }
+        }.toMap()
 
         programAreas = gameModel.players.map { player ->
             programArea(cellSize, gameModel.checkpoints.map { it.id }, player.id, player.robotId, bitmapCache) {
