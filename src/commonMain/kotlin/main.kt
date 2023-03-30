@@ -5,6 +5,7 @@ import com.soywiz.korge.animate.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.tween.*
+import com.soywiz.korge.ui.*
 import com.soywiz.korge.view.*
 import com.soywiz.korge.view.roundRect
 import com.soywiz.korim.atlas.*
@@ -186,18 +187,7 @@ class GameScene : Scene() {
                     }
 
                     Key.F -> {
-                        val result = gameModel.dealActionCards()
-                        gameModel = result.gameModel
-
-                        result.hands.forEach { (playerId, hand) ->
-                            programAreas
-                                .first { it.playerId == playerId }
-                                .dealCards(hand)
-                        }
-
-                        programAreas.first().apply {
-                            lockRegister(4, result.hands.getValue(this.playerId).first())
-                        }
+                        showWinnerPopup(RoundResolution.WinnerResolution(gameModel.players.last().id))
                     }
 
                     Key.SPACE -> {
@@ -247,6 +237,24 @@ class GameScene : Scene() {
 
                 is RoundResolution.CheckpointResolution -> animateCaptureCheckpoint(resolution)
                 is RoundResolution.LaserResolution -> animateLasers(resolution)
+                is RoundResolution.WinnerResolution -> showWinnerPopup(resolution)
+            }
+        }
+    }
+
+    private fun showWinnerPopup(resolution: RoundResolution.WinnerResolution) {
+        this.sceneContainer.apply {
+            val padding = 20.0
+            roundRect(500.0, 300.0, 3.0,3.0) {
+                val text = text("Congraz player ${resolution.winner.value}") {
+                    color = Colors.RED
+                    textSize = 50.0
+                }
+                scaledWidth =  text.width + padding * 2
+                text.apply {
+                    centerOn(parent!!)
+                }
+                centerOn(parent!!)
             }
         }
     }

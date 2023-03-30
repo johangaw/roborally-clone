@@ -10,8 +10,8 @@ class ResolveRoundTest {
     fun `when two robots are programmed they are moved accordingly`() {
         val model = gameModel(
             """
-            +|+|+|+|+|+|+
-            +|→       ←|+
+            +|+|+|+|+|+|+|+
+            +|→       ←|1 +
         """.trimIndent()
         )
         val (r1, r2) = model.robots
@@ -27,8 +27,8 @@ class ResolveRoundTest {
 
         val expectedModel = gameModel(
             """
-            +|+|+|+|+|+|+
-            +|  → ←    |+
+            +|+|+|+|+|+|+|+
+            +|  → ←    |1 +
         """.trimIndent()
         ).let {
             val (r1, r2) = it.robots
@@ -117,6 +117,7 @@ class ResolveRoundTest {
                     ), damage = emptyMap(), lockedRegisters = emptyMap()
                 ),
                 CheckpointResolution(mapOf(p1.id to c1.id)),
+                WinnerResolution(p1.id)
             ), result.resolutions
         )
     }

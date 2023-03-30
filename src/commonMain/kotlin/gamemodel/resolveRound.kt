@@ -1,9 +1,7 @@
 package gamemodel
 
 import gamemodel.RoundResolution.*
-import gamemodel.RoundStep.ResolveActionCard
-import gamemodel.RoundStep.ResolveCheckpoints
-import gamemodel.RoundStep.ResolveLasers
+import gamemodel.RoundStep.*
 
 fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundResolutionResult {
     val phases = 1..programming.values.maxOf { it.size }
@@ -11,10 +9,13 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
         .map { (id, cards) -> cards.map { ResolveActionCard(id, it) } }
         .plus(listOf(phases.map { ResolveLasers }))
         .plus(listOf(phases.map { ResolveCheckpoints }))
+        .plus(listOf(phases.map { CheckForWinner }))
         .zipAll()
         .map { it.sort() }
         .flatten()
         .fold(RoundResolutionResult(assignRegisters(programming), emptyList())) { current, step ->
+            if(current.resolutions.lastOrNull() is WinnerResolution) return current
+
             when (step) {
                 is ResolveActionCard -> {
                     current.gameModel
@@ -48,6 +49,17 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
                             )
                         }
                 }
+
+                CheckForWinner -> current.gameModel.checkForWinner()
+                    .let {
+                        when(it) {
+                            CheckForWinnerResult.NoWinnerFound -> current
+                            is CheckForWinnerResult.WinnerFound -> RoundResolutionResult(
+                                gameModel = current.gameModel,
+                                resolutions = current.resolutions + WinnerResolution(it.playerId)
+                            )
+                        }
+                    }
             }
         }
 }
@@ -65,6 +77,7 @@ private fun List<RoundStep>.sort(): List<RoundStep> =
             is ResolveActionCard -> it.card.initiative
             ResolveCheckpoints -> Int.MAX_VALUE
             ResolveLasers -> Int.MAX_VALUE
+            CheckForWinner -> Int.MAX_VALUE
         }
     }
 
@@ -79,6 +92,12 @@ private sealed class RoundStep {
     object ResolveCheckpoints : RoundStep()
 
     object ResolveLasers : RoundStep()
+
+    object CheckForWinner : RoundStep()
+
+//    object WipeRegisters: RoundStep()
+
+//    object DealCards: RoundStep()
 }
 
 data class RoundResolutionResult(val gameModel: GameModel, val resolutions: List<RoundResolution>)
@@ -95,4 +114,10 @@ sealed class RoundResolution {
         val damage: Map<RobotId, Int>,
         val lockedRegisters: Map<RobotId, List<LockedRegister>>
     ) : RoundResolution()
+
+    data class WinnerResolution(val winner: PlayerId): RoundResolution()
+
+//    data class WipeRegistersResolution(val lockedRegisters: Map<RobotId, List<LockedRegister>>)
+
+//    data class DealCardsResolution(val hands: Map<PlayerId, List<ActionCard>>)
 }
