@@ -13,8 +13,9 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
         .zipAll()
         .map { it.sort() }
         .flatten()
+        .plus(WipeRegisters)
         .fold(RoundResolutionResult(assignRegisters(programming), emptyList())) { current, step ->
-            if(current.resolutions.lastOrNull() is WinnerResolution) return current
+            if (current.resolutions.lastOrNull() is WinnerResolution) return current
 
             when (step) {
                 is ResolveActionCard -> {
@@ -45,14 +46,19 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
                         .let {
                             RoundResolutionResult(
                                 gameModel = it.gameModel,
-                                resolutions = current.resolutions + LaserResolution(it.laserPaths, it.damage, it.lockedRegisters)
+                                resolutions = current.resolutions + LaserResolution(
+                                    it.laserPaths,
+                                    it.damage,
+                                    it.lockedRegisters
+                                )
                             )
                         }
                 }
 
-                CheckForWinner -> current.gameModel.checkForWinner()
+                CheckForWinner -> current.gameModel
+                    .checkForWinner()
                     .let {
-                        when(it) {
+                        when (it) {
                             CheckForWinnerResult.NoWinnerFound -> current
                             is CheckForWinnerResult.WinnerFound -> RoundResolutionResult(
                                 gameModel = current.gameModel,
@@ -60,24 +66,45 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
                             )
                         }
                     }
+
+                WipeRegisters -> current.gameModel
+                    .resolveWipeRegisters()
+                    .let {
+                        RoundResolutionResult(
+                            gameModel = it.gameModel,
+                            resolutions = current.resolutions + WipeRegistersResolution(it.lockedRegisters),
+                        )
+                    }
             }
         }
 }
 
 private fun GameModel.assignRegisters(prog: Map<PlayerId, List<ActionCard>>): GameModel = copy(
-    robots = robots.map { it.copy(
-        registers = prog[getPlayer(it.id).id]?.mapIndexed {index, card -> Register(card, index, false) }?.toSet() ?: emptySet()
-    ) }
+    robots = robots.map {
+        it.copy(
+            registers = prog[getPlayer(it.id).id]
+                ?.mapIndexed { index, card -> Register(card, index, false) }
+                ?.toSet() ?: emptySet()
+        )
+    },
+    players = players.map {
+        it.copy(
+            hand = it.hand - prog
+                .getOrDefault(it.id, emptyList())
+                .toSet()
+        )
+    }
 )
 
 
 private fun List<RoundStep>.sort(): List<RoundStep> =
     this.sortedBy {
-        when(it) {
+        when (it) {
             is ResolveActionCard -> it.card.initiative
             ResolveCheckpoints -> Int.MAX_VALUE
             ResolveLasers -> Int.MAX_VALUE
             CheckForWinner -> Int.MAX_VALUE
+            WipeRegisters -> throw AssertionError("WipeRegisters should not be sorted with other RoundSteps")
         }
     }
 
@@ -95,7 +122,7 @@ private sealed class RoundStep {
 
     object CheckForWinner : RoundStep()
 
-//    object WipeRegisters: RoundStep()
+    object WipeRegisters : RoundStep()
 
 //    object DealCards: RoundStep()
 }
@@ -112,12 +139,12 @@ sealed class RoundResolution {
     data class LaserResolution(
         val laserPaths: Set<LaserPath>,
         val damage: Map<RobotId, Int>,
-        val lockedRegisters: Map<RobotId, List<LockedRegister>>
+        val lockedRegisters: Map<RobotId, List<LockedRegister>>,
     ) : RoundResolution()
 
-    data class WinnerResolution(val winner: PlayerId): RoundResolution()
+    data class WinnerResolution(val winner: PlayerId) : RoundResolution()
 
-//    data class WipeRegistersResolution(val lockedRegisters: Map<RobotId, List<LockedRegister>>)
+    data class WipeRegistersResolution(val lockedRegisters: Map<RobotId, List<LockedRegister>>) : RoundResolution()
 
 //    data class DealCardsResolution(val hands: Map<PlayerId, List<ActionCard>>)
 }

@@ -24,13 +24,21 @@ fun gameModel(map: String): GameModel {
     var checkpointId = 0
     assertValidMap(map)
 
-    val mapBody = map.split("\n").drop(1).map { it.drop(1).dropLast(1) }
+    val mapBody = map
+        .split("\n")
+        .drop(1)
+        .map {
+            it
+                .drop(1)
+                .dropLast(1)
+        }
 
     val robots =
         mapBody.mapPos { x, y, char -> from(char)?.let { Robot(Pos(x, y), dir = it, id = RobotId(robotIds++)) } }
 
     val checkpoints = mapBody.mapPos { x, y, char ->
-        char.digitToIntOrNull()
+        char
+            .digitToIntOrNull()
             ?.let { Checkpoint(order = it, pos = Pos(x, y), id = CheckpointId(checkpointId++)) }
     }
 
@@ -52,31 +60,39 @@ fun gameModel(map: String): GameModel {
 }
 
 private fun assertValidMap(map: String) {
-    val lines = map.trim().split("\n")
-    assert(lines.first().matches("""^\+(\|\+)+$""".toRegex())) { "Invalid format of first line" }
-    lines.drop(1).forEachIndexed { index, line ->
-        val lineNo = index + 1
-        assert(line.length == lines.first().length) { "line $lineNo should be the same length as the header line" }
-        assert(line.first() == '+') { "line $lineNo should start with '+'" }
-        assert(line.last() == '+') { "line $lineNo should end with '+'" }
+    val lines = map
+        .trim()
+        .split("\n")
+    assert(
+        lines
+            .first()
+            .matches("""^\+(\|\+)+$""".toRegex())
+    ) { "Invalid format of first line" }
+    lines
+        .drop(1)
+        .forEachIndexed { index, line ->
+            val lineNo = index + 1
+            assert(line.length == lines.first().length) { "line $lineNo should be the same length as the header line" }
+            assert(line.first() == '+') { "line $lineNo should start with '+'" }
+            assert(line.last() == '+') { "line $lineNo should end with '+'" }
 
-        line.forEachIndexed { index, char ->
-            val colNo = index + 1
-            when (colNo.isEven) {
-                true -> assert(char in listOf(' ', '|')) { "invalid character ($char) at ${lineNo + 1}:$colNo" }
-                false -> assert(
-                    char in listOf(
-                        ' ',
-                        '↓',
-                        '→',
-                        '←',
-                        '↑',
-                        '+',
-                    ) + checkpoints()
-                ) { "invalid character ($char) at ${lineNo + 1}:$colNo" }
+            line.forEachIndexed { index, char ->
+                val colNo = index + 1
+                when (colNo.isEven) {
+                    true -> assert(char in listOf(' ', '|')) { "invalid character ($char) at ${lineNo + 1}:$colNo" }
+                    false -> assert(
+                        char in listOf(
+                            ' ',
+                            '↓',
+                            '→',
+                            '←',
+                            '↑',
+                            '+',
+                        ) + checkpoints()
+                    ) { "invalid character ($char) at ${lineNo + 1}:$colNo" }
+                }
             }
         }
-    }
 }
 
 private fun from(arrow: Char): Direction? = when (arrow) {
@@ -90,28 +106,48 @@ private fun from(arrow: Char): Direction? = when (arrow) {
 private fun checkpoints() = (1..9).map { it.digitToChar() }
 
 private fun <T> List<String>.mapPos(cb: (x: Int, y: Int, char: Char) -> T?): List<T> =
-    this.flatMapIndexed { y, row ->
-        row.filterIndexed { index, _ -> index.isOdd }
-            .mapIndexed { x, char ->
-                cb(x, y, char)
-            }
-    }.filterNotNull()
+    this
+        .flatMapIndexed { y, row ->
+            row
+                .filterIndexed { index, _ -> index.isOdd }
+                .mapIndexed { x, char ->
+                    cb(x, y, char)
+                }
+        }
+        .filterNotNull()
 
 
 private fun <T> List<String>.mapPrePos(cb: (x: Int, y: Int, char: Char) -> T?): List<T> =
-    this.flatMapIndexed { y, row ->
-        row.filterIndexed { index, _ -> index.isEven }
-            .mapIndexed { x, char ->
-                cb(x, y, char)
-            }
-    }.filterNotNull()
+    this
+        .flatMapIndexed { y, row ->
+            row
+                .filterIndexed { index, _ -> index.isEven }
+                .mapIndexed { x, char ->
+                    cb(x, y, char)
+                }
+        }
+        .filterNotNull()
 
+
+fun GameModel.dealCards(): GameModel = dealActionCards().gameModel
+
+fun GameModel.dealCards(cards: Map<PlayerId, List<ActionCard>>): GameModel = copy(
+    players = players.map { it.copy(hand = cards.getValue(it.id)) }
+)
+
+fun GameModel.dealCards(vararg cards: Pair<PlayerId, List<ActionCard>>): GameModel = dealCards(cards.toMap())
 
 fun GameModel.programAllRobots(): GameModel = copy(
-    robots = robots.mapIndexed { index, r ->
-        val cards = actionDrawPile.drop(5 * index).take(5)
-        r.copy(registers = cards.mapIndexed { index, card -> Register(card, index, false) }.toSet())
+    robots = robots.map { r ->
+        r.copy(
+            registers = getPlayer(r.id).hand
+                .take(5)
+                .mapIndexed { index, card -> Register(card, index, false) }
+                .toSet()
+        )
     },
-    actionDrawPile = actionDrawPile.drop(5 * robots.size),
-    actionDiscardPile = actionDiscardPile + actionDrawPile.take(5 * robots.size),
 )
+
+fun GameModel.getRobotCards(robotId: RobotId): List<ActionCard> = getRobot(robotId).registers
+    .sortedBy { it.index }
+    .map { it.card }

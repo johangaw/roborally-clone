@@ -5,7 +5,6 @@ import com.soywiz.korge.animate.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.tween.*
-import com.soywiz.korge.ui.*
 import com.soywiz.korge.view.*
 import com.soywiz.korge.view.roundRect
 import com.soywiz.korim.atlas.*
@@ -187,7 +186,11 @@ class GameScene : Scene() {
                     }
 
                     Key.F -> {
-                        showWinnerPopup(RoundResolution.WinnerResolution(gameModel.players.last().id))
+                        launchImmediately {
+                            animate {
+                                animateShowWinnerPopup(RoundResolution.WinnerResolution(gameModel.players.last().id))
+                            }
+                        }
                     }
 
                     Key.SPACE -> {
@@ -237,24 +240,43 @@ class GameScene : Scene() {
 
                 is RoundResolution.CheckpointResolution -> animateCaptureCheckpoint(resolution)
                 is RoundResolution.LaserResolution -> animateLasers(resolution)
-                is RoundResolution.WinnerResolution -> showWinnerPopup(resolution)
+                is RoundResolution.WinnerResolution -> animateShowWinnerPopup(resolution)
+                is RoundResolution.WipeRegistersResolution -> animateWipeRegisters(resolution)
             }
         }
     }
 
-    private fun showWinnerPopup(resolution: RoundResolution.WinnerResolution) {
-        this.sceneContainer.apply {
-            val padding = 20.0
-            roundRect(500.0, 300.0, 3.0,3.0) {
-                val text = text("Congraz player ${resolution.winner.value}") {
-                    color = Colors.RED
-                    textSize = 50.0
+    private fun Animator.animateWipeRegisters(resolution: RoundResolution.WipeRegistersResolution) {
+        block {
+            programAreas.forEach { programmingArea ->
+                programmingArea.clearCards()
+                val lockedCards = resolution.lockedRegisters.getOrDefault(programmingArea.robotId, null)
+
+                if(lockedCards != null) {
+                    programmingArea.dealCards(lockedCards.map { register -> register.card })
+                    lockedCards.forEach { register ->
+                        programmingArea.lockRegister(register.index, register.card)
+                    }
                 }
-                scaledWidth =  text.width + padding * 2
-                text.apply {
+            }
+        }
+    }
+
+    private fun Animator.animateShowWinnerPopup(resolution: RoundResolution.WinnerResolution) {
+        block {
+            this@GameScene.sceneContainer.apply {
+                val padding = 20.0
+                roundRect(500.0, 300.0, 3.0,3.0) {
+                    val text = text("Congraz player ${resolution.winner.value}") {
+                        color = Colors.RED
+                        textSize = 50.0
+                    }
+                    scaledWidth =  text.width + padding * 2
+                    text.apply {
+                        centerOn(parent!!)
+                    }
                     centerOn(parent!!)
                 }
-                centerOn(parent!!)
             }
         }
     }

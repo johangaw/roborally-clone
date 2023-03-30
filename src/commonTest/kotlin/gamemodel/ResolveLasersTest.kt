@@ -147,7 +147,9 @@ class ResolveLasersTest {
             +|+|+|+|+|+|+
             + →   ↓     +
         """.trimIndent()
-        ).programAllRobots()
+        )
+            .dealCards()
+            .programAllRobots()
         val (r1, r2) = model.robots
         val expectedModel = model.copy(
             robots = listOf(r1, r2.copy(health = 6))
@@ -167,6 +169,7 @@ class ResolveLasersTest {
             + →   ↓     +
         """.trimIndent()
         )
+            .dealCards()
             .programAllRobots()
             .let {
                 val (r1, r2) = it.robots
@@ -186,7 +189,12 @@ class ResolveLasersTest {
 
         assertEquals(expectedModel, result.gameModel)
         assertEquals(
-            mapOf(r2.id to listOf(r2.registers.last().let { LockedRegister(it.index, it.card) })),
+            mapOf(
+                r2.id to listOf(
+                    r2.registers
+                        .last()
+                        .let { LockedRegister(it.index, it.card) })
+            ),
             result.lockedRegisters,
         )
     }
@@ -199,6 +207,7 @@ class ResolveLasersTest {
             + →   ↓   ← +
         """.trimIndent()
         )
+            .dealCards()
             .programAllRobots()
             .let {
                 val (r1, r2, r3) = it.robots
@@ -206,11 +215,11 @@ class ResolveLasersTest {
             }
         val (r1, r2, r3) = model.robots
         val expectedModel = model.copy(robots = listOf(r1, r2.copy(health = 4, registers = r2.registers.mapToSet {
-                when (it.index) {
-                    3, 4 -> it.copy(locked = true)
-                    else -> it
-                }
-            }), r3))
+            when (it.index) {
+                3, 4 -> it.copy(locked = true)
+                else -> it
+            }
+        }), r3))
 
         val result = model.resolveLasers()
 
