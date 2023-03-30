@@ -196,7 +196,7 @@ class GameScene : Scene() {
                     Key.SPACE -> {
                         val cards = programAreas.associate { it.playerId to it.getSelectedCards() }
                         val result = gameModel.resolveRound(cards)
-                        animateAllResults(result.resolutions, robots)
+                        animateAllResults(result.resolutions)
                         gameModel = result.gameModel
                     }
 
@@ -206,12 +206,12 @@ class GameScene : Scene() {
         }
     }
 
-    private fun Container.animateAllResults(resolutions: List<RoundResolution>, robots: Map<RobotId, RobotView>) {
+    private fun Container.animateAllResults(resolutions: List<RoundResolution>) {
         launchImmediately {
             animate {
                 sequence {
                     resolutions.forEach { resolution ->
-                        animateResolution(resolution, robots)
+                        animateResolution(resolution)
                         wait()
                     }
                 }
@@ -219,28 +219,34 @@ class GameScene : Scene() {
         }
     }
 
-    private fun Animator.animateResolution(resolution: RoundResolution, robots: Map<RobotId, RobotView>) {
+    private fun Animator.animateResolution(resolution: RoundResolution) {
         sequence(defaultTime = 500.milliseconds, defaultSpeed = 256.0) {
             when (resolution) {
-                is RoundResolution.ActionCardResolution -> resolution.steps.forEachIndexed { stepIndex, step ->
-                    when (step) {
-                        is ActionCardResolutionStep.MovementStep -> {
-                            val easing = when (stepIndex) {
-                                0 -> Easing.EASE_IN
-                                resolution.steps.lastIndex -> Easing.EASE_OUT
-                                else -> Easing.LINEAR
-                            }
-                            animateMovementParts(step.parts, easing, robots)
-                        }
-
-                        is ActionCardResolutionStep.TurningStep -> animateTurn(step.robotId, step.newDirection, robots)
-                    }
-                }
+                is RoundResolution.ActionCardResolution -> animateActionCard(resolution)
                 is RoundResolution.CheckpointResolution -> animateCaptureCheckpoint(resolution)
                 is RoundResolution.LaserResolution -> animateLasers(resolution)
                 is RoundResolution.WinnerResolution -> animateShowWinnerPopup(resolution)
                 is RoundResolution.WipeRegistersResolution -> animateWipeRegisters(resolution)
                 is RoundResolution.DealCardsResolution -> animateDealActionCards(resolution)
+            }
+        }
+    }
+
+    private fun Animator.animateActionCard(
+        resolution: RoundResolution.ActionCardResolution
+    ) {
+        resolution.steps.forEachIndexed { stepIndex, step ->
+            when (step) {
+                is ActionCardResolutionStep.MovementStep -> {
+                    val easing = when (stepIndex) {
+                        0 -> Easing.EASE_IN
+                        resolution.steps.lastIndex -> Easing.EASE_OUT
+                        else -> Easing.LINEAR
+                    }
+                    animateMovementParts(step.parts, easing, robots)
+                }
+
+                is ActionCardResolutionStep.TurningStep -> animateTurn(step.robotId, step.newDirection, robots)
             }
         }
     }
