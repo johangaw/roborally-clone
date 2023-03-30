@@ -137,15 +137,16 @@ fun GameModel.dealCards(cards: Map<PlayerId, List<ActionCard>>): GameModel = cop
 
 fun GameModel.dealCards(vararg cards: Pair<PlayerId, List<ActionCard>>): GameModel = dealCards(cards.toMap())
 
-fun GameModel.programAllRobots(): GameModel = copy(
+fun GameModel.programAllRobots(cardsToDeal: Int = 5): GameModel = copy(
     robots = robots.map { r ->
         r.copy(
             registers = getPlayer(r.id).hand
-                .take(5)
+                .take(cardsToDeal)
                 .mapIndexed { index, card -> Register(card, index, false) }
-                .toSet()
+                .toSet(),
         )
     },
+    players = players.map { it.copy(hand = it.hand.drop(cardsToDeal)) },
 )
 
 fun GameModel.getRobotCards(robotId: RobotId): List<ActionCard> = getRobot(robotId).registers

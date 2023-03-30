@@ -41,7 +41,7 @@ class ResolveWipeRegistersTest {
         val expectedModel = model.copy(
             robots = listOf(r1.copy(registers = emptySet())),
             players = listOf(p1.copy(hand = emptyList())),
-            actionDiscardPile = p1.hand,
+            actionDiscardPile = p1.hand + r1.registers.map { it.card },
         )
 
         val result = model.resolveWipeRegisters()

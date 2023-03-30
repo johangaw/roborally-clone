@@ -19,12 +19,13 @@ fun Direction.opposite(): Direction = when (this) {
     Direction.Right -> Direction.Left
     Direction.Left -> Direction.Right
 }
+
 data class Robot(
     val pos: Pos,
     val dir: Direction,
     val health: Int = 10,
     val registers: Set<Register> = emptySet(),
-    val id: RobotId = RobotId.create()
+    val id: RobotId = RobotId.create(),
 )
 
 fun Set<Register>.mapToSet(transform: (Register) -> Register): Set<Register> = map(transform).toSet()
@@ -41,7 +42,7 @@ data class Player(
     val robotId: RobotId,
     val hand: List<ActionCard> = emptyList(),
     val capturedCheckpoints: List<CheckpointId> = emptyList(),
-    val id: PlayerId = PlayerId.create()
+    val id: PlayerId = PlayerId.create(),
 )
 
 data class Checkpoint(val order: Int, val pos: Pos, val id: CheckpointId = CheckpointId.create())
@@ -54,6 +55,10 @@ data class GameModel(
     val actionDiscardPile: List<ActionCard> = emptyList(),
     val checkpoints: List<Checkpoint> = emptyList(),
 ) {
+    init {
+        assertNoDoubletCards()
+    }
+
     fun robotAt(pos: Pos): Robot? = robots.firstOrNull { it.pos == pos }
 
     fun mapRobot(id: RobotId, mapper: (robot: Robot) -> Robot): GameModel =
@@ -85,7 +90,18 @@ data class GameModel(
         .map { getCheckpoint(it) }
         .map { it.order }
         .fold(-1) { maxOrder, order -> max(maxOrder, order) }
-        .let {maxOrderCompleted ->
-            checkpoints.sortedBy { it.order }.firstOrNull { maxOrderCompleted < it.order }
+        .let { maxOrderCompleted ->
+            checkpoints
+                .sortedBy { it.order }
+                .firstOrNull { maxOrderCompleted < it.order }
         }
+
+    private fun assertNoDoubletCards() {
+        val allCards =
+            actionDrawPile + actionDiscardPile + players.flatMap { it.hand } + robots.flatMap { it.registers.map { reg -> reg.card } }
+
+        assert(allCards.size == allCards.toSet().size) {
+            "some card(s) have some how ended up in more than one place..."
+        }
+    }
 }
