@@ -1,5 +1,6 @@
 package ui
 
+import com.soywiz.klock.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.atlas.*
 import com.soywiz.korim.color.*
@@ -19,7 +20,7 @@ class RobotView(val robotId: RobotId, playerNumber: PlayerNumber, direction: Dir
         Direction.Down to downAnimation
     )
 
-    private val spriteView: Sprite = sprite(downAnimation) {
+    private val spriteView: Sprite = sprite(dirMap.getValue(direction)) {
         size(cellSize, cellSize)
         setFrame(idleFrame)
     }
@@ -27,8 +28,7 @@ class RobotView(val robotId: RobotId, playerNumber: PlayerNumber, direction: Dir
     var direction: Direction = direction
         set(value) {
             field = value
-            spriteView.playAnimation(dirMap.getValue(value))
-            spriteView.setFrame(idleFrame)
+            spriteView.playAnimation(dirMap.getValue(value), startFrame = idleFrame, endFrame = idleFrame, spriteDisplayTime = 0.milliseconds)
             spriteView.currentSpriteIndex
         }
 
