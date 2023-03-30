@@ -129,7 +129,7 @@ private fun <T> List<String>.mapPrePos(cb: (x: Int, y: Int, char: Char) -> T?): 
         .filterNotNull()
 
 
-fun GameModel.dealCards(): GameModel = dealActionCards().gameModel
+fun GameModel.dealCards(): GameModel = resolveDealActionCards().gameModel
 
 fun GameModel.dealCards(cards: Map<PlayerId, List<ActionCard>>): GameModel = copy(
     players = players.map { it.copy(hand = cards.getValue(it.id)) }
@@ -152,3 +152,27 @@ fun GameModel.programAllRobots(cardsToDeal: Int = 5): GameModel = copy(
 fun GameModel.getRobotCards(robotId: RobotId): List<ActionCard> = getRobot(robotId).registers
     .sortedBy { it.index }
     .map { it.card }
+
+
+class AnyOrderList<T> : MutableList<T> by mutableListOf() {
+    override fun equals(other: Any?): Boolean {
+        return if(other is List<*>)
+            this.size == other.size && this.toSet() == other.toSet()
+        else
+            false
+    }
+
+    override fun hashCode(): Int {
+        return javaClass.hashCode()
+    }
+}
+
+fun <T>anyOrderList(vararg items: T): AnyOrderList<T> = anyOrderList(items.toList())
+
+fun <T>anyOrderList(items: Collection<T>): AnyOrderList<T> {
+    val list = AnyOrderList<T>()
+    for (item in items) {
+        list.add(item)
+    }
+    return list
+}

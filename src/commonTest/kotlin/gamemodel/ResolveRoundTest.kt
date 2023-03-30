@@ -10,6 +10,7 @@ class ResolveRoundTest {
     fun `resolve one entire round`() {
         val r1Cards = listOf(ActionCard.MoveForward(1, 10), ActionCard.MoveForward(1, 2))
         val r2Cards = listOf(ActionCard.MoveForward(1, 11), ActionCard.MoveForward(2, 1))
+        val cardsPerPlayer = 7  // Both robots will have received 2 points of damage after this round
 
         val model = gameModel(
             """
@@ -23,13 +24,6 @@ class ResolveRoundTest {
                 p2.id to r2Cards,
             )
         }
-        val (r1, r2) = model.robots
-        val (p1, p2) = model.players
-        val programming = mapOf<PlayerId, List<ActionCard>>(
-            p1.id to r1Cards,
-            p2.id to r2Cards,
-        )
-
         val expectedModel = gameModel(
             """
             +|+|+|+|+|+|+|+
@@ -37,16 +31,31 @@ class ResolveRoundTest {
         """.trimIndent()
         ).let {
             val (r1, r2) = it.robots
+            val (p1, p2) = it.players
             it.copy(
                 robots = listOf(
                     r1.copy(health = 8, registers = emptySet()),
                     r2.copy(health = 8, registers = emptySet()),
                 ),
-                actionDiscardPile = r1Cards + r2Cards,
-                players = listOf(p1.copy(hand = emptyList()), p2.copy(hand = emptyList()))
-
+                actionDrawPile = anyOrderList(*(it.actionDrawPile.drop(cardsPerPlayer * 2) + r1Cards + r2Cards).toTypedArray()),
+                actionDiscardPile = emptyList(),
+                players = listOf(
+                    p1.copy(hand = it.actionDrawPile.take(cardsPerPlayer)),
+                    p2.copy(
+                        hand = it.actionDrawPile
+                            .drop(cardsPerPlayer)
+                            .take(cardsPerPlayer)
+                    ),
+                )
             )
         }
+
+        val (r1, r2) = model.robots
+        val (p1, p2) = model.players
+        val programming = mapOf<PlayerId, List<ActionCard>>(
+            p1.id to r1Cards,
+            p2.id to r2Cards,
+        )
 
         val result = model.resolveRound(programming)
 
@@ -90,8 +99,15 @@ class ResolveRoundTest {
                     damage = mapOf(r1.id to 1, r2.id to 1),
                     lockedRegisters = emptyMap(),
                 ),
-                CheckpointResolution(emptyMap()),
-                WipeRegistersResolution(emptyMap()),
+                CheckpointResolution(emptyMap()), WipeRegistersResolution(emptyMap()),
+                DealCardsResolution(
+                    mapOf(
+                        p1.id to model.actionDrawPile.take(cardsPerPlayer),
+                        p2.id to model.actionDrawPile
+                            .drop(cardsPerPlayer)
+                            .take(cardsPerPlayer),
+                    )
+                ),
             ),
             result.resolutions,
         )

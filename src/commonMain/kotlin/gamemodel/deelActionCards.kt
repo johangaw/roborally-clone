@@ -1,6 +1,6 @@
 package gamemodel
 
-fun GameModel.dealActionCards(): DealActionCardResult {
+fun GameModel.resolveDealActionCards(): DealActionCardResult {
     val availableCards = actionDrawPile + actionDiscardPile.shuffled()
     val hands = players.runningFold(0) {start, player -> start + getRobot(player.id).health - 1 }
         .zipWithNext()

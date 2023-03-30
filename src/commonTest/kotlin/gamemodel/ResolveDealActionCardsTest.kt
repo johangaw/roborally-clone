@@ -3,7 +3,7 @@ package gamemodel
 import org.junit.Test
 import kotlin.test.*
 
-class DealActionCardTest {
+class ResolveDealActionCardsTest {
 
     @Test
     fun `when all robots have all their health left, it deals 9 cards to each`() {
@@ -15,7 +15,7 @@ class DealActionCardTest {
         )
         val originalDrawPile = model.actionDrawPile
 
-        val result = model.dealActionCards()
+        val result = model.resolveDealActionCards()
 
         val (p1, p2) = result.gameModel.players
         assertEquals(9, p1.hand.size)
@@ -41,7 +41,7 @@ class DealActionCardTest {
         """.trimIndent()
         ).let { model -> model.copy(robots = model.robots.map { it.copy(health = health) }) }
 
-        val result = model.dealActionCards()
+        val result = model.resolveDealActionCards()
 
         assertEquals(expectedHandSize, result.gameModel.players.first().hand.size)
         assertEquals(expectedHandSize, result.hands.values.first().size)

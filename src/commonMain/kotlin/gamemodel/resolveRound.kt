@@ -14,6 +14,7 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
         .map { it.sort() }
         .flatten()
         .plus(WipeRegisters)
+        .plus(DealCards)
         .fold(RoundResolutionResult(assignRegisters(programming), emptyList())) { current, step ->
             if (current.resolutions.lastOrNull() is WinnerResolution) return current
 
@@ -75,6 +76,15 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
                             resolutions = current.resolutions + WipeRegistersResolution(it.lockedRegisters),
                         )
                     }
+
+                DealCards -> current.gameModel
+                    .resolveDealActionCards()
+                    .let {
+                        RoundResolutionResult(
+                            gameModel = it.gameModel,
+                            resolutions = current.resolutions + DealCardsResolution(it.hands),
+                        )
+                    }
             }
         }
 }
@@ -105,6 +115,7 @@ private fun List<RoundStep>.sort(): List<RoundStep> =
             ResolveLasers -> Int.MAX_VALUE
             CheckForWinner -> Int.MAX_VALUE
             WipeRegisters -> throw AssertionError("WipeRegisters should not be sorted with other RoundSteps")
+            DealCards -> throw AssertionError("DealCards should not be sorted with other RoundSteps")
         }
     }
 
@@ -124,7 +135,7 @@ private sealed class RoundStep {
 
     object WipeRegisters : RoundStep()
 
-//    object DealCards: RoundStep()
+    object DealCards : RoundStep()
 }
 
 data class RoundResolutionResult(val gameModel: GameModel, val resolutions: List<RoundResolution>)
@@ -146,5 +157,5 @@ sealed class RoundResolution {
 
     data class WipeRegistersResolution(val lockedRegisters: Map<RobotId, List<LockedRegister>>) : RoundResolution()
 
-//    data class DealCardsResolution(val hands: Map<PlayerId, List<ActionCard>>)
+    data class DealCardsResolution(val hands: Map<PlayerId, List<ActionCard>>) : RoundResolution()
 }

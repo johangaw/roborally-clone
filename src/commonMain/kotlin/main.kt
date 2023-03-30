@@ -167,7 +167,7 @@ class GameScene : Scene() {
             down {
                 when (it.key) {
                     Key.D -> {
-                        val result = gameModel.dealActionCards()
+                        val result = gameModel.resolveDealActionCards()
                         gameModel = result.gameModel
 
                         result.hands.forEach { (playerId, hand) ->
@@ -235,13 +235,22 @@ class GameScene : Scene() {
 
                         is ActionCardResolutionStep.TurningStep -> animateTurn(step.robotId, step.newDirection, robots)
                     }
-
                 }
-
                 is RoundResolution.CheckpointResolution -> animateCaptureCheckpoint(resolution)
                 is RoundResolution.LaserResolution -> animateLasers(resolution)
                 is RoundResolution.WinnerResolution -> animateShowWinnerPopup(resolution)
                 is RoundResolution.WipeRegistersResolution -> animateWipeRegisters(resolution)
+                is RoundResolution.DealCardsResolution -> animateDealActionCards(resolution)
+            }
+        }
+    }
+
+    private fun Animator.animateDealActionCards(resolution: RoundResolution.DealCardsResolution) {
+        block {
+            resolution.hands.forEach { (playerId, hand) ->
+                programAreas
+                    .first { it.playerId == playerId }
+                    .dealCards(hand)
             }
         }
     }
