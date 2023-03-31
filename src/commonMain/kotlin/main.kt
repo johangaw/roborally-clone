@@ -334,6 +334,9 @@ class GameScene : Scene() {
                         val viewRobot = robots.getValue(part.robotId)
                         val newPos = robotPosition(part.newPos)
                         moveTo(viewRobot, newPos.x, newPos.y, easing = easing)
+                        block {
+                            viewRobot.playAnimation(500.milliseconds)
+                        }
                     }
                 }
             }

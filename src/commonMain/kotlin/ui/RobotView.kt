@@ -11,7 +11,6 @@ class RobotView(playerNumber: PlayerNumber, direction: Direction, atlas: Atlas) 
     private val rightAnimation = atlas.getSpriteAnimation(prefix = "robot${playerNumber.number}-right")
     private val leftAnimation = atlas.getSpriteAnimation(prefix = "robot${playerNumber.number}-left")
     private val upAnimation = atlas.getSpriteAnimation(prefix = "robot${playerNumber.number}-up")
-    private val idleFrame = 1
 
     private val dirMap = mapOf(
         Direction.Left to leftAnimation,
@@ -21,13 +20,13 @@ class RobotView(playerNumber: PlayerNumber, direction: Direction, atlas: Atlas) 
     )
 
     init {
-        playAnimation(0, dirMap.getValue(direction), endFrame = idleFrame)
+        playAnimation(0, dirMap.getValue(direction), endFrame = 1)
     }
 
     var direction: Direction = direction
         set(value) {
             field = value
-            playAnimation(0, dirMap.getValue(value), endFrame = idleFrame)
+            playAnimation(0, dirMap.getValue(value), endFrame = 1)
             currentSpriteIndex
         }
 
@@ -36,6 +35,13 @@ class RobotView(playerNumber: PlayerNumber, direction: Direction, atlas: Atlas) 
             field = value
             colorMul = value.interpolate(Colors.WHITE, Colors.BLACK)
         }
+
+    fun playAnimation(time: TimeSpan) {
+        onAnimationCompleted.once {
+            this.setFrame(0)  // No Idea why it should be 0 here and 1 earlier
+        }
+        playAnimationForDuration(time)
+    }
 }
 
 fun Container.robotView(
