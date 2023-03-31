@@ -97,14 +97,14 @@ class GameScene : Scene() {
                 checkpointView(it.order, bitmapCache) {
                     val size = cellSize * 0.9
                     setSizeScaled(size, size)
-                    centerOn(this@posContainer)
                 }
             }
         }
 
         val sprites = resourcesVfs["sprites.xml"].readAtlas()
         robots = gameModel.robots.mapIndexed {index, robot ->
-            robot.id to robotView(robot.id, playerNumber(index), robot.dir, sprites, cellSize) {
+            robot.id to robotView(playerNumber(index), robot.dir, sprites) {
+                setSizeScaled(cellSize, cellSize)
                 position(robotPosition(robot.pos))
             }
         }.toMap()
@@ -156,10 +156,10 @@ class GameScene : Scene() {
         }
     }
 
-    private fun Container.posContainer(pos: Pos, callback: Container.() -> Unit) {
+    private fun Container.posContainer(pos: Pos, callback: Container.() -> View) {
         fixedSizeContainer(cellSize, cellSize) {
             position(robotPosition(pos))
-            this.callback()
+            this.callback().centerOn(this)
         }
     }
 
