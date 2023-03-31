@@ -1,4 +1,5 @@
 import com.soywiz.klock.*
+import com.soywiz.kmem.*
 import com.soywiz.korev.*
 import com.soywiz.korge.*
 import com.soywiz.korge.animate.*
@@ -92,20 +93,11 @@ class GameScene : Scene() {
         }
 
         gameModel.checkpoints.forEach {
-            fixedSizeContainer(cellSize, cellSize) {
-                position(robotPosition(it.pos))
-
-                val image = image(bitmapCache.checkpoint) {
-                    val checkpointSize = cellSize * 0.8
-                    size(checkpointSize, checkpointSize)
-                    centerOn(parent!!)
-                }
-
-                text(it.order.toString()) {
-                    fontSize = 25.0
-                    color = Colors.WHITE
-                    centerOn(image)
-                    alignTopToTopOf(image, cellSize * 0.1)
+            posContainer(it.pos) {
+                checkpointView(it.order, bitmapCache) {
+                    val size = cellSize * 0.9
+                    setSizeScaled(size, size)
+                    centerOn(this@posContainer)
                 }
             }
         }
@@ -161,6 +153,13 @@ class GameScene : Scene() {
                     else -> Unit
                 }
             }
+        }
+    }
+
+    private fun Container.posContainer(pos: Pos, callback: Container.() -> Unit) {
+        fixedSizeContainer(cellSize, cellSize) {
+            position(robotPosition(pos))
+            this.callback()
         }
     }
 
