@@ -37,31 +37,7 @@ class GameScene : Scene() {
     override suspend fun SContainer.sceneMain() {
         bitmapCache = BitmapCache.create()
         fieldSize = min(views.virtualWidth - 10.0 * 2.0, views.virtualHeight - 200.0)
-
-        val playerOneRobot = Robot(Pos(4, 4), Direction.Down)
-        val playerTwoRobot = Robot(Pos(4, 6), Direction.Right)
-
-        gameModel = GameModel(
-            robots = listOf(
-                playerOneRobot,
-                playerTwoRobot,
-            ),
-            walls = listOf(
-                Wall(Pos(2, 2), Direction.Left),
-                Wall(Pos(2, 2), Direction.Right),
-                Wall(Pos(2, 2), Direction.Up),
-                Wall(Pos(2, 2), Direction.Down),
-            ),
-            players = listOf(
-                Player(robotId = playerOneRobot.id),
-                Player(robotId = playerTwoRobot.id),
-            ),
-            checkpoints = listOf(
-                Checkpoint(0, Pos(5, 6)),
-                Checkpoint(1, Pos(2, 4)),
-                Checkpoint(2, Pos(9, 9)),
-            )
-        )
+        gameModel = setupGame()
 
         val bgField = roundRect(fieldSize, fieldSize, 5.0, fill = Colors["#b9aea0"]) {
             graphics {
@@ -150,6 +126,8 @@ class GameScene : Scene() {
                     alignLeftToLeftOf(parent!!, textPadding)
                 }
                 visible = false
+
+                dealCards(player.hand)
             }
         }
         programAreas.first().visible = true
@@ -157,17 +135,6 @@ class GameScene : Scene() {
         keys {
             down {
                 when (it.key) {
-                    Key.D -> {
-                        val result = gameModel.resolveDealActionCards()
-                        gameModel = result.gameModel
-
-                        result.hands.forEach { (playerId, hand) ->
-                            programAreas
-                                .first { it.playerId == playerId }
-                                .dealCards(hand)
-                        }
-                    }
-
                     Key.S -> {
                         val focusedProgrammingAreaIndex = programAreas.indexOfFirst { it.visible }
                         programAreas.forEach {
