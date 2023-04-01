@@ -54,5 +54,5 @@ class ConveyorBeltView(type: ConveyorBeltType, bitmapCache: BitmapCache): Contai
     }
 }
 
-fun Container.conveyorBeltView(type: ConveyorBeltType, bitmapCache: BitmapCache, callback: ConveyorBeltView.() -> Unit) =
+fun Container.conveyorBeltView(type: ConveyorBeltType, bitmapCache: BitmapCache, callback: ConveyorBeltView.() -> Unit = {}) =
     ConveyorBeltView(type, bitmapCache).addTo(this).apply(callback)
