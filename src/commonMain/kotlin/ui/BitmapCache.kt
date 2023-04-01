@@ -14,6 +14,7 @@ data class BitmapCache(
     val left: Bitmap,
     val right: Bitmap,
     val uTurn: Bitmap,
+    val floor: Bitmap,
 
     val powerUp: Bitmap,
     val again: Bitmap,
@@ -30,6 +31,7 @@ data class BitmapCache(
             left = resourcesVfs["left.png"].readBitmap(),
             right = resourcesVfs["right.png"].readBitmap(),
             uTurn = resourcesVfs["u_turn.png"].readBitmap(),
+            floor = resourcesVfs["floor.png"].readBitmap(),
             powerUp = resourcesVfs["power_up.png"].readBitmap(),
             again = resourcesVfs["again.png"].readBitmap(),
         )

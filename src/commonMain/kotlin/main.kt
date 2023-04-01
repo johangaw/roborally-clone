@@ -21,7 +21,8 @@ import kotlin.math.*
 
 suspend fun main() = Korge(width = 1024, height = 1024, bgcolor = Colors["#2b2b2b"]) {
     val sceneContainer = sceneContainer()
-    sceneContainer.changeTo({ GameScene() })
+//    sceneContainer.changeTo({ GameScene() })
+    sceneContainer.changeTo({ CourseBuilderScene() })
 }
 
 
@@ -127,6 +128,9 @@ class GameScene : Scene() {
         keys {
             down {
                 when (it.key) {
+                    Key.N0 -> {
+                        sceneContainer.changeTo({ CourseBuilderScene() })
+                    }
                     Key.S -> {
                         val focusedProgrammingAreaIndex = programAreas.indexOfFirst { it.visible }
                         programAreas.forEach {
