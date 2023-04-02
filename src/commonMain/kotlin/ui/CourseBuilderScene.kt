@@ -47,13 +47,17 @@ val INITIAL_COURSE = Course(
     ),
 )
 
+sealed class ControlElement{
+    data class ConveyorBelt(val type: ConveyorBeltType): ControlElement()
+}
+
 class CourseBuilderScene : Scene() {
 
     private lateinit var bitmapCache: BitmapCache
     private lateinit var coursePanel: Container
     private lateinit var courseView: View
-    private lateinit var controlElementViews: Map<ConveyorBeltType, RoundRect>
-    private lateinit var selectedControlElement: ConveyorBeltType
+    private lateinit var controlElementViews: Map<ControlElement, RoundRect>
+    private var selectedControlElement: ControlElement? = null
     private var course: Course = INITIAL_COURSE
         set(value) {
             field = value
@@ -70,18 +74,19 @@ class CourseBuilderScene : Scene() {
             controlElementViews = ConveyorBeltType
                 .values()
                 .map { type ->
-                    type to roundRect(
+                    val element = ControlElement.ConveyorBelt(type)
+                    element to roundRect(
                         controlPanelWidth / 2, controlPanelWidth / 2, 0.0, fill = Colors.TRANSPARENT_WHITE
                     ) {
-                        onClick { selectControlElement(type) }
+                        onClick { selectControlElement(element) }
                         conveyorBeltView(type, bitmapCache) {
                             setSizeScaled(50.0, 50.0)
                             centerOn(parent!!)
                         }
                     }
                 }
-                .apply {
-                    val (left, right) = this
+                .also { controls ->
+                    val (left, right) = controls
                         .map { it.second }
                         .withIndex()
                         .partition { it.index.isEven }
@@ -109,11 +114,6 @@ class CourseBuilderScene : Scene() {
                 .toMap()
 
         }
-        selectControlElement(
-            ConveyorBeltType
-                .values()
-                .first()
-        )
 
         coursePanel = fixedSizeContainer(views.virtualWidthDouble - controlPanelWidth, views.virtualHeightDouble) {
             alignLeftToRightOf(controlPanel)
@@ -132,18 +132,25 @@ class CourseBuilderScene : Scene() {
     }
 
     private fun handlePosClick(pos: Pos) {
+        when(val element = selectedControlElement){
+            is ControlElement.ConveyorBelt -> handlePosClick(pos, element)
+            else -> Unit
+        }
+    }
+
+    private fun handlePosClick(pos: Pos, belt: ControlElement.ConveyorBelt) {
         course = course.copy(
             conveyorBelts = course.conveyorBelts + (pos to ConveyorBelt(
-                selectedControlElement, ConveyorBeltSpeed.Regular
+                belt.type, ConveyorBeltSpeed.Regular
             ))
         )
     }
 
-    private fun selectControlElement(type: ConveyorBeltType) {
+    private fun selectControlElement(element: ControlElement) {
         controlElementViews.values.forEach {
             it.fill = Colors.TRANSPARENT_BLACK
         }
-        controlElementViews.getValue(type).fill = Colors.RED
-        selectedControlElement = type
+        controlElementViews.getValue(element).fill = Colors.RED
+        selectedControlElement = element
     }
 }
