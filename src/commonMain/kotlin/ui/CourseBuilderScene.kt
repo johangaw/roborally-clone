@@ -8,34 +8,52 @@ import com.soywiz.korim.color.*
 import gamemodel.*
 import kotlin.math.*
 
-val INITIAL_COURSE = Course(10, 15, mapOf(
-    Pos(2,3) to ConveyorBelt(ConveyorBeltType.Right, ConveyorBeltSpeed.Regular),
-    Pos(3,3) to ConveyorBelt(ConveyorBeltType.RightAndDown, ConveyorBeltSpeed.Regular),
-    Pos(3,4) to ConveyorBelt(ConveyorBeltType.Down, ConveyorBeltSpeed.Regular),
-    Pos(3,5) to ConveyorBelt(ConveyorBeltType.DownAndLeft, ConveyorBeltSpeed.Regular),
-    Pos(2,5) to ConveyorBelt(ConveyorBeltType.Left, ConveyorBeltSpeed.Regular),
-    Pos(1,5) to ConveyorBelt(ConveyorBeltType.LeftAndUp, ConveyorBeltSpeed.Regular),
-    Pos(1,4) to ConveyorBelt(ConveyorBeltType.Up, ConveyorBeltSpeed.Regular),
-    Pos(1,3) to ConveyorBelt(ConveyorBeltType.UpAndRight, ConveyorBeltSpeed.Regular),
+val INITIAL_COURSE = Course(
+    width = 10,
+    height = 15,
+    conveyorBelts = mapOf(
+        Pos(2, 3) to ConveyorBelt(ConveyorBeltType.Right, ConveyorBeltSpeed.Regular),
+        Pos(3, 3) to ConveyorBelt(ConveyorBeltType.RightAndDown, ConveyorBeltSpeed.Regular),
+        Pos(3, 4) to ConveyorBelt(ConveyorBeltType.Down, ConveyorBeltSpeed.Regular),
+        Pos(3, 5) to ConveyorBelt(ConveyorBeltType.DownAndLeft, ConveyorBeltSpeed.Regular),
+        Pos(2, 5) to ConveyorBelt(ConveyorBeltType.Left, ConveyorBeltSpeed.Regular),
+        Pos(1, 5) to ConveyorBelt(ConveyorBeltType.LeftAndUp, ConveyorBeltSpeed.Regular),
+        Pos(1, 4) to ConveyorBelt(ConveyorBeltType.Up, ConveyorBeltSpeed.Regular),
+        Pos(1, 3) to ConveyorBelt(ConveyorBeltType.UpAndRight, ConveyorBeltSpeed.Regular),
 
-    Pos(7,3) to ConveyorBelt(ConveyorBeltType.Left, ConveyorBeltSpeed.Regular),
-    Pos(6,3) to ConveyorBelt(ConveyorBeltType.LeftAndDown, ConveyorBeltSpeed.Regular),
-    Pos(6,4) to ConveyorBelt(ConveyorBeltType.Down, ConveyorBeltSpeed.Regular),
-    Pos(6,5) to ConveyorBelt(ConveyorBeltType.DownAndRight, ConveyorBeltSpeed.Regular),
-    Pos(7,5) to ConveyorBelt(ConveyorBeltType.Right, ConveyorBeltSpeed.Regular),
-    Pos(8,5) to ConveyorBelt(ConveyorBeltType.RightAndUp, ConveyorBeltSpeed.Regular),
-    Pos(8,4) to ConveyorBelt(ConveyorBeltType.Up, ConveyorBeltSpeed.Regular),
-    Pos(8,3) to ConveyorBelt(ConveyorBeltType.UpAndLeft, ConveyorBeltSpeed.Regular),
-)
+        Pos(7, 3) to ConveyorBelt(ConveyorBeltType.Left, ConveyorBeltSpeed.Regular),
+        Pos(6, 3) to ConveyorBelt(ConveyorBeltType.LeftAndDown, ConveyorBeltSpeed.Regular),
+        Pos(6, 4) to ConveyorBelt(ConveyorBeltType.Down, ConveyorBeltSpeed.Regular),
+        Pos(6, 5) to ConveyorBelt(ConveyorBeltType.DownAndRight, ConveyorBeltSpeed.Regular),
+        Pos(7, 5) to ConveyorBelt(ConveyorBeltType.Right, ConveyorBeltSpeed.Regular),
+        Pos(8, 5) to ConveyorBelt(ConveyorBeltType.RightAndUp, ConveyorBeltSpeed.Regular),
+        Pos(8, 4) to ConveyorBelt(ConveyorBeltType.Up, ConveyorBeltSpeed.Regular),
+        Pos(8, 3) to ConveyorBelt(ConveyorBeltType.UpAndLeft, ConveyorBeltSpeed.Regular),
+    ),
+    walls = listOf(
+        Wall(Pos(1,7), Direction.Up),
+        Wall(Pos(2,7), Direction.Up),
+        Wall(Pos(3,7), Direction.Up),
+
+        Wall(Pos(3,7), Direction.Right),
+        Wall(Pos(3,8), Direction.Right),
+
+        Wall(Pos(1,7), Direction.Left),
+        Wall(Pos(1,8), Direction.Left),
+
+        Wall(Pos(1,8), Direction.Down),
+        Wall(Pos(2,8), Direction.Down),
+        Wall(Pos(3,8), Direction.Down),
+    ),
 )
 
-class CourseBuilderScene: Scene() {
+class CourseBuilderScene : Scene() {
 
     private lateinit var bitmapCache: BitmapCache
     private lateinit var coursePanel: Container
     private lateinit var courseView: View
     private lateinit var controlElementViews: Map<ConveyorBeltType, RoundRect>
-    private lateinit var selectedControlElement : ConveyorBeltType
+    private lateinit var selectedControlElement: ConveyorBeltType
     private var course: Course = INITIAL_COURSE
         set(value) {
             field = value
@@ -49,36 +67,53 @@ class CourseBuilderScene: Scene() {
             alignLeftToLeftOf(this@sceneMain)
             val controlElementPadding = 0
 
-            controlElementViews = ConveyorBeltType.values().map { type ->
-                type to roundRect(controlPanelWidth / 2, controlPanelWidth / 2, 0.0, fill = Colors.TRANSPARENT_WHITE) {
-                    onClick { selectControlElement(type) }
-                    conveyorBeltView(type, bitmapCache) {
-                        setSizeScaled(50.0, 50.0)
-                        centerOn(parent!!)
+            controlElementViews = ConveyorBeltType
+                .values()
+                .map { type ->
+                    type to roundRect(
+                        controlPanelWidth / 2, controlPanelWidth / 2, 0.0, fill = Colors.TRANSPARENT_WHITE
+                    ) {
+                        onClick { selectControlElement(type) }
+                        conveyorBeltView(type, bitmapCache) {
+                            setSizeScaled(50.0, 50.0)
+                            centerOn(parent!!)
+                        }
                     }
                 }
-            }.apply {
-                val (left, right) = this.map { it.second }.withIndex().partition { it.index.isEven }
-                left.first().value.apply {
-                    alignTopToTopOf(this@roundRect, controlElementPadding)
-                    alignLeftToLeftOf(this@roundRect, controlElementPadding)
-                }
-                right.first().value.apply {
-                    alignTopToTopOf(this@roundRect, controlElementPadding)
-                    alignRightToRightOf(this@roundRect, controlElementPadding)
-                }
+                .apply {
+                    val (left, right) = this
+                        .map { it.second }
+                        .withIndex()
+                        .partition { it.index.isEven }
+                    left.first().value.apply {
+                        alignTopToTopOf(this@roundRect, controlElementPadding)
+                        alignLeftToLeftOf(this@roundRect, controlElementPadding)
+                    }
+                    right.first().value.apply {
+                        alignTopToTopOf(this@roundRect, controlElementPadding)
+                        alignRightToRightOf(this@roundRect, controlElementPadding)
+                    }
 
-                val alignUnderPrevious = {v1: View, v2: View ->
-                    v2.alignLeftToLeftOf(v1)
-                    v2.alignTopToBottomOf(v1, controlElementPadding)
-                }
+                    val alignUnderPrevious = { v1: View, v2: View ->
+                        v2.alignLeftToLeftOf(v1)
+                        v2.alignTopToBottomOf(v1, controlElementPadding)
+                    }
 
-                left.map { it.value }.zipWithNext(alignUnderPrevious)
-                right.map { it.value }.zipWithNext(alignUnderPrevious)
-            }.toMap()
+                    left
+                        .map { it.value }
+                        .zipWithNext(alignUnderPrevious)
+                    right
+                        .map { it.value }
+                        .zipWithNext(alignUnderPrevious)
+                }
+                .toMap()
 
         }
-        selectControlElement(ConveyorBeltType.values().first())
+        selectControlElement(
+            ConveyorBeltType
+                .values()
+                .first()
+        )
 
         coursePanel = fixedSizeContainer(views.virtualWidthDouble - controlPanelWidth, views.virtualHeightDouble) {
             alignLeftToRightOf(controlPanel)
@@ -90,7 +125,7 @@ class CourseBuilderScene: Scene() {
         coursePanel.removeAllComponents()
         courseView = courseView(course, bitmapCache) {
             val scaleFactor = min(views.virtualWidthDouble / width, views.virtualHeightDouble / height)
-            scale  = scaleFactor
+            scale = scaleFactor
             onClick(::handlePosClick)
             centerOn(coursePanel)
         }
@@ -98,7 +133,9 @@ class CourseBuilderScene: Scene() {
 
     private fun handlePosClick(pos: Pos) {
         course = course.copy(
-            conveyorBelts = course.conveyorBelts + (pos to ConveyorBelt(selectedControlElement, ConveyorBeltSpeed.Regular))
+            conveyorBelts = course.conveyorBelts + (pos to ConveyorBelt(
+                selectedControlElement, ConveyorBeltSpeed.Regular
+            ))
         )
     }
 

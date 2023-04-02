@@ -1,6 +1,6 @@
 package gamemodel
 
-data class Course(val width: Int, val height: Int, val conveyorBelts: Map<Pos, ConveyorBelt>)
+data class Course(val width: Int, val height: Int, val conveyorBelts: Map<Pos, ConveyorBelt>, val walls: List<Wall>)
 
 data class ConveyorBelt(val type: ConveyorBeltType, val speed: ConveyorBeltSpeed)
 

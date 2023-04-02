@@ -30,6 +30,13 @@ class CourseView(val course: Course, bitmapCache: BitmapCache) : Container() {
                 position(getPoint(pos))
             }
         }
+
+        course.walls.forEach {
+            wallView(bitmapCache, it.dir) {
+                setSizeScaled(cellSize, cellSize)
+                position(getPoint(it.pos))
+            }
+        }
     }
 
     fun getPoint(pos: Pos): IPoint = Point(pos.x * cellSize, pos.y * cellSize)
