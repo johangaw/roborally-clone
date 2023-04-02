@@ -8,25 +8,26 @@ import com.soywiz.korim.color.*
 import gamemodel.*
 import kotlin.math.*
 
-val INITIAL_COURSE = Course(10, 15, listOf(
-    ConveyorBelt(ConveyorBeltType.Right, ConveyorBeltSpeed.Regular, Pos(2,3)),
-    ConveyorBelt(ConveyorBeltType.RightAndDown, ConveyorBeltSpeed.Regular, Pos(3,3)),
-    ConveyorBelt(ConveyorBeltType.Down, ConveyorBeltSpeed.Regular, Pos(3,4)),
-    ConveyorBelt(ConveyorBeltType.DownAndLeft, ConveyorBeltSpeed.Regular, Pos(3,5)),
-    ConveyorBelt(ConveyorBeltType.Left, ConveyorBeltSpeed.Regular, Pos(2,5)),
-    ConveyorBelt(ConveyorBeltType.LeftAndUp, ConveyorBeltSpeed.Regular, Pos(1,5)),
-    ConveyorBelt(ConveyorBeltType.Up, ConveyorBeltSpeed.Regular, Pos(1,4)),
-    ConveyorBelt(ConveyorBeltType.UpAndRight, ConveyorBeltSpeed.Regular, Pos(1,3)),
+val INITIAL_COURSE = Course(10, 15, mapOf(
+    Pos(2,3) to ConveyorBelt(ConveyorBeltType.Right, ConveyorBeltSpeed.Regular),
+    Pos(3,3) to ConveyorBelt(ConveyorBeltType.RightAndDown, ConveyorBeltSpeed.Regular),
+    Pos(3,4) to ConveyorBelt(ConveyorBeltType.Down, ConveyorBeltSpeed.Regular),
+    Pos(3,5) to ConveyorBelt(ConveyorBeltType.DownAndLeft, ConveyorBeltSpeed.Regular),
+    Pos(2,5) to ConveyorBelt(ConveyorBeltType.Left, ConveyorBeltSpeed.Regular),
+    Pos(1,5) to ConveyorBelt(ConveyorBeltType.LeftAndUp, ConveyorBeltSpeed.Regular),
+    Pos(1,4) to ConveyorBelt(ConveyorBeltType.Up, ConveyorBeltSpeed.Regular),
+    Pos(1,3) to ConveyorBelt(ConveyorBeltType.UpAndRight, ConveyorBeltSpeed.Regular),
 
-    ConveyorBelt(ConveyorBeltType.Left, ConveyorBeltSpeed.Regular, Pos(7,3)),
-    ConveyorBelt(ConveyorBeltType.LeftAndDown, ConveyorBeltSpeed.Regular, Pos(6,3)),
-    ConveyorBelt(ConveyorBeltType.Down, ConveyorBeltSpeed.Regular, Pos(6,4)),
-    ConveyorBelt(ConveyorBeltType.DownAndRight, ConveyorBeltSpeed.Regular, Pos(6,5)),
-    ConveyorBelt(ConveyorBeltType.Right, ConveyorBeltSpeed.Regular, Pos(7,5)),
-    ConveyorBelt(ConveyorBeltType.RightAndUp, ConveyorBeltSpeed.Regular, Pos(8,5)),
-    ConveyorBelt(ConveyorBeltType.Up, ConveyorBeltSpeed.Regular, Pos(8,4)),
-    ConveyorBelt(ConveyorBeltType.UpAndLeft, ConveyorBeltSpeed.Regular, Pos(8,3)),
-))
+    Pos(7,3) to ConveyorBelt(ConveyorBeltType.Left, ConveyorBeltSpeed.Regular),
+    Pos(6,3) to ConveyorBelt(ConveyorBeltType.LeftAndDown, ConveyorBeltSpeed.Regular),
+    Pos(6,4) to ConveyorBelt(ConveyorBeltType.Down, ConveyorBeltSpeed.Regular),
+    Pos(6,5) to ConveyorBelt(ConveyorBeltType.DownAndRight, ConveyorBeltSpeed.Regular),
+    Pos(7,5) to ConveyorBelt(ConveyorBeltType.Right, ConveyorBeltSpeed.Regular),
+    Pos(8,5) to ConveyorBelt(ConveyorBeltType.RightAndUp, ConveyorBeltSpeed.Regular),
+    Pos(8,4) to ConveyorBelt(ConveyorBeltType.Up, ConveyorBeltSpeed.Regular),
+    Pos(8,3) to ConveyorBelt(ConveyorBeltType.UpAndLeft, ConveyorBeltSpeed.Regular),
+)
+)
 
 class CourseBuilderScene: Scene() {
 
@@ -97,7 +98,7 @@ class CourseBuilderScene: Scene() {
 
     private fun handlePosClick(pos: Pos) {
         course = course.copy(
-            conveyorBelts = course.conveyorBelts.filter { it.pos != pos } + ConveyorBelt(selectedControlElement, ConveyorBeltSpeed.Regular, pos)
+            conveyorBelts = course.conveyorBelts + (pos to ConveyorBelt(selectedControlElement, ConveyorBeltSpeed.Regular))
         )
     }
 

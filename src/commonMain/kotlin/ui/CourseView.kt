@@ -24,10 +24,10 @@ class CourseView(val course: Course, bitmapCache: BitmapCache) : Container() {
             }
         }
 
-        course.conveyorBelts.forEach {
-            conveyorBeltView(it.type, bitmapCache) {
+        course.conveyorBelts.forEach {(pos, belt) ->
+            conveyorBeltView(belt.type, bitmapCache) {
                 setSizeScaled(cellSize, cellSize)
-                position(getPoint(it.pos))
+                position(getPoint(pos))
             }
         }
     }

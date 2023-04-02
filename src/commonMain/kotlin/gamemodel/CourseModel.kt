@@ -1,8 +1,8 @@
 package gamemodel
 
-data class Course(val width: Int, val height: Int, val conveyorBelts: List<ConveyorBelt>)
+data class Course(val width: Int, val height: Int, val conveyorBelts: Map<Pos, ConveyorBelt>)
 
-data class ConveyorBelt(val type: ConveyorBeltType, val speed: ConveyorBeltSpeed, val pos: Pos)
+data class ConveyorBelt(val type: ConveyorBeltType, val speed: ConveyorBeltSpeed)
 
 
 enum class ConveyorBeltSpeed(val speed: Int) {
