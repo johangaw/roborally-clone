@@ -31,24 +31,26 @@ val INITIAL_COURSE = Course(
         Pos(8, 3) to ConveyorBelt(ConveyorBeltType.UpAndLeft, ConveyorBeltSpeed.Regular),
     ),
     walls = listOf(
-        Wall(Pos(1,7), Direction.Up),
-        Wall(Pos(2,7), Direction.Up),
-        Wall(Pos(3,7), Direction.Up),
+        Wall(Pos(1, 7), Direction.Up),
+        Wall(Pos(2, 7), Direction.Up),
+        Wall(Pos(3, 7), Direction.Up),
 
-        Wall(Pos(3,7), Direction.Right),
-        Wall(Pos(3,8), Direction.Right),
+        Wall(Pos(3, 7), Direction.Right),
+        Wall(Pos(3, 8), Direction.Right),
 
-        Wall(Pos(1,7), Direction.Left),
-        Wall(Pos(1,8), Direction.Left),
+        Wall(Pos(1, 7), Direction.Left),
+        Wall(Pos(1, 8), Direction.Left),
 
-        Wall(Pos(1,8), Direction.Down),
-        Wall(Pos(2,8), Direction.Down),
-        Wall(Pos(3,8), Direction.Down),
+        Wall(Pos(1, 8), Direction.Down),
+        Wall(Pos(2, 8), Direction.Down),
+        Wall(Pos(3, 8), Direction.Down),
     ),
 )
 
-sealed class ControlElement{
-    data class ConveyorBelt(val type: ConveyorBeltType): ControlElement()
+sealed class ControlElement {
+    data class ConveyorBelt(val type: ConveyorBeltType) : ControlElement()
+
+    data class Wall(val dir: Direction) : ControlElement()
 }
 
 class CourseBuilderScene : Scene() {
@@ -71,20 +73,41 @@ class CourseBuilderScene : Scene() {
             alignLeftToLeftOf(this@sceneMain)
             val controlElementPadding = 0
 
-            controlElementViews = ConveyorBeltType
-                .values()
-                .map { type ->
-                    val element = ControlElement.ConveyorBelt(type)
-                    element to roundRect(
-                        controlPanelWidth / 2, controlPanelWidth / 2, 0.0, fill = Colors.TRANSPARENT_WHITE
-                    ) {
-                        onClick { selectControlElement(element) }
-                        conveyorBeltView(type, bitmapCache) {
-                            setSizeScaled(50.0, 50.0)
-                            centerOn(parent!!)
+            controlElementViews = emptyList<Pair<ControlElement, RoundRect>>()
+                .plus(
+                    ConveyorBeltType
+                        .values()
+                        .map { type ->
+                            ControlElement.ConveyorBelt(type) to roundRect(
+                                controlPanelWidth / 2, controlPanelWidth / 2, 0.0, fill = Colors.TRANSPARENT_WHITE
+                            ) {
+                                onClick { selectControlElement(ControlElement.ConveyorBelt(type)) }
+                                conveyorBeltView(type, bitmapCache) {
+                                    setSizeScaled(50.0, 50.0)
+                                    centerOn(parent!!)
+                                }
+                            }
                         }
-                    }
-                }
+                )
+                .plus(
+                    Direction
+                        .values()
+                        .map { dir ->
+                            ControlElement.Wall(dir) to roundRect(
+                                controlPanelWidth / 2, controlPanelWidth / 2, 0.0, fill = Colors.TRANSPARENT_WHITE
+                            ) {
+                                onClick { selectControlElement(ControlElement.Wall(dir)) }
+                                image(bitmapCache.floor) {
+                                    setSizeScaled(50.0, 50.0)
+                                    centerOn(parent!!)
+                                }
+                                wallView(bitmapCache, dir) {
+                                    setSizeScaled(50.0, 50.0)
+                                    centerOn(parent!!)
+                                }
+                            }
+                        }
+                )
                 .also { controls ->
                     val (left, right) = controls
                         .map { it.second }
@@ -132,17 +155,24 @@ class CourseBuilderScene : Scene() {
     }
 
     private fun handlePosClick(pos: Pos) {
-        when(val element = selectedControlElement){
-            is ControlElement.ConveyorBelt -> handlePosClick(pos, element)
-            else -> Unit
+        when (val element = selectedControlElement) {
+            is ControlElement.ConveyorBelt -> handlePosClick(pos, element.type)
+            is ControlElement.Wall -> handlePosClick(pos, element.dir)
+            null -> Unit
         }
     }
 
-    private fun handlePosClick(pos: Pos, belt: ControlElement.ConveyorBelt) {
+    private fun handlePosClick(pos: Pos, conveyorBeltType: ConveyorBeltType) {
         course = course.copy(
             conveyorBelts = course.conveyorBelts + (pos to ConveyorBelt(
-                belt.type, ConveyorBeltSpeed.Regular
+                conveyorBeltType, ConveyorBeltSpeed.Regular
             ))
+        )
+    }
+
+    private fun handlePosClick(pos: Pos, wallDirection: Direction) {
+        course = course.copy(
+            walls = course.walls.filter { !(it.pos == pos && it.dir == wallDirection) } + Wall(pos, wallDirection)
         )
     }
 
