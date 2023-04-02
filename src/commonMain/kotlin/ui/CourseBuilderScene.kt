@@ -163,16 +163,24 @@ class CourseBuilderScene : Scene() {
     }
 
     private fun handlePosClick(pos: Pos, conveyorBeltType: ConveyorBeltType) {
+        val newBelt = ConveyorBelt(conveyorBeltType, ConveyorBeltSpeed.Regular)
+
         course = course.copy(
-            conveyorBelts = course.conveyorBelts + (pos to ConveyorBelt(
-                conveyorBeltType, ConveyorBeltSpeed.Regular
-            ))
+            conveyorBelts = if (course.conveyorBelts[pos] == newBelt)
+                course.conveyorBelts - pos
+            else
+                course.conveyorBelts + (pos to newBelt)
         )
     }
 
     private fun handlePosClick(pos: Pos, wallDirection: Direction) {
+        val newWall = Wall(pos, wallDirection)
+        val previousWall = course.walls.firstOrNull { wall: Wall -> wall.pos == newWall.pos && wall.dir == newWall.dir }
         course = course.copy(
-            walls = course.walls.filter { !(it.pos == pos && it.dir == wallDirection) } + Wall(pos, wallDirection)
+            walls = if (previousWall != null)
+                course.walls - previousWall
+            else
+                course.walls + newWall
         )
     }
 
