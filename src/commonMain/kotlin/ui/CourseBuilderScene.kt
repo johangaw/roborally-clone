@@ -45,12 +45,22 @@ val INITIAL_COURSE = Course(
         Wall(Pos(2, 8), Direction.Down),
         Wall(Pos(3, 8), Direction.Down),
     ),
+    mapOf(
+        Pos(1, 1) to Checkpoint(1, Pos(2,1)),
+        Pos(2, 1) to Checkpoint(2, Pos(2,2)),
+        Pos(3, 1) to Checkpoint(3, Pos(2,3)),
+        Pos(4, 1) to Checkpoint(4, Pos(2,4)),
+        Pos(5, 1) to Checkpoint(5, Pos(2,5)),
+        Pos(6, 1) to Checkpoint(6, Pos(2,6)),
+    )
 )
 
 sealed class ControlElement {
     data class ConveyorBelt(val type: ConveyorBeltType) : ControlElement()
 
     data class Wall(val dir: Direction) : ControlElement()
+
+    data class Checkpoint(val order: Int) : ControlElement()
 }
 
 class CourseBuilderScene : Scene() {
@@ -108,6 +118,20 @@ class CourseBuilderScene : Scene() {
                             }
                         }
                 )
+                .plus(
+                    (1..6)
+                        .map { order ->
+                            ControlElement.Checkpoint(order) to roundRect(
+                                controlPanelWidth / 2, controlPanelWidth / 2, 0.0, fill = Colors.TRANSPARENT_WHITE
+                            ) {
+                                onClick { selectControlElement(ControlElement.Checkpoint(order)) }
+                                checkpointView(order, bitmapCache) {
+                                    setSizeScaled(50.0, 50.0)
+                                    centerOn(parent!!)
+                                }
+                            }
+                        }
+                )
                 .also { controls ->
                     val (left, right) = controls
                         .map { it.second }
@@ -158,8 +182,20 @@ class CourseBuilderScene : Scene() {
         when (val element = selectedControlElement) {
             is ControlElement.ConveyorBelt -> handlePosClick(pos, element.type)
             is ControlElement.Wall -> handlePosClick(pos, element.dir)
+            is ControlElement.Checkpoint -> handlePosClick(pos, element.order)
             null -> Unit
         }
+    }
+
+    private fun handlePosClick(pos: Pos, order: Int) {
+        val newCheckpoint = Checkpoint(order, pos)
+
+        course = course.copy(
+            checkpoints = if (course.checkpoints[pos]?.order == newCheckpoint.order)
+                course.checkpoints - pos
+            else
+                course.checkpoints.filterValues { it.order !=  newCheckpoint.order } + (pos to newCheckpoint)
+        )
     }
 
     private fun handlePosClick(pos: Pos, conveyorBeltType: ConveyorBeltType) {

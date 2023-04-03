@@ -7,20 +7,23 @@ const val checkpointViewSize = 100.0
 
 class CheckpointView(checkpointOrder: Int, bitmapCache: BitmapCache) : Container() {
     init {
-        val image = image(bitmapCache.checkpoint) {
-            val imageSize = checkpointViewSize
-            size(imageSize, imageSize)
-            centerOn(parent!!)
-        }
-
-        text(checkpointOrder.toString()) {
-            fontSize = 30.0
-            color = Colors.WHITE
-            centerOn(image)
-            alignTopToTopOf(image, checkpointViewSize * 0.16)
+        roundRect(checkpointViewSize, checkpointViewSize, 0.0, fill = Colors.TRANSPARENT_WHITE) {
+            val image = image(bitmapCache.checkpoint) {
+                val imageSize = checkpointViewSize * 0.8
+                size(imageSize, imageSize)
+                centerOn(parent!!)
+            }
+            text(checkpointOrder.toString()) {
+                fontSize = 30.0
+                color = Colors.WHITE
+                centerOn(image)
+                alignTopToTopOf(image, checkpointViewSize * 0.09)
+            }
         }
     }
 }
 
 fun Container.checkpointView(checkpointOrder: Int, bitmapCache: BitmapCache, callback: CheckpointView.() -> Unit) =
-    CheckpointView(checkpointOrder, bitmapCache).addTo(this).apply(callback)
+    CheckpointView(checkpointOrder, bitmapCache)
+        .addTo(this)
+        .apply(callback)

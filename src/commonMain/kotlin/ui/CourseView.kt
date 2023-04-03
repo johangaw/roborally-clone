@@ -37,6 +37,13 @@ class CourseView(val course: Course, bitmapCache: BitmapCache) : Container() {
                 position(getPoint(it.pos))
             }
         }
+
+        course.checkpoints.forEach { (pos, checkpoint) ->
+            checkpointView(checkpoint.order, bitmapCache) {
+                setSizeScaled(cellSize, cellSize)
+                position(getPoint(pos))
+            }
+        }
     }
 
     fun getPoint(pos: Pos): IPoint = Point(pos.x * cellSize, pos.y * cellSize)

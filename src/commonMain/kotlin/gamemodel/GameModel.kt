@@ -45,7 +45,7 @@ data class Player(
     val id: PlayerId = PlayerId.create(),
 )
 
-data class Checkpoint(val order: Int, val pos: Pos, val id: CheckpointId = CheckpointId.create())
+data class Checkpoint(val order: Int, val pos: Pos, val id: CheckpointId = CheckpointId.create()) // TODO remove pos
 
 data class GameModel(
     val robots: List<Robot>,
