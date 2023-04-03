@@ -17,10 +17,21 @@ data class Course(
 
     fun getCheckpoint(id: CheckpointId) =
         checkpoints.firstOrNull { it.id == id } ?: throw AssertionError("No checkpoint with id $id")
+
+    init {
+        assert(checkpoints.distinctBy { it.id }.size == checkpoints.size) { "Two checkpoints share the same id" }
+    }
 }
 
 @Serializable
-data class Checkpoint(val order: Int, val pos: Pos, val id: CheckpointId = CheckpointId.create()) // TODO remove pos
+data class Checkpoint(val id: CheckpointId, val pos: Pos): Comparable<Checkpoint> {
+    override fun compareTo(other: Checkpoint): Int = id.value - other.id.value
+
+}
+
+@JvmInline
+@Serializable
+value class CheckpointId(val value: Int)
 
 @Serializable
 data class Wall(val pos: Pos, val dir: Direction)

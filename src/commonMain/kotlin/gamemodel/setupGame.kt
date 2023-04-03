@@ -19,9 +19,9 @@ fun setupGame(): GameModel {
                 width = 10,
                 height = 10,
                 checkpoints = listOf(
-                    Checkpoint(0, Pos(5, 6)),
-                    Checkpoint(1, Pos(2, 4)),
-                    Checkpoint(2, Pos(9, 9)),
+                    Checkpoint(CheckpointId(0), Pos(5, 6)),
+                    Checkpoint(CheckpointId(1), Pos(2, 4)),
+                    Checkpoint(CheckpointId(2), Pos(9, 9)),
                 ),
                 walls = listOf(
                     Wall(Pos(2, 2), Direction.Left),

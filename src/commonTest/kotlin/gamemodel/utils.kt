@@ -19,9 +19,7 @@ import com.soywiz.kmem.*
  */
 fun gameModel(map: String): GameModel {
     var robotIds = 0
-    var wallIds = 0
     var playerId = 0
-    var checkpointId = 0
     assertValidMap(map)
 
     val mapBody = map
@@ -39,7 +37,7 @@ fun gameModel(map: String): GameModel {
     val checkpoints = mapBody.mapPos { x, y, char ->
         char
             .digitToIntOrNull()
-            ?.let { Checkpoint(order = it, pos = Pos(x, y), id = CheckpointId(checkpointId++)) }
+            ?.let { Checkpoint(id = CheckpointId(it), pos = Pos(x, y)) }
     }
 
     val walls = mapBody.mapPrePos { x, y, char ->
@@ -184,4 +182,4 @@ fun <T> anyOrderList(items: Collection<T>): AnyOrderList<T> {
 fun GameModel.mapCourse(cb: (gameModel: GameModel, course: Course) -> Course): GameModel =
     copy(course = cb(this, this.course))
 
-fun GameModel.checkpoints(): List<Checkpoint> = this.course.checkpoints.sortedBy { it.order }
+fun GameModel.checkpoints(): List<Checkpoint> = this.course.checkpoints.sorted()

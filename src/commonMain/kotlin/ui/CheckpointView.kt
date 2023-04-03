@@ -2,10 +2,11 @@ package ui
 
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
+import gamemodel.*
 
 const val checkpointViewSize = 100.0
 
-class CheckpointView(checkpointOrder: Int, bitmapCache: BitmapCache) : Container() {
+class CheckpointView(checkpointId: CheckpointId, bitmapCache: BitmapCache) : Container() {
     init {
         roundRect(checkpointViewSize, checkpointViewSize, 0.0, fill = Colors.TRANSPARENT_WHITE) {
             val image = image(bitmapCache.checkpoint) {
@@ -13,7 +14,7 @@ class CheckpointView(checkpointOrder: Int, bitmapCache: BitmapCache) : Container
                 size(imageSize, imageSize)
                 centerOn(parent!!)
             }
-            text(checkpointOrder.toString()) {
+            text(checkpointId.value.toString()) {
                 fontSize = 30.0
                 color = Colors.WHITE
                 centerOn(image)
@@ -23,7 +24,7 @@ class CheckpointView(checkpointOrder: Int, bitmapCache: BitmapCache) : Container
     }
 }
 
-fun Container.checkpointView(checkpointOrder: Int, bitmapCache: BitmapCache, callback: CheckpointView.() -> Unit) =
-    CheckpointView(checkpointOrder, bitmapCache)
+fun Container.checkpointView(checkpointId: CheckpointId, bitmapCache: BitmapCache, callback: CheckpointView.() -> Unit) =
+    CheckpointView(checkpointId, bitmapCache)
         .addTo(this)
         .apply(callback)

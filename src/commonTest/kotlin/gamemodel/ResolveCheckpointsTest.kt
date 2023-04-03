@@ -35,7 +35,7 @@ class ResolveCheckpointsTest {
         ).mapCourse { model, course ->
             course.copy(
                 checkpoints = listOf(
-                    Checkpoint(1, model.robots.first().pos)
+                    Checkpoint(CheckpointId(1), model.robots.first().pos)
                 )
             )
         }
@@ -66,7 +66,7 @@ class ResolveCheckpointsTest {
         """.trimIndent()
         ).mapCourse { gameModel, course ->
             course.copy(
-                checkpoints = course.checkpoints + Checkpoint(2, gameModel.robots.first().pos),
+                checkpoints = course.checkpoints + Checkpoint(CheckpointId(2), gameModel.robots.first().pos),
             )
         }
 

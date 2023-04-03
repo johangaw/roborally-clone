@@ -39,7 +39,7 @@ class CourseView(val course: Course, bitmapCache: BitmapCache) : Container() {
         }
 
         course.checkpoints.forEach {
-            checkpointView(it.order, bitmapCache) {
+            checkpointView(it.id, bitmapCache) {
                 setSizeScaled(cellSize, cellSize)
                 position(getPoint(it.pos))
             }
