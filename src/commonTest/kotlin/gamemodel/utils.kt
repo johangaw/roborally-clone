@@ -46,7 +46,6 @@ fun gameModel(map: String): GameModel {
         if (char == '|') Wall(
             Pos(x, y),
             Direction.Left,
-            id = WallId(wallIds++)
         ) else null
     }
 

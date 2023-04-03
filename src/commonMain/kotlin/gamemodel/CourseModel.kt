@@ -15,7 +15,7 @@ data class Course(
 data class Checkpoint(val order: Int, val pos: Pos, val id: CheckpointId = CheckpointId.create()) // TODO remove pos
 
 @Serializable
-data class Wall(val pos: Pos, val dir: Direction, val id: WallId = WallId.create())  // TODO remove pos
+data class Wall(val pos: Pos, val dir: Direction)
 
 @Serializable
 data class ConveyorBelt(val type: ConveyorBeltType, val speed: ConveyorBeltSpeed)

@@ -11,15 +11,6 @@ value class RobotId(val value: Int) {
 }
 
 @JvmInline
-@Serializable
-value class WallId(val value: Int) {
-    companion object {
-        private var freeId = 0
-        fun create() = WallId(freeId++)
-    }
-}
-
-@JvmInline
 value class PlayerId(val value: Int) {
     companion object {
         private var freeId = 0
