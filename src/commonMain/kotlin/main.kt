@@ -1,5 +1,4 @@
 import com.soywiz.klock.*
-import com.soywiz.kmem.*
 import com.soywiz.korev.*
 import com.soywiz.korge.*
 import com.soywiz.korge.animate.*
@@ -13,7 +12,6 @@ import com.soywiz.korim.color.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.std.*
 import com.soywiz.korma.geom.*
-import com.soywiz.korma.geom.vector.*
 import com.soywiz.korma.interpolation.*
 import gamemodel.*
 import ui.*
@@ -21,8 +19,8 @@ import kotlin.math.*
 
 suspend fun main() = Korge(width = 1024, height = 1024, bgcolor = Colors["#2b2b2b"]) {
     val sceneContainer = sceneContainer()
-    sceneContainer.changeTo({ GameScene() })
-//    sceneContainer.changeTo({ CourseBuilderScene() })
+//    sceneContainer.changeTo({ GameScene() })
+    sceneContainer.changeTo({ CourseBuilderScene() })
 }
 
 
@@ -56,7 +54,7 @@ class GameScene : Scene() {
         }.toMap()
 
         programAreas = gameModel.players.map { player ->
-            programArea(cellSize, gameModel.course.checkpoints.values.map { it.id }, player.id, player.robotId, bitmapCache) {
+            programArea(cellSize, gameModel.course.checkpoints.map { it.id }, player.id, player.robotId, bitmapCache) {
                 centerOn(this@sceneMain)
                 alignTopToBottomOf(courseView)
                 text(player.id.value.toString(), textSize = 30.0, color = Colors.BLACK) {

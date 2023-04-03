@@ -56,7 +56,7 @@ fun gameModel(map: String): GameModel {
         course = Course(
             width = mapBody.mapPos{_,_,_ -> 0}.size,
             height = 1,
-            checkpoints = checkpoints.associate { it.pos to it },
+            checkpoints = checkpoints,
             conveyorBelts = emptyMap(),
             walls = walls
         )
@@ -184,4 +184,4 @@ fun <T> anyOrderList(items: Collection<T>): AnyOrderList<T> {
 fun GameModel.mapCourse(cb: (gameModel: GameModel, course: Course) -> Course): GameModel =
     copy(course = cb(this, this.course))
 
-fun GameModel.checkpoints(): List<Checkpoint> = this.course.checkpoints.values.sortedBy { it.order }
+fun GameModel.checkpoints(): List<Checkpoint> = this.course.checkpoints.sortedBy { it.order }

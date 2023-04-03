@@ -2,7 +2,7 @@ package gamemodel
 
 fun GameModel.checkForWinner(): CheckForWinnerResult =
     players
-        .firstOrNull { player -> player.capturedCheckpoints.containsAll(this.course.checkpoints.values.map { it.id }) }
+        .firstOrNull { player -> player.capturedCheckpoints.containsAll(this.course.checkpoints.map { it.id }) }
         ?.let {
             CheckForWinnerResult.WinnerFound(it.id)
         } ?: CheckForWinnerResult.NoWinnerFound

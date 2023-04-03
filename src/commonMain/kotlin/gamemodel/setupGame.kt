@@ -18,10 +18,10 @@ fun setupGame(): GameModel {
             course = Course(
                 width = 10,
                 height = 10,
-                checkpoints = mapOf(
-                    Pos(5, 6) to Checkpoint(0, Pos(5, 6)),
-                    Pos(2, 4) to Checkpoint(1, Pos(2, 4)),
-                    Pos(9, 9) to Checkpoint(2, Pos(9, 9)),
+                checkpoints = listOf(
+                    Checkpoint(0, Pos(5, 6)),
+                    Checkpoint(1, Pos(2, 4)),
+                    Checkpoint(2, Pos(9, 9)),
                 ),
                 walls = listOf(
                     Wall(Pos(2, 2), Direction.Left),

@@ -8,7 +8,7 @@ data class Course(
     val height: Int,
     val conveyorBelts: Map<Pos, ConveyorBelt>,
     val walls: List<Wall>,
-    val checkpoints: Map<Pos, Checkpoint>,
+    val checkpoints: List<Checkpoint>,
 ) {
     fun wallAt(pos: Pos, dir: Direction): Wall? {
         return walls.firstOrNull { it.pos == pos && it.dir == dir }
@@ -16,7 +16,7 @@ data class Course(
     }
 
     fun getCheckpoint(id: CheckpointId) =
-        checkpoints.values.firstOrNull { it.id == id } ?: throw AssertionError("No checkpoint with id $id")
+        checkpoints.firstOrNull { it.id == id } ?: throw AssertionError("No checkpoint with id $id")
 }
 
 @Serializable

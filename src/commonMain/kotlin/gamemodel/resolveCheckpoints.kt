@@ -21,7 +21,7 @@ private fun GameModel.nextCheckpoint(robotId: RobotId): Checkpoint? = getPlayer(
     .map { course.getCheckpoint(it).order }
     .fold(-1) { maxOrder, order -> Integer.max(maxOrder, order) }
     .let { maxOrderCompleted ->
-        course.checkpoints.values
+        course.checkpoints
             .sortedBy { it.order }
             .firstOrNull { maxOrderCompleted < it.order }
     }

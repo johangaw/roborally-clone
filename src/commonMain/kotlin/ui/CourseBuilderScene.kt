@@ -48,13 +48,13 @@ val INITIAL_COURSE = Course(
         Wall(Pos(2, 8), Direction.Down),
         Wall(Pos(3, 8), Direction.Down),
     ),
-    mapOf(
-        Pos(1, 1) to Checkpoint(1, Pos(2,1)),
-        Pos(2, 1) to Checkpoint(2, Pos(2,2)),
-        Pos(3, 1) to Checkpoint(3, Pos(2,3)),
-        Pos(4, 1) to Checkpoint(4, Pos(2,4)),
-        Pos(5, 1) to Checkpoint(5, Pos(2,5)),
-        Pos(6, 1) to Checkpoint(6, Pos(2,6)),
+    listOf(
+        Checkpoint(1, Pos(2, 1)),
+        Checkpoint(2, Pos(3, 1)),
+        Checkpoint(3, Pos(4, 1)),
+        Checkpoint(4, Pos(5, 1)),
+        Checkpoint(5, Pos(6, 1)),
+        Checkpoint(6, Pos(7, 1)),
     )
 )
 
@@ -210,12 +210,16 @@ class CourseBuilderScene : Scene() {
 
     private fun handlePosClick(pos: Pos, order: Int) {
         val newCheckpoint = Checkpoint(order, pos)
+        val previousCheckpointAtPos = course.checkpoints.firstOrNull { it.pos == pos }
 
         course = course.copy(
-            checkpoints = if (course.checkpoints[pos]?.order == newCheckpoint.order)
-                course.checkpoints - pos
+            checkpoints = if (previousCheckpointAtPos?.order == order)
+                course.checkpoints - previousCheckpointAtPos
+            else if(previousCheckpointAtPos != null) {
+                course.checkpoints.filter { it.order != order } - previousCheckpointAtPos + newCheckpoint
+            }
             else
-                course.checkpoints.filterValues { it.order !=  newCheckpoint.order } + (pos to newCheckpoint)
+                course.checkpoints.filter { it.order != order } + newCheckpoint
         )
     }
 
