@@ -9,7 +9,15 @@ data class Course(
     val conveyorBelts: Map<Pos, ConveyorBelt>,
     val walls: List<Wall>,
     val checkpoints: Map<Pos, Checkpoint>,
-)
+) {
+    fun wallAt(pos: Pos, dir: Direction): Wall? {
+        return walls.firstOrNull { it.pos == pos && it.dir == dir }
+            ?: walls.firstOrNull { it.pos == pos + dir && it.dir == dir.opposite() }
+    }
+
+    fun getCheckpoint(id: CheckpointId) =
+        checkpoints.values.firstOrNull { it.id == id } ?: throw AssertionError("No checkpoint with id $id")
+}
 
 @Serializable
 data class Checkpoint(val order: Int, val pos: Pos, val id: CheckpointId = CheckpointId.create()) // TODO remove pos

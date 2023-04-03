@@ -70,26 +70,7 @@ data class GameModel(
     fun getPlayer(id: PlayerId): Player =
         players.firstOrNull { it.id == id } ?: throw AssertionError("No player with id $id")
 
-    fun wallAt(pos: Pos, dir: Direction): Wall? {
-        return course.walls.firstOrNull { it.pos == pos && it.dir == dir }
-            ?: course.walls.firstOrNull { it.pos == pos + dir && it.dir == dir.opposite() }
-    }
-
-    fun wallsAt(pos: Pos): List<Wall> = course.walls.filter { it.pos == pos }
-
-
-    fun getCheckpoint(id: CheckpointId) =
-        course.checkpoints.values.firstOrNull { it.id == id } ?: throw AssertionError("No checkpoint with id $id")
-
-    fun nextCheckpoint(robotId: RobotId): Checkpoint? = getPlayer(robotId).capturedCheckpoints
-        .map { getCheckpoint(it) }
-        .map { it.order }
-        .fold(-1) { maxOrder, order -> max(maxOrder, order) }
-        .let { maxOrderCompleted ->
-            course.checkpoints.values
-                .sortedBy { it.order }
-                .firstOrNull { maxOrderCompleted < it.order }
-        }
+    fun wallAt(pos: Pos, dir: Direction): Wall? = course.wallAt(pos, dir)
 
     private fun assertNoDoubletCards() {
         val allCards =

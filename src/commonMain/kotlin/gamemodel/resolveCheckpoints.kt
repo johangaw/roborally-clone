@@ -17,6 +17,15 @@ fun GameModel.resolveCheckpoints(): CheckpointResolutionResult {
     )
 }
 
+private fun GameModel.nextCheckpoint(robotId: RobotId): Checkpoint? = getPlayer(robotId).capturedCheckpoints
+    .map { course.getCheckpoint(it).order }
+    .fold(-1) { maxOrder, order -> Integer.max(maxOrder, order) }
+    .let { maxOrderCompleted ->
+        course.checkpoints.values
+            .sortedBy { it.order }
+            .firstOrNull { maxOrderCompleted < it.order }
+    }
+
 data class CheckpointResolutionResult(
     val gameModel: GameModel,
     val capturedCheckpoints: Map<PlayerId, CheckpointId>
