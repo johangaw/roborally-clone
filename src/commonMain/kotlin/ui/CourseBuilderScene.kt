@@ -8,7 +8,6 @@ import com.soywiz.korim.color.*
 import gamemodel.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.decodeFromString
 import kotlin.math.*
 
 val INITIAL_COURSE = Course(
@@ -165,7 +164,7 @@ class CourseBuilderScene : Scene() {
             roundRect(75.0, 40.0, 3.0, fill = Colors.DARKGRAY) {
                 text("SAVE") {
                     color = Colors.WHITE
-                    centerOn(this@roundRect)
+                    centerOn(parent!!)
                 }
                 onClick { saveCourse() }
                 centerOn(parent!!)
