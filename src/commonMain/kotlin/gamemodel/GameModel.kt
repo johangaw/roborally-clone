@@ -8,10 +8,7 @@ data class Pos(val x: Int, val y: Int)
 
 @Serializable
 enum class Direction(val dx: Int, val dy: Int) {
-    Up(0, -1),
-    Down(0, 1),
-    Right(1, 0),
-    Left(-1, 0);
+    Up(0, -1), Down(0, 1), Right(1, 0), Left(-1, 0);
 }
 
 operator fun Pos.plus(dir: Direction): Pos = Pos(x + dir.dx, y + dir.dy)
@@ -47,12 +44,12 @@ data class Player(
 )
 
 data class GameModel(
+    val course: Course,
     val robots: List<Robot>,
     val walls: List<Wall>,
     val players: List<Player>,
     val actionDrawPile: List<ActionCard> = actionCardDeck().shuffled(),
     val actionDiscardPile: List<ActionCard> = emptyList(),
-    val checkpoints: List<Checkpoint> = emptyList(),
 ) {
     init {
         assertNoDoubletCards()
@@ -83,14 +80,14 @@ data class GameModel(
 
 
     fun getCheckpoint(id: CheckpointId) =
-        checkpoints.firstOrNull { it.id == id } ?: throw AssertionError("No checkpoint with id $id")
+        course.checkpoints.values.firstOrNull { it.id == id } ?: throw AssertionError("No checkpoint with id $id")
 
     fun nextCheckpoint(robotId: RobotId): Checkpoint? = getPlayer(robotId).capturedCheckpoints
         .map { getCheckpoint(it) }
         .map { it.order }
         .fold(-1) { maxOrder, order -> max(maxOrder, order) }
         .let { maxOrderCompleted ->
-            checkpoints
+            course.checkpoints.values
                 .sortedBy { it.order }
                 .firstOrNull { maxOrderCompleted < it.order }
         }

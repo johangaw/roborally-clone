@@ -32,11 +32,15 @@ class ResolveCheckpointsTest {
             +|+|+|+|+|+|+
             + →         +
         """.trimIndent()
-        ).let {
-            it.copy(checkpoints = listOf(Checkpoint(1, it.robots.first().pos)))
-        }
+        )
+            .mapCourse{model, course ->
+                val pos = model.robots.first().pos
+                course.copy(checkpoints = mapOf(
+                    pos to Checkpoint(1, pos)
+                ))
+            }
         val (p1) = model.players
-        val (c1) = model.checkpoints
+        val (c1) = model.checkpoints()
         val expectedModel = model.copy(
             players = listOf(p1.copy(capturedCheckpoints = listOf(c1.id))),
         )
@@ -60,8 +64,9 @@ class ResolveCheckpointsTest {
             +|+|+|+|+|+|+
             + →   1     +
         """.trimIndent()
-        ).let {
-            it.copy(checkpoints = it.checkpoints + listOf(Checkpoint(2, it.robots.first().pos)))
+        ).mapCourse { gameModel, course ->
+            val pos = gameModel.robots.first().pos
+            course.copy(checkpoints = course.checkpoints + (pos to Checkpoint(2, pos)))
         }
 
         val result = model.resolveCheckpoints()

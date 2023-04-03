@@ -93,9 +93,9 @@ class GameScene : Scene() {
             }
         }
 
-        gameModel.checkpoints.forEach {
-            posContainer(it.pos) {
-                checkpointView(it.order, bitmapCache) {
+        gameModel.course.checkpoints.forEach {(pos, checkpoint) ->
+            posContainer(pos) {
+                checkpointView(checkpoint.order, bitmapCache) {
                     val size = cellSize * 0.9
                     setSizeScaled(size, size)
                 }
@@ -111,7 +111,7 @@ class GameScene : Scene() {
         }.toMap()
 
         programAreas = gameModel.players.map { player ->
-            programArea(cellSize, gameModel.checkpoints.map { it.id }, player.id, player.robotId, bitmapCache) {
+            programArea(cellSize, gameModel.course.checkpoints.values.map { it.id }, player.id, player.robotId, bitmapCache) {
                 alignTopToBottomOf(bgField)
                 text(player.id.value.toString(), textSize = 30.0, color = Colors.BLACK) {
                     val textPadding = 10.0

@@ -123,7 +123,7 @@ class ResolveRoundTest {
         )
         val (r1) = model.robots
         val (p1) = model.players
-        val (c1) = model.checkpoints
+        val (c1) = model.checkpoints()
         val card = ActionCard.MoveForward(2, 10)
         val programming = mapOf<PlayerId, List<ActionCard>>(
             p1.id to listOf(card),

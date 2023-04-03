@@ -55,7 +55,13 @@ fun gameModel(map: String): GameModel {
         walls = walls,
         actionDrawPile = actionCardDeck(),
         players = robots.map { Player(it.id, id = PlayerId(playerId++)) },
-        checkpoints = checkpoints
+        course = Course(
+            width = mapBody.mapPos{_,_,_ -> 0}.size,
+            height = 1,
+            checkpoints = checkpoints.associate { it.pos to it },
+            conveyorBelts = emptyMap(),
+            walls = walls
+        )
     )
 }
 
@@ -156,7 +162,7 @@ fun GameModel.getRobotCards(robotId: RobotId): List<ActionCard> = getRobot(robot
 
 class AnyOrderList<T> : MutableList<T> by mutableListOf() {
     override fun equals(other: Any?): Boolean {
-        return if(other is List<*>)
+        return if (other is List<*>)
             this.size == other.size && this.toSet() == other.toSet()
         else
             false
@@ -167,12 +173,17 @@ class AnyOrderList<T> : MutableList<T> by mutableListOf() {
     }
 }
 
-fun <T>anyOrderList(vararg items: T): AnyOrderList<T> = anyOrderList(items.toList())
+fun <T> anyOrderList(vararg items: T): AnyOrderList<T> = anyOrderList(items.toList())
 
-fun <T>anyOrderList(items: Collection<T>): AnyOrderList<T> {
+fun <T> anyOrderList(items: Collection<T>): AnyOrderList<T> {
     val list = AnyOrderList<T>()
     for (item in items) {
         list.add(item)
     }
     return list
 }
+
+fun GameModel.mapCourse(cb: (gameModel: GameModel, course: Course) -> Course): GameModel =
+    copy(course = cb(this, this.course))
+
+fun GameModel.checkpoints(): List<Checkpoint> = this.course.checkpoints.values.sortedBy { it.order }

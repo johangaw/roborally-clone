@@ -1,7 +1,6 @@
 package gamemodel
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.MapEntrySerializer
 
 @Serializable
 data class Course(
@@ -16,7 +15,7 @@ data class Course(
 data class Checkpoint(val order: Int, val pos: Pos, val id: CheckpointId = CheckpointId.create()) // TODO remove pos
 
 @Serializable
-data class Wall(val pos: Pos, val dir: Direction, val id: WallId = WallId.create())
+data class Wall(val pos: Pos, val dir: Direction, val id: WallId = WallId.create())  // TODO remove pos
 
 @Serializable
 data class ConveyorBelt(val type: ConveyorBeltType, val speed: ConveyorBeltSpeed)
