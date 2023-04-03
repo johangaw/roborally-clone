@@ -1,5 +1,7 @@
 package gamemodel
 
+import kotlinx.serialization.Serializable
+
 @JvmInline
 value class RobotId(val value: Int) {
     companion object {
@@ -9,6 +11,7 @@ value class RobotId(val value: Int) {
 }
 
 @JvmInline
+@Serializable
 value class WallId(val value: Int) {
     companion object {
         private var freeId = 0
@@ -25,6 +28,7 @@ value class PlayerId(val value: Int) {
 }
 
 @JvmInline
+@Serializable
 value class CheckpointId(val value: Int) {
     companion object {
         private var freeId = 0

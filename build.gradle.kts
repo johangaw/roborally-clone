@@ -2,6 +2,7 @@ import com.soywiz.korge.gradle.*
 
 plugins {
     alias(libs.plugins.korge)
+//    kotlin("plugin.serialization") version "1.7.21"  // Need to use same kotlin-plugin version as korge
 }
 
 korge {
@@ -21,4 +22,6 @@ korge {
     //targetDesktop()
     //targetIos()
     //targetAndroidIndirect() // targetAndroidDirect()
+
+    serializationJson()
 }

@@ -6,6 +6,9 @@ import com.soywiz.korge.scene.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
 import gamemodel.*
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.decodeFromString
 import kotlin.math.*
 
 val INITIAL_COURSE = Course(
@@ -89,7 +92,6 @@ class CourseBuilderScene : Scene() {
 
         val controlPanel = roundRect(controlPanelWidth, views.virtualHeightDouble, 2.0, fill = Colors.LIGHTGRAY) {
             alignLeftToLeftOf(this@sceneMain)
-            val controlElementPadding = 0
 
             controlElementViews = emptyList<Pair<ControlElement, RoundRect>>()
                 .plus(
@@ -137,17 +139,17 @@ class CourseBuilderScene : Scene() {
                         .withIndex()
                         .partition { it.index.isEven }
                     left.first().value.apply {
-                        alignTopToTopOf(this@roundRect, controlElementPadding)
-                        alignLeftToLeftOf(this@roundRect, controlElementPadding)
+                        alignTopToTopOf(this@roundRect)
+                        alignLeftToLeftOf(this@roundRect)
                     }
                     right.first().value.apply {
-                        alignTopToTopOf(this@roundRect, controlElementPadding)
-                        alignRightToRightOf(this@roundRect, controlElementPadding)
+                        alignTopToTopOf(this@roundRect)
+                        alignRightToRightOf(this@roundRect)
                     }
 
                     val alignUnderPrevious = { v1: View, v2: View ->
                         v2.alignLeftToLeftOf(v1)
-                        v2.alignTopToBottomOf(v1, controlElementPadding)
+                        v2.alignTopToBottomOf(v1)
                     }
 
                     left
@@ -159,6 +161,17 @@ class CourseBuilderScene : Scene() {
                 }
                 .toMap()
 
+
+            roundRect(75.0, 40.0, 3.0, fill = Colors.DARKGRAY) {
+                text("SAVE") {
+                    color = Colors.WHITE
+                    centerOn(this@roundRect)
+                }
+                onClick { saveCourse() }
+                centerOn(parent!!)
+                alignBottomToBottomOf(parent!!)
+            }
+
         }
 
         coursePanel = fixedSizeContainer(views.virtualWidthDouble - controlPanelWidth, views.virtualHeightDouble) {
@@ -166,6 +179,15 @@ class CourseBuilderScene : Scene() {
         }
         redrawCourse()
     }
+
+    private fun saveCourse() {
+        val json = Json {
+            allowStructuredMapKeys = true
+        }
+        val str = json.encodeToString(course)
+        println(str)
+    }
+
 
     private fun Container.redrawCourse() {
         coursePanel.removeAllComponents()

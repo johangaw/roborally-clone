@@ -1,5 +1,9 @@
 package gamemodel
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.MapEntrySerializer
+
+@Serializable
 data class Course(
     val width: Int,
     val height: Int,
@@ -8,14 +12,23 @@ data class Course(
     val checkpoints: Map<Pos, Checkpoint>,
 )
 
+@Serializable
+data class Checkpoint(val order: Int, val pos: Pos, val id: CheckpointId = CheckpointId.create()) // TODO remove pos
+
+@Serializable
+data class Wall(val pos: Pos, val dir: Direction, val id: WallId = WallId.create())
+
+@Serializable
 data class ConveyorBelt(val type: ConveyorBeltType, val speed: ConveyorBeltSpeed)
 
 
+@Serializable
 enum class ConveyorBeltSpeed(val speed: Int) {
     Regular(1),
     Fast(2)
 }
 
+@Serializable
 enum class ConveyorBeltType(val transportDirection: Direction, val rotation: Rotation) {
     Up(Direction.Up, Rotation.None),
     Right(Direction.Right, Rotation.None),
@@ -35,6 +48,7 @@ enum class ConveyorBeltType(val transportDirection: Direction, val rotation: Rot
     DownAndRight(Direction.Right, Rotation.CounterClockwise),
 }
 
+@Serializable
 enum class Rotation {
     None,
     Clockwise,

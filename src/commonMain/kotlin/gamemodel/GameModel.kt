@@ -1,9 +1,12 @@
 package gamemodel
 
+import kotlinx.serialization.Serializable
 import java.lang.Integer.max
 
+@Serializable
 data class Pos(val x: Int, val y: Int)
 
+@Serializable
 enum class Direction(val dx: Int, val dy: Int) {
     Up(0, -1),
     Down(0, 1),
@@ -36,16 +39,12 @@ data class Register(
     val locked: Boolean = false,
 )
 
-data class Wall(val pos: Pos, val dir: Direction, val id: WallId = WallId.create())
-
 data class Player(
     val robotId: RobotId,
     val hand: List<ActionCard> = emptyList(),
     val capturedCheckpoints: List<CheckpointId> = emptyList(),
     val id: PlayerId = PlayerId.create(),
 )
-
-data class Checkpoint(val order: Int, val pos: Pos, val id: CheckpointId = CheckpointId.create()) // TODO remove pos
 
 data class GameModel(
     val robots: List<Robot>,
