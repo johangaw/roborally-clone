@@ -79,6 +79,14 @@ class CourseBuilderScene : Scene() {
     override suspend fun SContainer.sceneMain() {
         bitmapCache = BitmapCache.create()
         val controlPanelWidth = 120.0
+
+        fun Container.controlPanelElement(element: ControlElement, callback: RoundRect.() -> Unit) = roundRect(
+                controlPanelWidth / 2, controlPanelWidth / 2, 0.0, fill = Colors.TRANSPARENT_WHITE
+            ).addTo(this).apply {
+                onClick { selectControlElement(element) }
+                this.callback()
+            }
+
         val controlPanel = roundRect(controlPanelWidth, views.virtualHeightDouble, 2.0, fill = Colors.LIGHTGRAY) {
             alignLeftToLeftOf(this@sceneMain)
             val controlElementPadding = 0
@@ -88,10 +96,7 @@ class CourseBuilderScene : Scene() {
                     ConveyorBeltType
                         .values()
                         .map { type ->
-                            ControlElement.ConveyorBelt(type) to roundRect(
-                                controlPanelWidth / 2, controlPanelWidth / 2, 0.0, fill = Colors.TRANSPARENT_WHITE
-                            ) {
-                                onClick { selectControlElement(ControlElement.ConveyorBelt(type)) }
+                            ControlElement.ConveyorBelt(type) to controlPanelElement(ControlElement.ConveyorBelt(type)) {
                                 conveyorBeltView(type, bitmapCache) {
                                     setSizeScaled(50.0, 50.0)
                                     centerOn(parent!!)
@@ -103,10 +108,7 @@ class CourseBuilderScene : Scene() {
                     Direction
                         .values()
                         .map { dir ->
-                            ControlElement.Wall(dir) to roundRect(
-                                controlPanelWidth / 2, controlPanelWidth / 2, 0.0, fill = Colors.TRANSPARENT_WHITE
-                            ) {
-                                onClick { selectControlElement(ControlElement.Wall(dir)) }
+                            ControlElement.Wall(dir) to controlPanelElement(ControlElement.Wall(dir)) {
                                 image(bitmapCache.floor) {
                                     setSizeScaled(50.0, 50.0)
                                     centerOn(parent!!)
@@ -121,10 +123,7 @@ class CourseBuilderScene : Scene() {
                 .plus(
                     (1..6)
                         .map { order ->
-                            ControlElement.Checkpoint(order) to roundRect(
-                                controlPanelWidth / 2, controlPanelWidth / 2, 0.0, fill = Colors.TRANSPARENT_WHITE
-                            ) {
-                                onClick { selectControlElement(ControlElement.Checkpoint(order)) }
+                            ControlElement.Checkpoint(order) to controlPanelElement(ControlElement.Checkpoint(order)) {
                                 checkpointView(order, bitmapCache) {
                                     setSizeScaled(50.0, 50.0)
                                     centerOn(parent!!)
