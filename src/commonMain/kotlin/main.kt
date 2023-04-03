@@ -36,7 +36,7 @@ class GameScene : Scene() {
         bitmapCache = BitmapCache.create()
         gameModel = setupGame()
 
-        courseView = courseView(gameModel.course, bitmapCache) {
+        courseView = courseView(gameModel.course, bitmapCache, showStartPositions = false) {
             val programmingAreaHeight = 200.0
             val scaleFactor = min(views.virtualWidthDouble / width, (views.virtualHeightDouble - programmingAreaHeight) / height)
             scale = scaleFactor

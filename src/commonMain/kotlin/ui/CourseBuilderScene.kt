@@ -47,14 +47,24 @@ val INITIAL_COURSE = Course(
         Wall(Pos(2, 8), Direction.Down),
         Wall(Pos(3, 8), Direction.Down),
     ),
-    listOf(
+    checkpoints = listOf(
         Checkpoint(CheckpointId(1), Pos(2, 1)),
         Checkpoint(CheckpointId(2), Pos(3, 1)),
         Checkpoint(CheckpointId(3), Pos(4, 1)),
         Checkpoint(CheckpointId(4), Pos(5, 1)),
         Checkpoint(CheckpointId(5), Pos(6, 1)),
         Checkpoint(CheckpointId(6), Pos(7, 1)),
-    )
+    ),
+    starts = listOf(
+        Start(Pos(1, 10), 1),
+        Start(Pos(2, 10), 2),
+        Start(Pos(3, 10), 3),
+        Start(Pos(4, 10), 4),
+        Start(Pos(5, 10), 5),
+        Start(Pos(6, 10), 6),
+        Start(Pos(7, 10), 7),
+        Start(Pos(8, 10), 8),
+    ),
 )
 
 sealed class ControlElement {
@@ -63,6 +73,8 @@ sealed class ControlElement {
     data class Wall(val dir: Direction) : ControlElement()
 
     data class Checkpoint(val id: CheckpointId) : ControlElement()
+
+    data class Start(val order: Int) : ControlElement()
 }
 
 class CourseBuilderScene : Scene() {
@@ -127,6 +139,17 @@ class CourseBuilderScene : Scene() {
                         .map {
                             ControlElement.Checkpoint(it) to controlPanelElement(ControlElement.Checkpoint(it)) {
                                 checkpointView(it, bitmapCache) {
+                                    setSizeScaled(50.0, 50.0)
+                                    centerOn(parent!!)
+                                }
+                            }
+                        }
+                )
+                .plus(
+                    (1..6)
+                        .map {
+                            ControlElement.Start(it) to controlPanelElement(ControlElement.Start(it)) {
+                                startView(it) {
                                     setSizeScaled(50.0, 50.0)
                                     centerOn(parent!!)
                                 }
@@ -204,8 +227,24 @@ class CourseBuilderScene : Scene() {
             is ControlElement.ConveyorBelt -> handlePosClick(pos, element.type)
             is ControlElement.Wall -> handlePosClick(pos, element.dir)
             is ControlElement.Checkpoint -> handlePosClick(pos, element.id)
+            is ControlElement.Start -> handlePosClick(pos, element.order)
             null -> Unit
         }
+    }
+
+    private fun handlePosClick(pos: Pos, startOrder: Int) {
+        val newStart = Start(pos, startOrder)
+        val previousStartAtPos = course.starts.firstOrNull { it.pos == pos }
+
+        course = course.copy(
+            starts = if (previousStartAtPos?.order == startOrder)
+                course.starts - previousStartAtPos
+            else if(previousStartAtPos != null) {
+                course.starts.filter { it.order != startOrder } - previousStartAtPos + newStart
+            }
+            else
+                course.starts.filter { it.order != startOrder } + newStart
+        )
     }
 
     private fun handlePosClick(pos: Pos, id: CheckpointId) {
