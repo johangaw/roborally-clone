@@ -21,8 +21,8 @@ import kotlin.math.*
 
 suspend fun main() = Korge(width = 1024, height = 1024, bgcolor = Colors["#2b2b2b"]) {
     val sceneContainer = sceneContainer()
-//    sceneContainer.changeTo({ GameScene() })
-    sceneContainer.changeTo({ CourseBuilderScene() })
+    sceneContainer.changeTo({ GameScene() })
+//    sceneContainer.changeTo({ CourseBuilderScene() })
 }
 
 
@@ -31,76 +31,21 @@ class GameScene : Scene() {
     private lateinit var gameModel: GameModel
     private lateinit var robots: Map<RobotId, RobotView>
     private lateinit var programAreas: List<ProgramArea>
+    private lateinit var courseView: CourseView
     private lateinit var bitmapCache: BitmapCache
-    var fieldSize: Double = 0.0
-    val indent = 2
-    val cellSize: Double get() = (fieldSize - indent * 2) / 10.0
 
     override suspend fun SContainer.sceneMain() {
         bitmapCache = BitmapCache.create()
-        fieldSize = min(views.virtualWidth - 10.0 * 2.0, views.virtualHeight - 200.0)
         gameModel = setupGame()
 
-        val bgField = roundRect(fieldSize, fieldSize, 5.0, fill = Colors["#b9aea0"]) {
-            graphics {
-                it.position(indent, indent)
-                repeat(10) { x ->
-                    repeat(10) { y ->
-                        fill(Colors["#cec0b2"]) {
-                            roundRect(
-                                cellSize * x + indent,
-                                cellSize * y + indent,
-                                cellSize - indent * 2,
-                                cellSize - indent * 2,
-                                5.0
-                            )
-                        }
-                        val wallThickness = 10.0
-                        val roundness = 3.0
-                        fill(Colors.YELLOW) {
-                            gameModel
-                                .wallsAt(Pos(x, y))
-                                .forEach { wall ->
-                                    when (wall.dir) {
-                                        Direction.Up -> roundRect(
-                                            cellSize * x, cellSize * y, cellSize, wallThickness, roundness
-                                        )
-
-                                        Direction.Down -> roundRect(
-                                            cellSize * x,
-                                            cellSize * (y + 1) - wallThickness,
-                                            cellSize,
-                                            wallThickness,
-                                            roundness
-                                        )
-
-                                        Direction.Right -> roundRect(
-                                            cellSize * (x + 1) - wallThickness,
-                                            cellSize * y,
-                                            wallThickness,
-                                            cellSize,
-                                            roundness
-                                        )
-
-                                        Direction.Left -> roundRect(
-                                            cellSize * x, cellSize * y, wallThickness, cellSize, roundness
-                                        )
-                                    }
-                                }
-                        }
-                    }
-                }
-            }
+        courseView = courseView(gameModel.course, bitmapCache) {
+            val programmingAreaHeight = 200.0
+            val scaleFactor = min(views.virtualWidthDouble / width, (views.virtualHeightDouble - programmingAreaHeight) / height)
+            scale = scaleFactor
+            centerOn(this@sceneMain)
+            alignTopToTopOf(this@sceneMain)
         }
-
-        gameModel.course.checkpoints.forEach {(pos, checkpoint) ->
-            posContainer(pos) {
-                checkpointView(checkpoint.order, bitmapCache) {
-                    val size = cellSize * 0.9
-                    setSizeScaled(size, size)
-                }
-            }
-        }
+        val cellSize = courseView.cellSize
 
         val sprites = resourcesVfs["sprites.xml"].readAtlas()
         robots = gameModel.robots.mapIndexed {index, robot ->
@@ -112,7 +57,8 @@ class GameScene : Scene() {
 
         programAreas = gameModel.players.map { player ->
             programArea(cellSize, gameModel.course.checkpoints.values.map { it.id }, player.id, player.robotId, bitmapCache) {
-                alignTopToBottomOf(bgField)
+                centerOn(this@sceneMain)
+                alignTopToBottomOf(courseView)
                 text(player.id.value.toString(), textSize = 30.0, color = Colors.BLACK) {
                     val textPadding = 10.0
                     alignTopToTopOf(parent!!, textPadding)
@@ -160,11 +106,8 @@ class GameScene : Scene() {
         }
     }
 
-    private fun Container.posContainer(pos: Pos, callback: Container.() -> View) {
-        fixedSizeContainer(cellSize, cellSize) {
-            position(robotPosition(pos))
-            this.callback().centerOn(this)
-        }
+    private fun robotPosition(pos: Pos, basePoint: IPoint = Point(0, 0)): IPoint {
+        return IPoint(pos.x * courseView.cellSize + courseView.x + basePoint.x, pos.y * courseView.cellSize + courseView.y + +basePoint.y)
     }
 
     private fun Container.animateAllResults(resolutions: List<RoundResolution>) {
@@ -259,7 +202,7 @@ class GameScene : Scene() {
 
     private fun Animator.animateLasers(resolution: RoundResolution.LaserResolution) {
         val beams = resolution.laserPaths.map {
-            LaserBeam(cellSize, it.path.size, it.dir).apply {
+            LaserBeam(courseView.cellSize, it.path.size, it.dir).apply {
                 alpha = 0.0
                 addTo(this@GameScene.sceneContainer)
                 position(robotPosition(it.path.first(), pos))
@@ -307,9 +250,6 @@ class GameScene : Scene() {
             wait()
         }
     }
-
-    private fun robotPosition(pos: Pos, basePoint: IPoint = Point(0, 0)): IPoint =
-        IPoint(indent + pos.x * cellSize + basePoint.x, indent + pos.y * cellSize + +basePoint.y)
 
     private fun Animator.animateCaptureCheckpoint(resolution: RoundResolution.CheckpointResolution) {
         parallel {
