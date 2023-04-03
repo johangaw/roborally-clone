@@ -1,0 +1,308 @@
+{
+  "width": 10,
+  "height": 15,
+  "conveyorBelts": [
+    {
+      "x": 2,
+      "y": 3
+    },
+    {
+      "type": "Right",
+      "speed": "Regular"
+    },
+    {
+      "x": 3,
+      "y": 3
+    },
+    {
+      "type": "RightAndDown",
+      "speed": "Regular"
+    },
+    {
+      "x": 3,
+      "y": 4
+    },
+    {
+      "type": "Down",
+      "speed": "Regular"
+    },
+    {
+      "x": 3,
+      "y": 5
+    },
+    {
+      "type": "DownAndLeft",
+      "speed": "Regular"
+    },
+    {
+      "x": 2,
+      "y": 5
+    },
+    {
+      "type": "Left",
+      "speed": "Regular"
+    },
+    {
+      "x": 1,
+      "y": 5
+    },
+    {
+      "type": "LeftAndUp",
+      "speed": "Regular"
+    },
+    {
+      "x": 1,
+      "y": 4
+    },
+    {
+      "type": "Up",
+      "speed": "Regular"
+    },
+    {
+      "x": 1,
+      "y": 3
+    },
+    {
+      "type": "UpAndRight",
+      "speed": "Regular"
+    },
+    {
+      "x": 7,
+      "y": 3
+    },
+    {
+      "type": "Left",
+      "speed": "Regular"
+    },
+    {
+      "x": 6,
+      "y": 3
+    },
+    {
+      "type": "LeftAndDown",
+      "speed": "Regular"
+    },
+    {
+      "x": 6,
+      "y": 4
+    },
+    {
+      "type": "Down",
+      "speed": "Regular"
+    },
+    {
+      "x": 6,
+      "y": 5
+    },
+    {
+      "type": "DownAndRight",
+      "speed": "Regular"
+    },
+    {
+      "x": 7,
+      "y": 5
+    },
+    {
+      "type": "Right",
+      "speed": "Regular"
+    },
+    {
+      "x": 8,
+      "y": 5
+    },
+    {
+      "type": "RightAndUp",
+      "speed": "Regular"
+    },
+    {
+      "x": 8,
+      "y": 4
+    },
+    {
+      "type": "Up",
+      "speed": "Regular"
+    },
+    {
+      "x": 8,
+      "y": 3
+    },
+    {
+      "type": "UpAndLeft",
+      "speed": "Regular"
+    }
+  ],
+  "walls": [
+    {
+      "pos": {
+        "x": 1,
+        "y": 7
+      },
+      "dir": "Up"
+    },
+    {
+      "pos": {
+        "x": 2,
+        "y": 7
+      },
+      "dir": "Up"
+    },
+    {
+      "pos": {
+        "x": 3,
+        "y": 7
+      },
+      "dir": "Up"
+    },
+    {
+      "pos": {
+        "x": 3,
+        "y": 7
+      },
+      "dir": "Right"
+    },
+    {
+      "pos": {
+        "x": 3,
+        "y": 8
+      },
+      "dir": "Right"
+    },
+    {
+      "pos": {
+        "x": 1,
+        "y": 7
+      },
+      "dir": "Left"
+    },
+    {
+      "pos": {
+        "x": 1,
+        "y": 8
+      },
+      "dir": "Left"
+    },
+    {
+      "pos": {
+        "x": 1,
+        "y": 8
+      },
+      "dir": "Down"
+    },
+    {
+      "pos": {
+        "x": 2,
+        "y": 8
+      },
+      "dir": "Down"
+    },
+    {
+      "pos": {
+        "x": 3,
+        "y": 8
+      },
+      "dir": "Down"
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": 1,
+      "pos": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "id": 2,
+      "pos": {
+        "x": 3,
+        "y": 1
+      }
+    },
+    {
+      "id": 3,
+      "pos": {
+        "x": 4,
+        "y": 1
+      }
+    },
+    {
+      "id": 4,
+      "pos": {
+        "x": 5,
+        "y": 1
+      }
+    },
+    {
+      "id": 5,
+      "pos": {
+        "x": 6,
+        "y": 1
+      }
+    },
+    {
+      "id": 6,
+      "pos": {
+        "x": 7,
+        "y": 1
+      }
+    }
+  ],
+  "starts": [
+    {
+      "pos": {
+        "x": 1,
+        "y": 10
+      },
+      "order": 1
+    },
+    {
+      "pos": {
+        "x": 2,
+        "y": 10
+      },
+      "order": 2
+    },
+    {
+      "pos": {
+        "x": 3,
+        "y": 10
+      },
+      "order": 3
+    },
+    {
+      "pos": {
+        "x": 4,
+        "y": 10
+      },
+      "order": 4
+    },
+    {
+      "pos": {
+        "x": 5,
+        "y": 10
+      },
+      "order": 5
+    },
+    {
+      "pos": {
+        "x": 6,
+        "y": 10
+      },
+      "order": 6
+    },
+    {
+      "pos": {
+        "x": 7,
+        "y": 10
+      },
+      "order": 7
+    },
+    {
+      "pos": {
+        "x": 8,
+        "y": 10
+      },
+      "order": 8
+    }
+  ]
+}

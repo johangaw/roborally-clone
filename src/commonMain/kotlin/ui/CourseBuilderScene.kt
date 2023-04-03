@@ -1,71 +1,16 @@
 package ui
 
 import com.soywiz.kmem.*
+import com.soywiz.korev.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
+import com.soywiz.korio.file.std.*
 import gamemodel.*
+import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.encodeToString
 import kotlin.math.*
-
-val INITIAL_COURSE = Course(
-    width = 10,
-    height = 15,
-    conveyorBelts = mapOf(
-        Pos(2, 3) to ConveyorBelt(ConveyorBeltType.Right, ConveyorBeltSpeed.Regular),
-        Pos(3, 3) to ConveyorBelt(ConveyorBeltType.RightAndDown, ConveyorBeltSpeed.Regular),
-        Pos(3, 4) to ConveyorBelt(ConveyorBeltType.Down, ConveyorBeltSpeed.Regular),
-        Pos(3, 5) to ConveyorBelt(ConveyorBeltType.DownAndLeft, ConveyorBeltSpeed.Regular),
-        Pos(2, 5) to ConveyorBelt(ConveyorBeltType.Left, ConveyorBeltSpeed.Regular),
-        Pos(1, 5) to ConveyorBelt(ConveyorBeltType.LeftAndUp, ConveyorBeltSpeed.Regular),
-        Pos(1, 4) to ConveyorBelt(ConveyorBeltType.Up, ConveyorBeltSpeed.Regular),
-        Pos(1, 3) to ConveyorBelt(ConveyorBeltType.UpAndRight, ConveyorBeltSpeed.Regular),
-
-        Pos(7, 3) to ConveyorBelt(ConveyorBeltType.Left, ConveyorBeltSpeed.Regular),
-        Pos(6, 3) to ConveyorBelt(ConveyorBeltType.LeftAndDown, ConveyorBeltSpeed.Regular),
-        Pos(6, 4) to ConveyorBelt(ConveyorBeltType.Down, ConveyorBeltSpeed.Regular),
-        Pos(6, 5) to ConveyorBelt(ConveyorBeltType.DownAndRight, ConveyorBeltSpeed.Regular),
-        Pos(7, 5) to ConveyorBelt(ConveyorBeltType.Right, ConveyorBeltSpeed.Regular),
-        Pos(8, 5) to ConveyorBelt(ConveyorBeltType.RightAndUp, ConveyorBeltSpeed.Regular),
-        Pos(8, 4) to ConveyorBelt(ConveyorBeltType.Up, ConveyorBeltSpeed.Regular),
-        Pos(8, 3) to ConveyorBelt(ConveyorBeltType.UpAndLeft, ConveyorBeltSpeed.Regular),
-    ),
-    walls = listOf(
-        Wall(Pos(1, 7), Direction.Up),
-        Wall(Pos(2, 7), Direction.Up),
-        Wall(Pos(3, 7), Direction.Up),
-
-        Wall(Pos(3, 7), Direction.Right),
-        Wall(Pos(3, 8), Direction.Right),
-
-        Wall(Pos(1, 7), Direction.Left),
-        Wall(Pos(1, 8), Direction.Left),
-
-        Wall(Pos(1, 8), Direction.Down),
-        Wall(Pos(2, 8), Direction.Down),
-        Wall(Pos(3, 8), Direction.Down),
-    ),
-    checkpoints = listOf(
-        Checkpoint(CheckpointId(1), Pos(2, 1)),
-        Checkpoint(CheckpointId(2), Pos(3, 1)),
-        Checkpoint(CheckpointId(3), Pos(4, 1)),
-        Checkpoint(CheckpointId(4), Pos(5, 1)),
-        Checkpoint(CheckpointId(5), Pos(6, 1)),
-        Checkpoint(CheckpointId(6), Pos(7, 1)),
-    ),
-    starts = listOf(
-        Start(Pos(1, 10), 1),
-        Start(Pos(2, 10), 2),
-        Start(Pos(3, 10), 3),
-        Start(Pos(4, 10), 4),
-        Start(Pos(5, 10), 5),
-        Start(Pos(6, 10), 6),
-        Start(Pos(7, 10), 7),
-        Start(Pos(8, 10), 8),
-    ),
-)
 
 sealed class ControlElement {
     data class ConveyorBelt(val type: ConveyorBeltType) : ControlElement()
@@ -81,10 +26,10 @@ class CourseBuilderScene : Scene() {
 
     private lateinit var bitmapCache: BitmapCache
     private lateinit var coursePanel: Container
-    private lateinit var courseView: View
     private lateinit var controlElementViews: Map<ControlElement, RoundRect>
+    private var courseView: View? = null
     private var selectedControlElement: ControlElement? = null
-    private var course: Course = INITIAL_COURSE
+    private var course: Course = Course(0, 0)
         set(value) {
             field = value
             sceneContainer.redrawCourse()
@@ -95,8 +40,10 @@ class CourseBuilderScene : Scene() {
         val controlPanelWidth = 120.0
 
         fun Container.controlPanelElement(element: ControlElement, callback: RoundRect.() -> Unit) = roundRect(
-                controlPanelWidth / 2, controlPanelWidth / 2, 0.0, fill = Colors.TRANSPARENT_WHITE
-            ).addTo(this).apply {
+            controlPanelWidth / 2, controlPanelWidth / 2, 0.0, fill = Colors.TRANSPARENT_WHITE
+        )
+            .addTo(this)
+            .apply {
                 onClick { selectControlElement(element) }
                 this.callback()
             }
@@ -146,7 +93,7 @@ class CourseBuilderScene : Scene() {
                         }
                 )
                 .plus(
-                    (1..6)
+                    (1..8)
                         .map {
                             ControlElement.Start(it) to controlPanelElement(ControlElement.Start(it)) {
                                 startView(it) {
@@ -201,6 +148,26 @@ class CourseBuilderScene : Scene() {
             alignLeftToRightOf(controlPanel)
         }
         redrawCourse()
+
+        keys {
+            down {
+                when (it.key) {
+                    Key.N -> {
+                        course = Course(12, 16)
+                    }
+
+                    Key.N0 -> {
+                        loadCourse(resourcesVfs["courses/course_palette.json"].readString())
+                    }
+
+                    Key.N1 -> {
+                        loadCourse(resourcesVfs["courses/course1.json"].readString())
+                    }
+
+                    else -> Unit
+                }
+            }
+        }
     }
 
     private fun saveCourse() {
@@ -211,9 +178,16 @@ class CourseBuilderScene : Scene() {
         println(str)
     }
 
+    private fun loadCourse(string: String) {
+        val json = Json {
+            allowStructuredMapKeys = true
+        }
+        course = json.decodeFromString(string)
+    }
+
 
     private fun Container.redrawCourse() {
-        coursePanel.removeAllComponents()
+        courseView?.removeFromParent()
         courseView = courseView(course, bitmapCache) {
             val scaleFactor = min(views.virtualWidthDouble / width, views.virtualHeightDouble / height)
             scale = scaleFactor
@@ -239,10 +213,9 @@ class CourseBuilderScene : Scene() {
         course = course.copy(
             starts = if (previousStartAtPos?.order == startOrder)
                 course.starts - previousStartAtPos
-            else if(previousStartAtPos != null) {
+            else if (previousStartAtPos != null) {
                 course.starts.filter { it.order != startOrder } - previousStartAtPos + newStart
-            }
-            else
+            } else
                 course.starts.filter { it.order != startOrder } + newStart
         )
     }
@@ -254,10 +227,9 @@ class CourseBuilderScene : Scene() {
         course = course.copy(
             checkpoints = if (previousCheckpointAtPos?.id == id)
                 course.checkpoints - previousCheckpointAtPos
-            else if(previousCheckpointAtPos != null) {
+            else if (previousCheckpointAtPos != null) {
                 course.checkpoints.filter { it.id != id } - previousCheckpointAtPos + newCheckpoint
-            }
-            else
+            } else
                 course.checkpoints.filter { it.id != id } + newCheckpoint
         )
     }

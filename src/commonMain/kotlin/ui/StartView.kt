@@ -11,7 +11,7 @@ class StartView(order: Int) : Container() {
     init {
         roundRect(baseSize, baseSize, 0.0, fill = Colors.TRANSPARENT_WHITE) {
             circle(baseSize/2, fill = Colors.TRANSPARENT_WHITE, stroke = Colors.BLACK, strokeThickness = 12.0) {
-                scale = 0.8
+                scale = 0.6
                 centerOn(parent!!)
                 text(order.toString()) {
                     textSize = 100.0
