@@ -52,7 +52,6 @@ fun gameModel(map: String): GameModel {
 
     return GameModel(
         robots = robots,
-        walls = walls,
         actionDrawPile = actionCardDeck(),
         players = robots.map { Player(it.id, id = PlayerId(playerId++)) },
         course = Course(

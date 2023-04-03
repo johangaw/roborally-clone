@@ -11,12 +11,6 @@ fun setupGame(): GameModel {
                 playerOneRobot,
                 playerTwoRobot,
             ),
-            walls = listOf(
-                Wall(Pos(2, 2), Direction.Left),
-                Wall(Pos(2, 2), Direction.Right),
-                Wall(Pos(2, 2), Direction.Up),
-                Wall(Pos(2, 2), Direction.Down),
-            ),
             players = listOf(
                 Player(robotId = playerOneRobot.id),
                 Player(robotId = playerTwoRobot.id),
@@ -29,7 +23,12 @@ fun setupGame(): GameModel {
                     Pos(2, 4) to Checkpoint(1, Pos(2, 4)),
                     Pos(9, 9) to Checkpoint(2, Pos(9, 9)),
                 ),
-                walls = emptyList(),
+                walls = listOf(
+                    Wall(Pos(2, 2), Direction.Left),
+                    Wall(Pos(2, 2), Direction.Right),
+                    Wall(Pos(2, 2), Direction.Up),
+                    Wall(Pos(2, 2), Direction.Down),
+                ),
                 conveyorBelts = emptyMap(),
             )
         )

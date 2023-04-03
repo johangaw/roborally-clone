@@ -46,7 +46,6 @@ data class Player(
 data class GameModel(
     val course: Course,
     val robots: List<Robot>,
-    val walls: List<Wall>,
     val players: List<Player>,
     val actionDrawPile: List<ActionCard> = actionCardDeck().shuffled(),
     val actionDiscardPile: List<ActionCard> = emptyList(),
@@ -72,11 +71,11 @@ data class GameModel(
         players.firstOrNull { it.id == id } ?: throw AssertionError("No player with id $id")
 
     fun wallAt(pos: Pos, dir: Direction): Wall? {
-        return walls.firstOrNull { it.pos == pos && it.dir == dir }
-            ?: walls.firstOrNull { it.pos == pos + dir && it.dir == dir.opposite() }
+        return course.walls.firstOrNull { it.pos == pos && it.dir == dir }
+            ?: course.walls.firstOrNull { it.pos == pos + dir && it.dir == dir.opposite() }
     }
 
-    fun wallsAt(pos: Pos): List<Wall> = walls.filter { it.pos == pos }
+    fun wallsAt(pos: Pos): List<Wall> = course.walls.filter { it.pos == pos }
 
 
     fun getCheckpoint(id: CheckpointId) =
