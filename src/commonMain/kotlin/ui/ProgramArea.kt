@@ -73,6 +73,7 @@ class ProgramArea(
             it.removeFromParent()
         }
         cards = emptyList()
+        selectedCards.fill(null)
     }
 
     fun dealCards(newCards: List<ActionCard>) {

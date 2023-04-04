@@ -4,6 +4,8 @@ import gamemodel.RoundResolution.*
 import gamemodel.RoundStep.*
 
 fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundResolutionResult {
+    assertValidProgramming(programming)
+
     val phases = 1..programming.values.maxOf { it.size }
     return programming
         .map { (id, cards) -> cards.map { ResolveActionCard(id, it) } }
@@ -100,6 +102,18 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
                     }
             }
         }
+}
+
+fun GameModel.assertValidProgramming(programming: Map<PlayerId, List<ActionCard>>) {
+    programming.forEach { id, cards ->
+        val player = getPlayer(id)
+        val robot = getRobot(id)
+        val availableCards = player.hand + robot.registers.map { it.card }
+        assert(availableCards.containsAll(cards)) { "Player $id have programmed an illegal card" }
+        assert(robot.registers.filter { it.locked }.all { cards[it.index] == it.card }) {
+            "Player $id have programmed a card even though another cards was locked"
+        }
+    }
 }
 
 private fun GameModel.assignRegisters(prog: Map<PlayerId, List<ActionCard>>): GameModel = copy(

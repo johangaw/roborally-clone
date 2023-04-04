@@ -117,22 +117,27 @@ class ResolveRoundTest {
 
     @Test
     fun `when a robot end the register phase on a checkpoint, it captures that checkpoint`() {
+        val card = ActionCard.MoveForward(2, 10)
         val model = gameModel(
             """
             +|+|+|+|+|+|+
             + →   1     +
         """.trimIndent()
-        )
+        ).let {
+            val (p1) = it.players
+            it.copy(
+                players = listOf(p1.copy(hand = p1.hand + card))
+            )
+        }
         val (r1) = model.robots
         val (p1) = model.players
         val (c1) = model.checkpoints()
-        val card = ActionCard.MoveForward(2, 10)
         val programming = mapOf<PlayerId, List<ActionCard>>(
             p1.id to listOf(card),
         )
         val expectedModel = model.copy(
             robots = listOf(r1.copy(pos = Pos(2, 0), registers = setOf(Register(card, 0, false)))),
-            players = listOf(p1.copy(capturedCheckpoints = listOf(c1.id)))
+            players = listOf(p1.copy(capturedCheckpoints = listOf(c1.id), hand = p1.hand - card))
         )
 
         val result = model.resolveRound(programming)
@@ -143,11 +148,14 @@ class ResolveRoundTest {
                 ActionCardResolution(
                     MovementStep(r1.id to Pos(1, 0)),
                     MovementStep(r1.id to Pos(2, 0)),
-                ), LaserResolution(
+                ),
+                ConveyorBeltsResolution(emptyMap(), emptyMap()),
+                LaserResolution(
                     laserPaths = setOf(
                         LaserPath((1..101).map { Pos(2 + it, 0) }, LaserDirection.Right),
                     ), damage = emptyMap(), lockedRegisters = emptyMap()
-                ), CheckpointResolution(mapOf(p1.id to c1.id)), WinnerResolution(p1.id)
+                ),
+                CheckpointResolution(mapOf(p1.id to c1.id)), WinnerResolution(p1.id),
             ), result.resolutions
         )
     }
