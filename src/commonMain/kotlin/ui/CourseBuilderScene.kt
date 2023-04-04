@@ -7,6 +7,7 @@ import com.soywiz.korge.scene.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
 import com.soywiz.korio.file.std.*
+import gamemodel.loadCourse as loadCourseFromFile
 import gamemodel.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
@@ -157,11 +158,11 @@ class CourseBuilderScene : Scene() {
                     }
 
                     Key.N0 -> {
-                        loadCourse(resourcesVfs["courses/course_palette.json"].readString())
+                        loadCourse(PreBuildCourses.CoursePalette)
                     }
 
                     Key.N1 -> {
-                        loadCourse(resourcesVfs["courses/course1.json"].readString())
+                        loadCourse(PreBuildCourses.Course1)
                     }
 
                     else -> Unit
@@ -171,18 +172,11 @@ class CourseBuilderScene : Scene() {
     }
 
     private fun saveCourse() {
-        val json = Json {
-            allowStructuredMapKeys = true
-        }
-        val str = json.encodeToString(course)
-        println(str)
+        println(serializeCourse(course))
     }
 
-    private fun loadCourse(string: String) {
-        val json = Json {
-            allowStructuredMapKeys = true
-        }
-        course = json.decodeFromString(string)
+    private suspend fun loadCourse(course: PreBuildCourses) {
+        this.course = loadCourseFromFile(course)
     }
 
 
