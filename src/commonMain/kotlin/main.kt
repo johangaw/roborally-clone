@@ -80,10 +80,8 @@ class GameScene : Scene() {
                     }
 
                     Key.S -> {
-                        val focusedProgrammingAreaIndex = programAreas.indexOfFirst { it.visible }
-                        programAreas.forEach {
-                            it.visible = false
-                        }
+                        val focusedProgrammingAreaIndex = programAreas.indexOfFirst { area -> area.visible }
+                        programAreas.forEach { area -> area.visible = false }
                         programAreas[(focusedProgrammingAreaIndex + 1) % programAreas.size].visible = true
                     }
 
@@ -97,7 +95,7 @@ class GameScene : Scene() {
                     }
 
                     Key.SPACE -> {
-                        val cards = programAreas.associate { it.playerId to it.getSelectedCards() }
+                        val cards = programAreas.associate { area -> area.playerId to area.getSelectedCards() }
                         val result = gameModel.resolveRound(cards)
                         animateAllResults(result.resolutions)
                         gameModel = result.gameModel
@@ -151,8 +149,12 @@ class GameScene : Scene() {
                     val newPos = robotPosition(pos)
                     moveTo(viewRobot, newPos.x, newPos.y, easing = Easing.SMOOTH)
                 }
-                if (resolution.movedRobots.isNotEmpty())
-                    courseView.conveyorBelts.values.forEach { shake(it, 500.milliseconds) }
+                if (resolution.movedRobots.isNotEmpty()) courseView.conveyorBelts.values.forEach {
+                    shake(
+                        it,
+                        500.milliseconds
+                    )
+                }
             }
             parallel {
                 resolution.rotatedRobots.forEach { (id, dir) ->
@@ -161,8 +163,12 @@ class GameScene : Scene() {
                         viewRobot.direction = dir
                     }
                 }
-                if (resolution.rotatedRobots.isNotEmpty())
-                    courseView.conveyorBelts.values.forEach { shake(it, 500.milliseconds) }
+                if (resolution.rotatedRobots.isNotEmpty()) courseView.conveyorBelts.values.forEach {
+                    shake(
+                        it,
+                        500.milliseconds
+                    )
+                }
             }
         }
     }

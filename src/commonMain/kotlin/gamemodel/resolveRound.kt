@@ -105,7 +105,7 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
 }
 
 fun GameModel.assertValidProgramming(programming: Map<PlayerId, List<ActionCard>>) {
-    programming.forEach { id, cards ->
+    programming.forEach { (id, cards) ->
         val player = getPlayer(id)
         val robot = getRobot(id)
         val availableCards = player.hand + robot.registers.map { it.card }
