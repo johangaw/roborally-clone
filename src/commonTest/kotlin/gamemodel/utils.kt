@@ -1,6 +1,7 @@
 package gamemodel
 
 import com.soywiz.kmem.*
+import ui.*
 
 /**
  * Full map (not yet implemented)
@@ -181,5 +182,8 @@ fun <T> anyOrderList(items: Collection<T>): AnyOrderList<T> {
 
 fun GameModel.mapCourse(cb: (gameModel: GameModel, course: Course) -> Course): GameModel =
     copy(course = cb(this, this.course))
+
+fun GameModel.addConveyorBelts(cb: () ->  Map<Pos, ConveyorBelt>): GameModel =
+    copy(course = course.copy(conveyorBelts = cb()))
 
 fun GameModel.checkpoints(): List<Checkpoint> = this.course.checkpoints.sorted()

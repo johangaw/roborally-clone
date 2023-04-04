@@ -7,6 +7,7 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
     val phases = 1..programming.values.maxOf { it.size }
     return programming
         .map { (id, cards) -> cards.map { ResolveActionCard(id, it) } }
+        .plus(listOf(phases.map { ResolveConveyorBelts }))
         .plus(listOf(phases.map { ResolveLasers }))
         .plus(listOf(phases.map { ResolveCheckpoints }))
         .plus(listOf(phases.map { CheckForWinner }))
@@ -85,6 +86,18 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
                             resolutions = current.resolutions + DealCardsResolution(it.hands),
                         )
                     }
+
+                ResolveConveyorBelts -> current.gameModel
+                    .resolveConveyorBelts()
+                    .let {
+                        RoundResolutionResult(
+                            gameModel = it.gameModel,
+                            resolutions = current.resolutions + ConveyorBeltsResolution(
+                                it.movedRobots,
+                                it.rotatedRobots
+                            ),
+                        )
+                    }
             }
         }
 }
@@ -114,6 +127,7 @@ private fun List<RoundStep>.sort(): List<RoundStep> =
             ResolveCheckpoints -> Int.MAX_VALUE
             ResolveLasers -> Int.MAX_VALUE
             CheckForWinner -> Int.MAX_VALUE
+            ResolveConveyorBelts -> Int.MAX_VALUE
             WipeRegisters -> throw AssertionError("WipeRegisters should not be sorted with other RoundSteps")
             DealCards -> throw AssertionError("DealCards should not be sorted with other RoundSteps")
         }
@@ -128,6 +142,8 @@ private sealed class RoundStep {
     data class ResolveActionCard(val playerId: PlayerId, val card: ActionCard) : RoundStep()
 
     object ResolveCheckpoints : RoundStep()
+
+    object ResolveConveyorBelts : RoundStep()
 
     object ResolveLasers : RoundStep()
 
@@ -144,6 +160,9 @@ sealed class RoundResolution {
     data class ActionCardResolution(val steps: List<ActionCardResolutionStep>) : RoundResolution() {
         constructor(vararg steps: ActionCardResolutionStep) : this(steps.toList())
     }
+
+    data class ConveyorBeltsResolution(val movedRobots: Map<RobotId, Pos>, val rotatedRobots: Map<RobotId, Direction>) :
+        RoundResolution()
 
     data class CheckpointResolution(val capturedCheckpoints: Map<PlayerId, CheckpointId>) : RoundResolution()
 

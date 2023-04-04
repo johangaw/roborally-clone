@@ -130,6 +130,7 @@ class GameScene : Scene() {
                 is RoundResolution.WinnerResolution -> animateShowWinnerPopup(resolution)
                 is RoundResolution.WipeRegistersResolution -> animateWipeRegisters(resolution)
                 is RoundResolution.DealCardsResolution -> animateDealActionCards(resolution)
+                is RoundResolution.ConveyorBeltsResolution -> TODO()
             }
         }
     }

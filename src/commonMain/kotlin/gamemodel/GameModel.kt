@@ -1,7 +1,6 @@
 package gamemodel
 
 import kotlinx.serialization.Serializable
-import java.lang.Integer.max
 
 @Serializable
 data class Pos(val x: Int, val y: Int)
@@ -18,6 +17,13 @@ fun Direction.opposite(): Direction = when (this) {
     Direction.Down -> Direction.Up
     Direction.Right -> Direction.Left
     Direction.Left -> Direction.Right
+}
+
+fun Direction.quoter(): Direction = when (this) {
+    Direction.Up -> Direction.Right
+    Direction.Down -> Direction.Left
+    Direction.Right -> Direction.Down
+    Direction.Left -> Direction.Up
 }
 
 data class Robot(
