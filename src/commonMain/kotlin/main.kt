@@ -34,11 +34,12 @@ class GameScene : Scene() {
 
     override suspend fun SContainer.sceneMain() {
         bitmapCache = BitmapCache.create()
-        gameModel = setupGame()
+        gameModel = setupGame(PreBuildCourses.Course1, playerCount = 1)
 
         courseView = courseView(gameModel.course, bitmapCache, showStartPositions = false) {
             val programmingAreaHeight = 200.0
-            val scaleFactor = min(views.virtualWidthDouble / width, (views.virtualHeightDouble - programmingAreaHeight) / height)
+            val scaleFactor =
+                min(views.virtualWidthDouble / width, (views.virtualHeightDouble - programmingAreaHeight) / height)
             scale = scaleFactor
             centerOn(this@sceneMain)
             alignTopToTopOf(this@sceneMain)
@@ -46,12 +47,14 @@ class GameScene : Scene() {
         val cellSize = courseView.cellSize
 
         val sprites = resourcesVfs["sprites.xml"].readAtlas()
-        robots = gameModel.robots.mapIndexed {index, robot ->
-            robot.id to robotView(playerNumber(index), robot.dir, sprites) {
-                setSizeScaled(cellSize, cellSize)
-                position(robotPosition(robot.pos))
+        robots = gameModel.robots
+            .mapIndexed { index, robot ->
+                robot.id to robotView(playerNumber(index), robot.dir, sprites) {
+                    setSizeScaled(cellSize, cellSize)
+                    position(robotPosition(robot.pos))
+                }
             }
-        }.toMap()
+            .toMap()
 
         programAreas = gameModel.players.map { player ->
             programArea(cellSize, gameModel.course.checkpoints.map { it.id }, player.id, player.robotId, bitmapCache) {
@@ -75,6 +78,7 @@ class GameScene : Scene() {
                     Key.N0 -> {
                         sceneContainer.changeTo({ CourseBuilderScene() })
                     }
+
                     Key.S -> {
                         val focusedProgrammingAreaIndex = programAreas.indexOfFirst { it.visible }
                         programAreas.forEach {
@@ -86,7 +90,8 @@ class GameScene : Scene() {
                     Key.F -> {
                         launchImmediately {
                             animate {
-                                animateShowWinnerPopup(RoundResolution.WinnerResolution(gameModel.players.last().id))
+                                val view = courseView.conveyorBelts.values.first()
+                                shake(view, 500.milliseconds)
                             }
                         }
                     }
@@ -105,7 +110,10 @@ class GameScene : Scene() {
     }
 
     private fun robotPosition(pos: Pos, basePoint: IPoint = Point(0, 0)): IPoint {
-        return IPoint(pos.x * courseView.cellSize + courseView.x + basePoint.x, pos.y * courseView.cellSize + courseView.y + +basePoint.y)
+        return IPoint(
+            pos.x * courseView.cellSize + courseView.x + basePoint.x,
+            pos.y * courseView.cellSize + courseView.y + +basePoint.y
+        )
     }
 
     private fun Container.animateAllResults(resolutions: List<RoundResolution>) {
@@ -125,18 +133,42 @@ class GameScene : Scene() {
         sequence(defaultTime = 500.milliseconds, defaultSpeed = 256.0) {
             when (resolution) {
                 is RoundResolution.ActionCardResolution -> animateActionCard(resolution)
+                is RoundResolution.ConveyorBeltsResolution -> animateConveyorBelts(resolution)
                 is RoundResolution.CheckpointResolution -> animateCaptureCheckpoint(resolution)
                 is RoundResolution.LaserResolution -> animateLasers(resolution)
                 is RoundResolution.WinnerResolution -> animateShowWinnerPopup(resolution)
                 is RoundResolution.WipeRegistersResolution -> animateWipeRegisters(resolution)
                 is RoundResolution.DealCardsResolution -> animateDealActionCards(resolution)
-                is RoundResolution.ConveyorBeltsResolution -> TODO()
+            }
+        }
+    }
+
+    private fun Animator.animateConveyorBelts(resolution: RoundResolution.ConveyorBeltsResolution) {
+        sequence {
+            parallel {
+                resolution.movedRobots.forEach { (id, pos) ->
+                    val viewRobot = robots.getValue(id)
+                    val newPos = robotPosition(pos)
+                    moveTo(viewRobot, newPos.x, newPos.y, easing = Easing.SMOOTH)
+                }
+                if (resolution.movedRobots.isNotEmpty())
+                    courseView.conveyorBelts.values.forEach { shake(it, 500.milliseconds) }
+            }
+            parallel {
+                resolution.rotatedRobots.forEach { (id, dir) ->
+                    val viewRobot = robots.getValue(id)
+                    block {
+                        viewRobot.direction = dir
+                    }
+                }
+                if (resolution.rotatedRobots.isNotEmpty())
+                    courseView.conveyorBelts.values.forEach { shake(it, 500.milliseconds) }
             }
         }
     }
 
     private fun Animator.animateActionCard(
-        resolution: RoundResolution.ActionCardResolution
+        resolution: RoundResolution.ActionCardResolution,
     ) {
         resolution.steps.forEachIndexed { stepIndex, step ->
             when (step) {
@@ -170,7 +202,7 @@ class GameScene : Scene() {
                 programmingArea.clearCards()
                 val lockedCards = resolution.lockedRegisters.getOrDefault(programmingArea.robotId, null)
 
-                if(lockedCards != null) {
+                if (lockedCards != null) {
                     programmingArea.dealCards(lockedCards.map { register -> register.card })
                     lockedCards.forEach { register ->
                         programmingArea.lockRegister(register.index, register.card)
@@ -184,12 +216,12 @@ class GameScene : Scene() {
         block {
             this@GameScene.sceneContainer.apply {
                 val padding = 20.0
-                roundRect(500.0, 300.0, 3.0,3.0) {
+                roundRect(500.0, 300.0, 3.0, 3.0) {
                     val text = text("Congraz player ${resolution.winner.value}") {
                         color = Colors.RED
                         textSize = 50.0
                     }
-                    scaledWidth =  text.width + padding * 2
+                    scaledWidth = text.width + padding * 2
                     text.apply {
                         centerOn(parent!!)
                     }
@@ -286,3 +318,4 @@ class GameScene : Scene() {
         }
     }
 }
+

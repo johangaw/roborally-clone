@@ -39,4 +39,14 @@ fun setupGame(gameModel: GameModel): GameModel {
     return gameModel.resolveDealActionCards().gameModel
 }
 
-fun setupGame(trackNumber: Int): Nothing = TODO("not implemented yet")
+suspend fun setupGame(course: PreBuildCourses, playerCount: Int): GameModel {
+    val playerRange = 0 until playerCount
+    val course = loadCourse(course)
+    val robots = playerRange.map { Robot(course.starts.sorted()[it].pos, Direction.Up) }
+    val players = playerRange.map { Player(robots[it].id) }
+    return GameModel(
+        course = course,
+        robots = robots,
+        players = players,
+    ).resolveDealActionCards().gameModel
+}

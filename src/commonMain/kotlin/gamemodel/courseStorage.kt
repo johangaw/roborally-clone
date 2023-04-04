@@ -22,7 +22,7 @@ suspend fun loadCourse(course: PreBuildCourses): Course {
     }
     return json.decodeFromString(
         when(course) {
-            PreBuildCourses.Course1 -> resourcesVfs["courses/course_palette.json"]
+            PreBuildCourses.Course1 -> resourcesVfs["courses/course1.json"]
             PreBuildCourses.CoursePalette -> resourcesVfs["courses/course_palette.json"]
         }.readString()
     )

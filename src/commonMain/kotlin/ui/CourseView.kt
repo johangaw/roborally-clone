@@ -11,6 +11,8 @@ class CourseView(val course: Course, bitmapCache: BitmapCache, showStartPosition
     val cellSize: Double get() = scaledWidth / course.width
 
     private var onClickHandler: (pos: Pos) -> Unit = {}
+    var conveyorBelts: Map<Pos, ConveyorBeltView> = emptyMap()
+        private set
 
     init {
         val cellSize = min(COURSE_SIZE / course.width, COURSE_SIZE / course.height)
@@ -24,7 +26,7 @@ class CourseView(val course: Course, bitmapCache: BitmapCache, showStartPosition
             }
         }
 
-        course.conveyorBelts.forEach {(pos, belt) ->
+        conveyorBelts = course.conveyorBelts.mapValues {(pos, belt) ->
             conveyorBeltView(belt.type, bitmapCache) {
                 setSizeScaled(cellSize, cellSize)
                 position(getPoint(pos))
