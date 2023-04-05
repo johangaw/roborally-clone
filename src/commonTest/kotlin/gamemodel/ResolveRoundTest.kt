@@ -16,7 +16,8 @@ class ResolveRoundTest {
             """
             +|+|+|+|+|+|+|+
             +|→       ←|1 +
-        """.trimIndent()
+        """.trimIndent(),
+            null
         ).let {
             val (p1, p2) = it.players
             it.dealCards(
@@ -28,7 +29,8 @@ class ResolveRoundTest {
             """
             +|+|+|+|+|+|+|+
             +|  → ←    |1 +
-        """.trimIndent()
+        """.trimIndent(),
+            null
         ).let {
             val (r1, r2) = it.robots
             val (p1, p2) = it.players

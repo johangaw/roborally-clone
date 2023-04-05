@@ -11,7 +11,8 @@ class ResolveDealActionCardsTest {
             """
             +|+|+|+|+|+|+
             +     ↓ ↓   +
-        """.trimIndent()
+        """.trimIndent(),
+            null
         )
         val originalDrawPile = model.actionDrawPile
 
@@ -38,7 +39,8 @@ class ResolveDealActionCardsTest {
             """
             +|+|+|+|+|+|+
             +     ↓     +
-        """.trimIndent()
+        """.trimIndent(),
+            null
         ).let { model -> model.copy(robots = model.robots.map { it.copy(health = health) }) }
 
         val result = model.resolveDealActionCards()

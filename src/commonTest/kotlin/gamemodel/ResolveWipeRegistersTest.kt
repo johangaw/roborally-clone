@@ -11,7 +11,8 @@ class ResolveWipeRegistersTest {
             """
             +|+|+|+|+|+|+
             + →         +
-        """.trimIndent()
+        """.trimIndent(),
+            null
         ).dealCards()
         val (p1) = model.players
         val expectedModel = model.copy(
@@ -31,7 +32,8 @@ class ResolveWipeRegistersTest {
             """
             +|+|+|+|+|+|+
             + →         +
-        """.trimIndent()
+        """.trimIndent(),
+            null
         )
             .dealCards()
             .programAllRobots()
@@ -56,7 +58,8 @@ class ResolveWipeRegistersTest {
             """
             +|+|+|+|+|+|+
             + →         +
-        """.trimIndent()
+        """.trimIndent(),
+            null
         )
             .dealCards()
             .programAllRobots()

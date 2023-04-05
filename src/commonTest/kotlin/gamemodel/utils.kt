@@ -18,7 +18,7 @@ import ui.*
  *   +     →|  +
  *
  */
-fun gameModel(map: String): GameModel {
+fun gameModel(map: String, cardsInDeck: Int? = 5): GameModel {
     var robotIds = 0
     var playerId = 0
     assertValidMap(map)
@@ -50,7 +50,7 @@ fun gameModel(map: String): GameModel {
 
     return GameModel(
         robots = robots,
-        actionDrawPile = actionCardDeck(),
+        actionDrawPile = actionCardDeck().take(cardsInDeck ?: (robots.size * 5 * 2)),
         players = robots.map { Player(it.id, id = PlayerId(playerId++)) },
         course = Course(
             width = mapBody.mapPos{_,_,_ -> 0}.size,

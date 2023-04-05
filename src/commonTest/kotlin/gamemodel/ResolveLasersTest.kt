@@ -146,7 +146,8 @@ class ResolveLasersTest {
             """
             +|+|+|+|+|+|+
             + →   ↓     +
-        """.trimIndent()
+        """.trimIndent(),
+            null
         )
             .dealCards()
             .programAllRobots()
@@ -167,7 +168,8 @@ class ResolveLasersTest {
             """
             +|+|+|+|+|+|+
             + →   ↓     +
-        """.trimIndent()
+        """.trimIndent(),
+            null
         )
             .dealCards()
             .programAllRobots()
@@ -205,7 +207,8 @@ class ResolveLasersTest {
             """
             +|+|+|+|+|+|+
             + →   ↓   ← +
-        """.trimIndent()
+        """.trimIndent(),
+            null
         )
             .dealCards()
             .programAllRobots()
