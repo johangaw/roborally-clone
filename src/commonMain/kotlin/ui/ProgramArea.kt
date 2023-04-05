@@ -4,66 +4,91 @@ import com.soywiz.korge.view.*
 import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.color.*
 import gamemodel.*
-import kotlin.math.*
 
 class ProgramArea(
     cellSize: Double,
     checkpointIds: List<CheckpointId>,
     val playerId: PlayerId,
     val robotId: RobotId,
-    val bitmapCache: BitmapCache,
+    private val bitmapCache: BitmapCache,
 ) : Container() {
+
+    private val borderPadding = 10.0
 
     private val programingSlotWidth = cellSize
     private val programingSlotHeight = cellSize * 1.5
-    private val programingSlotPadding = 10.0
+    private val programingSlotMargin = 10.0
 
     private val cardWidth = programingSlotWidth / 2
     private val cardHeight = programingSlotHeight / 2
-    private val cardPadding = programingSlotPadding / 2
+    private val cardMargin = programingSlotMargin / 2
 
     private val checkpointSize = cardWidth
-    private val checkpointPadding = cardPadding
+    private val checkpointMargin = cardMargin
+
+    private val heartSize = checkpointSize
+    private val heartMargin = checkpointMargin
 
     private var cards = listOf<Card>()
     private lateinit var programmingSlots: Map<Int, RoundRect>
     private val selectedCards = arrayOf<Card?>(null, null, null, null, null)
 
     private lateinit var checkpoints: Map<CheckpointId, Image>
+    private lateinit var hearts: List<Image>
     private var lockedSlots = emptySet<Int>()
 
     init {
-        roundRect(800.0, 200.0, 0.0) {
-            programmingSlots = (0..4).associateWith {
-                roundRect(programingSlotWidth, programingSlotHeight, 3.0) {
-                    alignBottomToBottomOf(parent!!)
-                    alignLeftToLeftOf(parent!!, programingSlotPadding)
-                    fill = Colors.LIGHTGRAY
+        roundRect(650.0, 150.0, 0.0) {
+            programmingSlots = (0..4)
+                .associateWith {
+                    roundRect(programingSlotWidth, programingSlotHeight, 3.0, fill = Colors.LIGHTGRAY)
                 }
-            }
+                .also {
+                    it.values
+                        .first()
+                        .apply {
+                            alignBottomToBottomOf(parent!!, borderPadding)
+                            alignLeftToLeftOf(parent!!, borderPadding)
+                        }
 
-            programmingSlots.values
-                .windowed(2, 1)
-                .forEach { (left, right) ->
-                    right.alignLeftToRightOf(left, programingSlotPadding)
+                    it.values
+                        .zipWithNext()
+                        .forEach { (left, right) ->
+                            right.alignTopToTopOf(left)
+                            right.alignLeftToRightOf(left, programingSlotMargin)
+                        }
                 }
+
+            val hearts = container {
+                hearts = (0..9)
+                    .map {
+                        image(bitmapCache.heart) {
+                            size(heartSize, heartSize)
+                        }
+                    }
+                    .apply {
+                        zipWithNext()
+                            .forEach { (i0, i1) ->
+                                i1.alignRightToLeftOf(i0, heartMargin)
+                            }
+                    }
+                alignTopToTopOf(parent!!, borderPadding)
+                alignRightToRightOf(parent!!, borderPadding)
+            }
 
             container {
                 checkpoints = checkpointIds.associateWith {
                     image(bitmapCache.checkpoint) {
                         size(checkpointSize, checkpointSize)
-                        alignLeftToLeftOf(parent!!)
-                        alignTopToTopOf(parent!!)
                     }
                 }
                 checkpoints.values
-                    .windowed(2, 1)
+                    .zipWithNext()
                     .forEach { (left, right) ->
-                        right.alignLeftToRightOf(left, checkpointPadding)
+                        right.alignLeftToRightOf(left, checkpointMargin)
                     }
-
-                centerOn(parent!!)
-                alignTopToTopOf(parent!!, checkpointPadding)
+                alignTopToBottomOf(hearts, borderPadding)
+                alignRightToRightOf(parent!!, borderPadding)
             }
         }
     }
@@ -81,9 +106,6 @@ class ProgramArea(
 
         cards = newCards.map { cardModel ->
             card(cardModel, cardWidth, cardHeight, bitmapCache) {
-                alignTopToTopOf(parent!!, programingSlotPadding)
-                alignRightToRightOf(parent!!, programingSlotPadding)
-
                 onDrop {
                     programmingSlots.entries
                         .firstOrNull { (slotIndex, slot) ->
@@ -103,34 +125,23 @@ class ProgramArea(
                 }
             }
         }
-
-        val (upperRow, lowerRow) = cards.chunked(ceil(cards.size / 2.0).toInt())
-
-        upperRow
-            .windowed(2, 1)
-            .forEach { (first, second) ->
-                second.alignRightToLeftOf(first, cardPadding)
+        cards
+            .firstOrNull()
+            ?.apply {
+                alignTopToTopOf(parent!!, borderPadding)
+                alignLeftToLeftOf(parent!!, borderPadding)
             }
-
-        lowerRow
-            .first()
-            .apply {
-                alignTopToBottomOf(upperRow.first(), cardPadding)
+        cards
+            .zipWithNext()
+            .forEach { (c0, c1) ->
+                c1.alignTopToTopOf(c0)
+                c1.alignLeftToRightOf(c0, cardMargin)
             }
-        lowerRow
-            .windowed(2, 1)
-            .forEach { (first, second) ->
-                second.alignRightToLeftOf(first, cardPadding)
-                second.alignTopToBottomOf(upperRow.first(), cardPadding)
-            }
-
         cards.forEach { it.storeOriginalPos() }
     }
 
     fun getSelectedCards(): List<ActionCard> =
-        selectedCards
-            .map { it?.actionCard }
-            .filterNotNull()
+        selectedCards.mapNotNull { it?.actionCard }
 
     fun markCheckpoint(id: CheckpointId, taken: Boolean = true) {
         val newBitmap = if (taken) bitmapCache.checkpointTaken else bitmapCache.checkpoint
@@ -158,7 +169,7 @@ fun Container.programArea(
     playerId: PlayerId,
     robotId: RobotId,
     bmCache: BitmapCache,
-    callback: @ViewDslMarker() (ProgramArea.() -> Unit) = {},
+    callback: ProgramArea.() -> Unit = {},
 ) =
     ProgramArea(cellSize, checkpointIds, playerId, robotId, bmCache).addTo(this, callback)
 

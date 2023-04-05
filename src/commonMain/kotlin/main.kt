@@ -63,8 +63,8 @@ class GameScene : Scene() {
                 alignTopToBottomOf(courseView)
                 text(player.id.value.toString(), textSize = 30.0, color = Colors.BLACK) {
                     val textPadding = 10.0
-                    alignTopToTopOf(parent!!, textPadding)
-                    alignLeftToLeftOf(parent!!, textPadding)
+                    alignBottomToBottomOf(parent!!, textPadding)
+                    alignRightToRightOf(parent!!, textPadding)
                 }
                 visible = false
 
