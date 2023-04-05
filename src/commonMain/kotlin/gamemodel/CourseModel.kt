@@ -54,7 +54,7 @@ data class ConveyorBelt(val type: ConveyorBeltType, val speed: ConveyorBeltSpeed
 @Serializable
 enum class ConveyorBeltSpeed {
     Regular,
-//    Fast
+//    Express
 }
 
 @Serializable
