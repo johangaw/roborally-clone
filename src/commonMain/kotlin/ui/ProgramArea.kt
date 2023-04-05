@@ -69,7 +69,7 @@ class ProgramArea(
                     .apply {
                         zipWithNext()
                             .forEach { (i0, i1) ->
-                                i1.alignRightToLeftOf(i0, heartMargin)
+                                i1.alignLeftToRightOf(i0, heartMargin)
                             }
                     }
                 alignTopToTopOf(parent!!, borderPadding)
@@ -159,6 +159,12 @@ class ProgramArea(
             scale(2.0)
             centerOn(slot)
             colorMul = RGBA(0xFF, 0xFF, 0xFF, 0x88)
+        }
+    }
+
+    fun setHealth(health: Int) {
+        hearts.reversed().withIndex().forEach {(index, image) ->
+            image.colorMul = if(health < index + 1) RGBA(0x00, 0x00, 0x00, 0x88) else Colors.WHITE
         }
     }
 }

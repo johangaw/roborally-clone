@@ -11,13 +11,14 @@ fun GameModel.resolveLasers(): LaserResolutionResult {
                 .lastOrNull()
                 ?.let { pos -> robotAt(pos) }
         }
-        .groupBy { it.id }
-        .mapValues { (_, hits) -> hits.size }
+        .groupBy { it }
+        .mapValues { (robot, hits) -> DamagedRobot(robot.id, robot.health - hits.size, hits.size) }
+        .mapKeys { (robot, _) -> robot.id }
     return LaserResolutionResult(
         copy(robots = robots.map {
-            it.copy(health = it.health - hitRobots.getOrDefault(it.id, 0))
+            it.copy(health = hitRobots[it.id]?.health ?: it.health)
         }),
-        hitRobots,
+        hitRobots.mapValues { (robotId, data) -> data.health },
         laserPaths,
     )
 }
@@ -33,6 +34,12 @@ fun laserDirection(robotPos: Pos, beginningOfLaserPath: Pos): LaserDirection {
         else LaserDirection.Left
 }
 
+private data class DamagedRobot(
+    val id : RobotId,
+    val health: Int,
+    val damage: Int,
+)
+
 private fun GameModel.laserPath(pos: Pos, dir: Direction): List<Pos> {
     return (1..100)
         .runningFold(pos + dir) { acc, _ -> acc + dir }
@@ -47,7 +54,7 @@ private fun <T> List<T>.takeWhileIncludingStop(predicate: (T) -> Boolean): List<
 
 data class LaserResolutionResult(
     val gameModel: GameModel,
-    val damage: Map<RobotId, Int>,
+    val remainingHealthOfDamagedRobots: Map<RobotId, Int>,
     val laserPaths: Set<LaserPath>,
 )
 

@@ -54,7 +54,7 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
                                 gameModel = it.gameModel,
                                 resolutions = current.resolutions + LaserResolution(
                                     it.laserPaths,
-                                    it.damage,
+                                    it.remainingHealthOfDamagedRobots,
                                 )
                             )
                         }
@@ -129,7 +129,10 @@ fun GameModel.assertValidProgramming(programming: Map<PlayerId, List<ActionCard>
         val robot = getRobot(id)
         val availableCards = player.hand + robot.registers.map { it.card }
         assert(availableCards.containsAll(cards)) { "Player $id have programmed an illegal card" }
-        assert(robot.registers.filter { it.locked }.all { cards[it.index] == it.card }) {
+        assert(
+            robot.registers
+                .filter { it.locked }
+                .all { cards[it.index] == it.card }) {
             "Player $id have programmed a card even though another cards was locked"
         }
     }
@@ -207,12 +210,12 @@ sealed class RoundResolution {
 
     data class LaserResolution(
         val laserPaths: Set<LaserPath>,
-        val damage: Map<RobotId, Int>,
+        val remainingHealthOfDamagedRobots: Map<RobotId, Int>,
     ) : RoundResolution()
 
     data class WinnerResolution(val winner: PlayerId) : RoundResolution()
 
-    data class SpawnedRobotsResolution(val spawnedRobots: List<Robot>): RoundResolution()
+    data class SpawnedRobotsResolution(val spawnedRobots: List<Robot>) : RoundResolution()
 
     data class RegisterLockingResolution(val lockedRegisters: Map<RobotId, List<LockedRegister>>) : RoundResolution()
 

@@ -16,6 +16,7 @@ import com.soywiz.korma.interpolation.*
 import gamemodel.*
 import ui.*
 import kotlin.math.*
+import kotlin.random.*
 
 suspend fun main() = Korge(width = 1024, height = 1024, bgcolor = Colors["#2b2b2b"]) {
     val sceneContainer = sceneContainer()
@@ -90,10 +91,7 @@ class GameScene : Scene() {
                     }
 
                     Key.F -> {
-                        val robot = gameModel.robots.first()
-                        val viewRobot = robots.getValue(robot.id)
-                        println(viewRobot)
-                        println(robot)
+                        programAreas.first().setHealth(Random.nextInt(0..10))
                     }
 
                     Key.SPACE -> {
@@ -101,6 +99,11 @@ class GameScene : Scene() {
                         val result = gameModel.resolveRound(cards)
                         animateAllResults(result.resolutions)
                         gameModel = result.gameModel
+
+                        // TODO include this info in each the resolution and do the update while the animation is running
+                        gameModel.robots.forEach { robot ->
+                            programAreas.first { area -> area.robotId == robot.id }.setHealth(robot.health)
+                        }
                     }
 
                     else -> Unit
@@ -271,7 +274,7 @@ class GameScene : Scene() {
                 position(robotPosition(it.path.first(), pos))
             }
         }
-        val damagedRobots = resolution.damage.keys.map { robots.getValue(it) }
+        val damagedRobots = resolution.remainingHealthOfDamagedRobots.keys.map { robots.getValue(it) }
         sequence {
             parallel(time = 100.milliseconds) {
                 beams.forEach { alpha(it, 1.0) }
