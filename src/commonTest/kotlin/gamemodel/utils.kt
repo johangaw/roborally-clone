@@ -1,7 +1,6 @@
 package gamemodel
 
 import com.soywiz.kmem.*
-import ui.*
 
 /**
  * Full map (not yet implemented)
@@ -79,8 +78,8 @@ private fun assertValidMap(map: String) {
             assert(line.first() == '+') { "line $lineNo should start with '+'" }
             assert(line.last() == '+') { "line $lineNo should end with '+'" }
 
-            line.forEachIndexed { index, char ->
-                val colNo = index + 1
+            line.forEachIndexed { lineIndex, char ->
+                val colNo = lineIndex + 1
                 when (colNo.isEven) {
                     true -> assert(char in listOf(' ', '|')) { "invalid character ($char) at ${lineNo + 1}:$colNo" }
                     false -> assert(
@@ -167,6 +166,10 @@ class AnyOrderList<T> : MutableList<T> by mutableListOf() {
 
     override fun hashCode(): Int {
         return javaClass.hashCode()
+    }
+
+    override fun toString(): String {
+        return this.map { it }.toString()
     }
 }
 

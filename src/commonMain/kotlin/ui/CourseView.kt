@@ -56,7 +56,7 @@ class CourseView(val course: Course, bitmapCache: BitmapCache, showStartPosition
         }
     }
 
-    fun getPoint(pos: Pos): IPoint = Point(pos.x * cellSize, pos.y * cellSize)
+    private fun getPoint(pos: Pos): IPoint = Point(pos.x * cellSize, pos.y * cellSize)
 
     fun onClick(handler: (pos: Pos) -> Unit) {
         onClickHandler = handler

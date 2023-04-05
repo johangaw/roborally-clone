@@ -16,6 +16,7 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
         .zipAll()
         .map { it.sort() }
         .flatten()
+        .plus(RespawnRobots)
         .plus(WipeRegisters)
         .plus(DealCards)
         .fold(RoundResolutionResult(assignRegisters(programming), emptyList())) { current, step ->
@@ -100,6 +101,15 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
                             ),
                         )
                     }
+
+                RespawnRobots -> current.gameModel
+                    .resolveRespawnRobots()
+                    .let {
+                        RoundResolutionResult(
+                            gameModel = it.gameModel,
+                            resolutions = current.resolutions + SpawnedRobotsResolution(it.spawnedRobots),
+                        )
+                    }
             }
         }
 }
@@ -144,6 +154,7 @@ private fun List<RoundStep>.sort(): List<RoundStep> =
             ResolveConveyorBelts -> Int.MAX_VALUE
             WipeRegisters -> throw AssertionError("WipeRegisters should not be sorted with other RoundSteps")
             DealCards -> throw AssertionError("DealCards should not be sorted with other RoundSteps")
+            RespawnRobots -> throw AssertionError("RespawnRobots should not be sorted with other RoundSteps")
         }
     }
 
@@ -162,6 +173,8 @@ private sealed class RoundStep {
     object ResolveLasers : RoundStep()
 
     object CheckForWinner : RoundStep()
+
+    object RespawnRobots : RoundStep()
 
     object WipeRegisters : RoundStep()
 
@@ -187,6 +200,8 @@ sealed class RoundResolution {
     ) : RoundResolution()
 
     data class WinnerResolution(val winner: PlayerId) : RoundResolution()
+
+    data class SpawnedRobotsResolution(val spawnedRobots: List<Robot>): RoundResolution()
 
     data class WipeRegistersResolution(val lockedRegisters: Map<RobotId, List<LockedRegister>>) : RoundResolution()
 

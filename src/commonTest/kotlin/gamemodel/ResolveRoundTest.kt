@@ -103,7 +103,9 @@ class ResolveRoundTest {
                     damage = mapOf(r1.id to 1, r2.id to 1),
                     lockedRegisters = emptyMap(),
                 ),
-                CheckpointResolution(emptyMap()), WipeRegistersResolution(emptyMap()),
+                CheckpointResolution(emptyMap()),
+                SpawnedRobotsResolution(emptyList()),
+                WipeRegistersResolution(emptyMap()),
                 DealCardsResolution(
                     mapOf(
                         p1.id to model.actionDrawPile.take(cardsPerPlayer),

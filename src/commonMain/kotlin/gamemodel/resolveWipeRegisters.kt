@@ -4,7 +4,7 @@ fun GameModel.resolveWipeRegisters(): ResolveWipeRegistersResult {
     return ResolveWipeRegistersResult(
         gameModel = copy(
             actionDiscardPile = actionDiscardPile + players.flatMap {
-                it.hand.toSet() + getRobot(it.robotId).registers
+                it.hand + getRobot(it.robotId).registers
                     .unlocked()
                     .cards()
                     .toSet()

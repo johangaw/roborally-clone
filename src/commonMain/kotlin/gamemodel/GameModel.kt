@@ -55,6 +55,7 @@ data class GameModel(
     val players: List<Player>,
     val actionDrawPile: List<ActionCard> = actionCardDeck().shuffled(),
     val actionDiscardPile: List<ActionCard> = emptyList(),
+    val destroyedRobots : List<Robot> = emptyList()
 ) {
     init {
         assertNoDoubletCards()
@@ -77,6 +78,8 @@ data class GameModel(
         players.firstOrNull { it.id == id } ?: throw AssertionError("No player with id $id")
 
     fun wallAt(pos: Pos, dir: Direction): Wall? = course.wallAt(pos, dir)
+
+    fun isDestroyed(robotId: RobotId): Boolean = destroyedRobots.firstOrNull { it.id == robotId } != null
 
     private fun assertNoDoubletCards() {
         val allCards =

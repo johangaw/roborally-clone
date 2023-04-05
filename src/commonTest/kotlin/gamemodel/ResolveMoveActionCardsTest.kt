@@ -3,7 +3,7 @@ package gamemodel
 import gamemodel.ActionCardResolutionStep.MovementStep
 import kotlin.test.*
 
-class MoveRobotTest {
+class ResolveMoveActionCardsTest {
 
     @Test
     fun `when there is nothing blocking the robot it is moved`() {
@@ -164,6 +164,84 @@ class MoveRobotTest {
         )
         assertEquals(
             listOf(MovementStep(robot.id to Pos(1, 0))),
+            result.steps
+        )
+    }
+
+    @Test
+    fun `when a robot moves off the course, it is destroyed`() {
+        val model = gameModel(
+            """
+            +|+|+|+|+|+|+
+            +         → +
+        """.trimIndent()
+        )
+        val (r1) = model.robots
+        val expectedModel = model.copy(
+            robots = emptyList(),
+            destroyedRobots = listOf(r1.copy(pos = Pos(5, 0)))
+        )
+
+        val result = model.resolveActionCard(r1.id, ActionCard.MoveForward(1, 0))
+
+        assertEquals(expectedModel, result.gameModel)
+        assertEquals(
+            listOf(MovementStep(MovementPart.Move(r1.id, Pos(5, 0), true))),
+            result.steps
+        )
+    }
+
+    @Test
+    fun `when a robot is pushed off the course, it is destroyed`() {
+        val model = gameModel(
+            """
+            +|+|+|+|+|+|+
+            +       → → +
+        """.trimIndent()
+        )
+        val (r1, r2) = model.robots
+        val expectedModel = model.copy(
+            robots = listOf(r1.copy(pos = Pos(4, 0))),
+            destroyedRobots = listOf(r2.copy(pos = Pos(5, 0)))
+        )
+
+        val result = model.resolveActionCard(r1.id, ActionCard.MoveForward(1, 0))
+
+        assertEquals(expectedModel, result.gameModel)
+        assertEquals(
+            listOf(
+                MovementStep(
+                    MovementPart.Move(r1.id, Pos(4, 0), false),
+                    MovementPart.Move(r2.id, Pos(5, 0), true)
+                ),
+            ),
+            result.steps
+        )
+    }
+
+    @Test
+    fun `when a robot tries to moves far out off the course, it is only moved one step`() {
+        val model = gameModel(
+            """
+            +|+|+|+|+|+|+
+            +         → +
+        """.trimIndent()
+        )
+        val (r1) = model.robots
+        val expectedModel = model.copy(
+            robots = emptyList(),
+            destroyedRobots = listOf(r1.copy(pos = Pos(5, 0)))
+        )
+
+        val result = model.resolveActionCard(r1.id, ActionCard.MoveForward(3, 0))
+
+        assertEquals(expectedModel, result.gameModel)
+        assertEquals(
+            listOf(
+                MovementStep(
+                    MovementPart.Move(r1.id, Pos(5, 0), true),
+                ),
+            ),
             result.steps
         )
     }

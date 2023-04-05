@@ -1,6 +1,7 @@
 package ui
 
 import com.soywiz.klock.*
+import com.soywiz.korge.animate.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.atlas.*
 import com.soywiz.korim.color.*
@@ -11,6 +12,9 @@ class RobotView(playerNumber: PlayerNumber, direction: Direction, atlas: Atlas) 
     private val rightAnimation = atlas.getSpriteAnimation(prefix = "robot${playerNumber.number}-right")
     private val leftAnimation = atlas.getSpriteAnimation(prefix = "robot${playerNumber.number}-left")
     private val upAnimation = atlas.getSpriteAnimation(prefix = "robot${playerNumber.number}-up")
+
+    private var originalScaleX: Double = 0.0
+    private var originalScaleY: Double = 0.0
 
     private val dirMap = mapOf(
         Direction.Left to leftAnimation,
@@ -42,6 +46,24 @@ class RobotView(playerNumber: PlayerNumber, direction: Direction, atlas: Atlas) 
         }
         playAnimationForDuration(time)
     }
+
+    fun destroy(animator: Animator) = animator.apply {
+        this@RobotView.originalScaleX = this@RobotView.scaleX
+        this@RobotView.originalScaleY = this@RobotView.scaleY
+
+        parallel {
+            hide(this@RobotView)
+            scaleTo(this@RobotView, 0.0)
+        }
+    }
+
+    fun respawn(animator: Animator) = animator.apply {
+         parallel {
+            show(this@RobotView)
+            scaleTo(this@RobotView, { originalScaleX }, { originalScaleY })
+         }
+    }
+
 }
 
 fun Container.robotView(

@@ -30,10 +30,14 @@ private fun GameModel.resolveActionCard(id: RobotId, card: ActionCard.MoveForwar
 }
 
 private fun GameModel.resolveMovement(robotId: RobotId, dir: Direction): MovementResolution {
+    if(isDestroyed(robotId)) return MovementResolution(this, emptyList())
+
     val robot = getRobot(robotId)
-    val path = getPath(robot.pos, dir, 100 /* TODO up till end of board */).takeWhile { p ->
-        wallAt(p, dir.opposite()) == null
-    }
+    val maxMovement = max(course.width, course.height) // enough to scan all across the course
+    val path = getPath(robot.pos, dir, maxMovement)
+        .takeWhile { p ->
+            wallAt(p, dir.opposite()) == null
+        }
     val canMove = path.count { robotAt(it) == null } > 0
 
     if (!canMove) return MovementResolution(this, emptyList())
@@ -41,11 +45,21 @@ private fun GameModel.resolveMovement(robotId: RobotId, dir: Direction): Movemen
     val robotsToPush = path
         .takeWhile { robotAt(it) != null }
         .mapNotNull { robotAt(it) }
-    val newPositions = (listOf(robot) + robotsToPush).associate { it.id to it.pos + dir }
+    val newPositions = (listOf(robot) + robotsToPush)
+        .associate { it.id to it.pos + dir }
+    val destroyedRobots = newPositions.filterValues { course.isLethal(it) }.keys
+
     return MovementResolution(
         gameModel = this.copy(
-            robots = robots.map { it.copy(pos = newPositions.getOrDefault(it.id, it.pos)) }),
-        parts = newPositions.map { (id, pos) -> Move(id, pos) })
+            robots = robots
+                .filter { it.id !in destroyedRobots }
+                .map { it.copy(pos = newPositions.getOrDefault(it.id, it.pos)) },
+            destroyedRobots = this.destroyedRobots + robots
+                .filter { it.id in destroyedRobots }
+                .map { it.copy(pos = newPositions.getValue(it.id)) },
+        ),
+        parts = newPositions.map { (id, pos) -> Move(id, pos, id in destroyedRobots) },
+    )
 }
 
 private data class MovementResolution(val gameModel: GameModel, val parts: List<MovementPart>)
@@ -107,5 +121,5 @@ sealed class ActionCardResolutionStep() {
 }
 
 sealed class MovementPart {
-    data class Move(val robotId: RobotId, val newPos: Pos) : MovementPart()
+    data class Move(val robotId: RobotId, val newPos: Pos, val lethal: Boolean = false) : MovementPart()
 }

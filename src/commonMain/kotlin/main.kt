@@ -58,6 +58,7 @@ class GameScene : Scene() {
 
         programAreas = gameModel.players.map { player ->
             programArea(cellSize, gameModel.course.checkpoints.map { it.id }, player.id, player.robotId, bitmapCache) {
+                zIndex(-1)
                 centerOn(this@sceneMain)
                 alignTopToBottomOf(courseView)
                 text(player.id.value.toString(), textSize = 30.0, color = Colors.BLACK) {
@@ -86,12 +87,10 @@ class GameScene : Scene() {
                     }
 
                     Key.F -> {
-                        launchImmediately {
-                            animate {
-                                val view = courseView.conveyorBelts.values.first()
-                                shake(view, 500.milliseconds)
-                            }
-                        }
+                        val robot = gameModel.robots.first()
+                        val viewRobot = robots.getValue(robot.id)
+                        println(viewRobot)
+                        println(robot)
                     }
 
                     Key.SPACE -> {
@@ -110,7 +109,7 @@ class GameScene : Scene() {
     private fun robotPosition(pos: Pos, basePoint: IPoint = Point(0, 0)): IPoint {
         return IPoint(
             pos.x * courseView.cellSize + courseView.x + basePoint.x,
-            pos.y * courseView.cellSize + courseView.y + +basePoint.y
+            pos.y * courseView.cellSize + courseView.y + basePoint.y
         )
     }
 
@@ -135,8 +134,22 @@ class GameScene : Scene() {
                 is RoundResolution.CheckpointResolution -> animateCaptureCheckpoint(resolution)
                 is RoundResolution.LaserResolution -> animateLasers(resolution)
                 is RoundResolution.WinnerResolution -> animateShowWinnerPopup(resolution)
+                is RoundResolution.SpawnedRobotsResolution -> animateSpawnRobots(resolution)
                 is RoundResolution.WipeRegistersResolution -> animateWipeRegisters(resolution)
                 is RoundResolution.DealCardsResolution -> animateDealActionCards(resolution)
+            }
+        }
+    }
+
+    private fun Animator.animateSpawnRobots(resolution: RoundResolution.SpawnedRobotsResolution) {
+        parallel {
+            resolution.spawnedRobots.forEach {
+                val viewRobot = robots.getValue(it.id)
+                block {
+                    viewRobot.direction = it.dir
+                    viewRobot.position(robotPosition(it.pos))
+                }
+                viewRobot.respawn(this)
             }
         }
     }
@@ -314,7 +327,12 @@ class GameScene : Scene() {
                     is MovementPart.Move -> {
                         val viewRobot = robots.getValue(part.robotId)
                         val newPos = robotPosition(part.newPos)
-                        moveTo(viewRobot, newPos.x, newPos.y, easing = easing)
+                        sequence {
+                            moveTo(viewRobot, newPos.x, newPos.y, easing = easing)
+                            if(part.lethal) {
+                                viewRobot.destroy(this)
+                            }
+                        }
                         block {
                             viewRobot.playAnimation(500.milliseconds)
                         }
