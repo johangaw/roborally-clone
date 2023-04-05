@@ -43,20 +43,11 @@ class ProgramArea(
                 .associateWith {
                     roundRect(programingSlotWidth, programingSlotHeight, 3.0, fill = Colors.LIGHTGRAY)
                 }
-                .also {
-                    it.values
-                        .first()
-                        .apply {
-                            alignBottomToBottomOf(parent!!, borderPadding)
-                            alignLeftToLeftOf(parent!!, borderPadding)
-                        }
-
-                    it.values
-                        .zipWithNext()
-                        .forEach { (left, right) ->
-                            right.alignTopToTopOf(left)
-                            right.alignLeftToRightOf(left, programingSlotMargin)
-                        }
+                .apply {
+                    values.alignOnRow(programingSlotMargin) {
+                        alignBottomToBottomOf(parent!!, borderPadding)
+                        alignLeftToLeftOf(parent!!, borderPadding)
+                    }
                 }
 
             val hearts = container {
@@ -67,10 +58,7 @@ class ProgramArea(
                         }
                     }
                     .apply {
-                        zipWithNext()
-                            .forEach { (i0, i1) ->
-                                i1.alignLeftToRightOf(i0, heartMargin)
-                            }
+                        alignOnRow(heartMargin)
                     }
                 alignTopToTopOf(parent!!, borderPadding)
                 alignRightToRightOf(parent!!, borderPadding)
@@ -81,12 +69,9 @@ class ProgramArea(
                     image(bitmapCache.checkpoint) {
                         size(checkpointSize, checkpointSize)
                     }
+                }.apply {
+                    values.alignOnRow(borderPadding)
                 }
-                checkpoints.values
-                    .zipWithNext()
-                    .forEach { (left, right) ->
-                        right.alignLeftToRightOf(left, checkpointMargin)
-                    }
                 alignTopToBottomOf(hearts, borderPadding)
                 alignRightToRightOf(parent!!, borderPadding)
             }
@@ -125,18 +110,10 @@ class ProgramArea(
                 }
             }
         }
-        cards
-            .firstOrNull()
-            ?.apply {
-                alignTopToTopOf(parent!!, borderPadding)
-                alignLeftToLeftOf(parent!!, borderPadding)
-            }
-        cards
-            .zipWithNext()
-            .forEach { (c0, c1) ->
-                c1.alignTopToTopOf(c0)
-                c1.alignLeftToRightOf(c0, cardMargin)
-            }
+        cards.alignOnRow(cardMargin) {
+            alignTopToTopOf(parent!!, borderPadding)
+            alignLeftToLeftOf(parent!!, borderPadding)
+        }
         cards.forEach { it.storeOriginalPos() }
     }
 
@@ -166,6 +143,15 @@ class ProgramArea(
         hearts.reversed().withIndex().forEach {(index, image) ->
             image.colorMul = if(health < index + 1) RGBA(0x00, 0x00, 0x00, 0x88) else Colors.WHITE
         }
+    }
+}
+
+fun <T : View>Collection<T>.alignOnRow(margin: Double = 0.0, alignFirst: T.() -> Unit = {}) = apply {
+    if(isEmpty()) return@apply
+    first().alignFirst()
+    zipWithNext {item0, item1 ->
+        item1.alignTopToTopOf(item0)
+        item1.alignLeftToRightOf(item0, margin)
     }
 }
 
