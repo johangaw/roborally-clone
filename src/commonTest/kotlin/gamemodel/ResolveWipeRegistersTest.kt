@@ -1,6 +1,5 @@
 package gamemodel
 
-import com.soywiz.korio.file.sync.*
 import org.junit.Test
 import kotlin.test.*
 
@@ -11,8 +10,7 @@ class ResolveWipeRegistersTest {
             """
             +|+|+|+|+|+|+
             + →         +
-        """.trimIndent(),
-            null
+        """.trimIndent()
         ).dealCards()
         val (p1) = model.players
         val expectedModel = model.copy(
@@ -32,8 +30,7 @@ class ResolveWipeRegistersTest {
             """
             +|+|+|+|+|+|+
             + →         +
-        """.trimIndent(),
-            null
+        """.trimIndent()
         )
             .dealCards()
             .programAllRobots()
@@ -58,8 +55,7 @@ class ResolveWipeRegistersTest {
             """
             +|+|+|+|+|+|+
             + →         +
-        """.trimIndent(),
-            null
+        """.trimIndent()
         )
             .dealCards()
             .programAllRobots()

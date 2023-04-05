@@ -30,12 +30,6 @@ fun GameModel.resolveWipeRegisters(): ResolveWipeRegistersResult {
     )
 }
 
-private fun Collection<Register>.locked() = this.filter { it.locked }
-
-private fun Collection<Register>.unlocked() = this.filter { !it.locked }
-
-private fun Collection<Register>.cards() = this.map { it.card }
-
 data class ResolveWipeRegistersResult(
     val gameModel: GameModel,
     val lockedRegisters: Map<RobotId, List<LockedRegister>>,

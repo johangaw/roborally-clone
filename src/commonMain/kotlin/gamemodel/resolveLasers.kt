@@ -9,39 +9,16 @@ fun GameModel.resolveLasers(): LaserResolutionResult {
             it
                 .path
                 .lastOrNull()
-                ?.let { robotAt(it) }
+                ?.let { pos -> robotAt(pos) }
         }
         .groupBy { it.id }
         .mapValues { (_, hits) -> hits.size }
-    val lockedRegisters = hitRobots
-        .mapKeys { (id, _) -> getRobot(id) }
-        .mapValues { (r, hits) ->
-            r.registers
-                .filter { !it.locked }
-                .filter { it.index >= r.health - hits - 1 }
-        }
-        .mapKeys { it.key.id }
-        .mapValues { it.value.map { card -> LockedRegister(card.index, card.card) } }
-        .filterValues { it.isNotEmpty() }
     return LaserResolutionResult(
         copy(robots = robots.map {
-            it.copy(
-                health = it.health - hitRobots.getOrDefault(it.id, 0),
-                registers = it.registers
-                    .mapToSet { register ->
-                        if (register.card in lockedRegisters
-                                .getOrDefault(it.id, emptyList())
-                                .map { lockedRegister -> lockedRegister.card }
-                        )
-                            register.copy(locked = true)
-                        else
-                            register
-                    }
-            )
+            it.copy(health = it.health - hitRobots.getOrDefault(it.id, 0))
         }),
         hitRobots,
         laserPaths,
-        lockedRegisters
     )
 }
 
@@ -58,7 +35,7 @@ fun laserDirection(robotPos: Pos, beginningOfLaserPath: Pos): LaserDirection {
 
 private fun GameModel.laserPath(pos: Pos, dir: Direction): List<Pos> {
     return (1..100)
-        .runningFold(pos + dir) { pos, _ -> pos + dir }
+        .runningFold(pos + dir) { acc, _ -> acc + dir }
         .takeWhileIncludingStop { wallAt(it, dir) == null }
         .takeWhileIncludingStop { robotAt(it) == null }
 }
@@ -72,7 +49,6 @@ data class LaserResolutionResult(
     val gameModel: GameModel,
     val damage: Map<RobotId, Int>,
     val laserPaths: Set<LaserPath>,
-    val lockedRegisters: Map<RobotId, List<LockedRegister>>,
 )
 
 data class LockedRegister(val index: Int, val card: ActionCard)

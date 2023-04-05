@@ -17,7 +17,7 @@ class ResolveRoundTest {
             +|+|+|+|+|+|+|+
             +|→       ←|1 +
         """.trimIndent(),
-            null
+            9 * 2
         ).let {
             val (p1, p2) = it.players
             it.dealCards(
@@ -30,7 +30,7 @@ class ResolveRoundTest {
             +|+|+|+|+|+|+|+
             +|  → ←    |1 +
         """.trimIndent(),
-            null
+            9 * 2
         ).let {
             val (r1, r2) = it.robots
             val (p1, p2) = it.players
@@ -79,7 +79,6 @@ class ResolveRoundTest {
                         LaserPath(listOf(Pos(2, 0), Pos(1, 0)), LaserDirection.Left),
                     ),
                     damage = mapOf(r1.id to 1, r2.id to 1),
-                    lockedRegisters = emptyMap(),
                 ),
                 CheckpointResolution(emptyMap()),
                 ActionCardResolution(
@@ -101,10 +100,10 @@ class ResolveRoundTest {
                         LaserPath(listOf(Pos(1, 0)), LaserDirection.Left),
                     ),
                     damage = mapOf(r1.id to 1, r2.id to 1),
-                    lockedRegisters = emptyMap(),
                 ),
                 CheckpointResolution(emptyMap()),
                 SpawnedRobotsResolution(emptyList()),
+                RegisterLockingResolution(emptyMap()),
                 WipeRegistersResolution(emptyMap()),
                 DealCardsResolution(
                     mapOf(
@@ -157,7 +156,8 @@ class ResolveRoundTest {
                 LaserResolution(
                     laserPaths = setOf(
                         LaserPath((1..101).map { Pos(2 + it, 0) }, LaserDirection.Right),
-                    ), damage = emptyMap(), lockedRegisters = emptyMap()
+                    ),
+                    damage = emptyMap(),
                 ),
                 CheckpointResolution(mapOf(p1.id to c1.id)), WinnerResolution(p1.id),
             ), result.resolutions

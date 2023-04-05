@@ -17,7 +17,7 @@ import com.soywiz.kmem.*
  *   +     →|  +
  *
  */
-fun gameModel(map: String, cardsInDeck: Int? = 5): GameModel {
+fun gameModel(map: String, cardsInDeck: Int? = 9): GameModel {
     var robotIds = 0
     var playerId = 0
     assertValidMap(map)

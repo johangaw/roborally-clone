@@ -137,6 +137,16 @@ class GameScene : Scene() {
                 is RoundResolution.SpawnedRobotsResolution -> animateSpawnRobots(resolution)
                 is RoundResolution.WipeRegistersResolution -> animateWipeRegisters(resolution)
                 is RoundResolution.DealCardsResolution -> animateDealActionCards(resolution)
+                is RoundResolution.RegisterLockingResolution -> animateRegisterLocking(resolution)
+            }
+        }
+    }
+
+    private fun Animator.animateRegisterLocking(resolution: RoundResolution.RegisterLockingResolution) {
+        block {
+            resolution.lockedRegisters.forEach { (robotId, lockedRegisters) ->
+                val programArea = programAreas.first { it.robotId == robotId }
+                lockedRegisters.forEach { programArea.lockRegister(it.index, it.card) }
             }
         }
     }
@@ -279,10 +289,6 @@ class GameScene : Scene() {
             }
             block {
                 beams.forEach { it.removeFromParent() }
-                resolution.lockedRegisters.forEach { (robotId, lockedRegisters) ->
-                    val programArea = programAreas.first { it.robotId == robotId }
-                    lockedRegisters.forEach { programArea.lockRegister(it.index, it.card) }
-                }
             }
         }
     }

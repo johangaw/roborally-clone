@@ -17,6 +17,7 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
         .map { it.sort() }
         .flatten()
         .plus(RespawnRobots)
+        .plus(ResolveRegisterLocking)
         .plus(WipeRegisters)
         .plus(DealCards)
         .fold(RoundResolutionResult(assignRegisters(programming), emptyList())) { current, step ->
@@ -54,7 +55,6 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
                                 resolutions = current.resolutions + LaserResolution(
                                     it.laserPaths,
                                     it.damage,
-                                    it.lockedRegisters
                                 )
                             )
                         }
@@ -110,6 +110,15 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
                             resolutions = current.resolutions + SpawnedRobotsResolution(it.spawnedRobots),
                         )
                     }
+
+                ResolveRegisterLocking -> current.gameModel
+                    .resolveRegisterLocking()
+                    .let {
+                        RoundResolutionResult(
+                            gameModel = it.gameModel,
+                            resolutions = current.resolutions + RegisterLockingResolution(it.lockedRegisters),
+                        )
+                    }
             }
         }
 }
@@ -155,6 +164,7 @@ private fun List<RoundStep>.sort(): List<RoundStep> =
             WipeRegisters -> throw AssertionError("WipeRegisters should not be sorted with other RoundSteps")
             DealCards -> throw AssertionError("DealCards should not be sorted with other RoundSteps")
             RespawnRobots -> throw AssertionError("RespawnRobots should not be sorted with other RoundSteps")
+            ResolveRegisterLocking -> throw AssertionError("ResolveRegisterLocking should not be sorted with other RoundSteps")
         }
     }
 
@@ -176,6 +186,8 @@ private sealed class RoundStep {
 
     object RespawnRobots : RoundStep()
 
+    object ResolveRegisterLocking : RoundStep()
+
     object WipeRegisters : RoundStep()
 
     object DealCards : RoundStep()
@@ -196,12 +208,13 @@ sealed class RoundResolution {
     data class LaserResolution(
         val laserPaths: Set<LaserPath>,
         val damage: Map<RobotId, Int>,
-        val lockedRegisters: Map<RobotId, List<LockedRegister>>,
     ) : RoundResolution()
 
     data class WinnerResolution(val winner: PlayerId) : RoundResolution()
 
     data class SpawnedRobotsResolution(val spawnedRobots: List<Robot>): RoundResolution()
+
+    data class RegisterLockingResolution(val lockedRegisters: Map<RobotId, List<LockedRegister>>) : RoundResolution()
 
     data class WipeRegistersResolution(val lockedRegisters: Map<RobotId, List<LockedRegister>>) : RoundResolution()
 

@@ -40,7 +40,17 @@ data class Register(
     val card: ActionCard,
     val index: Int,
     val locked: Boolean = false,
-)
+): Comparable<Register> {
+    override fun compareTo(other: Register): Int =
+        index.compareTo(other.index)
+}
+
+fun Collection<Register>.locked() = this.filter { it.locked }
+
+fun Collection<Register>.unlocked() = this.filter { !it.locked }
+
+fun Collection<Register>.cards() = this.map { it.card }
+
 
 data class Player(
     val robotId: RobotId,
