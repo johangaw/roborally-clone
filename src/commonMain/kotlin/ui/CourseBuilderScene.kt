@@ -6,11 +6,8 @@ import com.soywiz.korge.input.*
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
-import com.soywiz.korio.file.std.*
 import gamemodel.loadCourse as loadCourseFromFile
 import gamemodel.*
-import kotlinx.serialization.*
-import kotlinx.serialization.json.Json
 import kotlin.math.*
 
 sealed class ControlElement {
@@ -172,7 +169,7 @@ class CourseBuilderScene : Scene() {
     }
 
     private fun saveCourse() {
-        println(serializeCourse(course))
+        println(serialize(course))
     }
 
     private suspend fun loadCourse(course: PreBuildCourses) {

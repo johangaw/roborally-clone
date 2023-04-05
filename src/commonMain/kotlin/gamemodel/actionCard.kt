@@ -1,16 +1,24 @@
 package gamemodel
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 sealed class ActionCard {
 
     abstract val initiative: Int
+
+    @Serializable
     data class MoveForward(val distance: Int, override val initiative: Int) : ActionCard()
-    data class Turn(val type: gamemodel.Turn, override val initiative: Int): ActionCard()
+
+    @Serializable
+    data class Turn(val turn: gamemodel.Turn, override val initiative: Int): ActionCard()
 }
 
-enum class Turn(val degrees: Int) {
-    Right(90),
-    Left(-90),
-    UTurn(180),
+@Serializable
+enum class Turn {
+    Right,
+    Left,
+    UTurn,
 }
 
 val move1Initiative = listOf(490, 500, 510, 520, 530, 540, 550, 560, 570, 580, 590, 600, 610, 620, 630, 640, 650, 660)

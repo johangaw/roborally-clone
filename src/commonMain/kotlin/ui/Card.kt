@@ -93,7 +93,7 @@ fun Container.card(
             else -> throw IllegalArgumentException("Unable to find a bitmap for card $actionCard")
         }
 
-        is ActionCard.Turn -> when(actionCard.type) {
+        is ActionCard.Turn -> when(actionCard.turn) {
             Turn.Right -> bitmapCache.right
             Turn.Left -> bitmapCache.left
             Turn.UTurn -> bitmapCache.uTurn

@@ -76,6 +76,9 @@ class GameScene : Scene() {
         keys {
             down {
                 when (it.key) {
+                    Key.ESCAPE -> {
+                        println(serialize(gameModel))
+                    }
                     Key.N0 -> {
                         sceneContainer.changeTo({ CourseBuilderScene() })
                     }

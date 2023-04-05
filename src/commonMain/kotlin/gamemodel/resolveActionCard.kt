@@ -66,7 +66,7 @@ private data class MovementResolution(val gameModel: GameModel, val parts: List<
 
 private fun GameModel.resolveActionCard(robotId: RobotId, card: ActionCard.Turn): ActionCardResolutionResult {
     val robot = getRobot(robotId)
-    val dir = robot.dir + card.type
+    val dir = robot.dir + card.turn
 
     return ActionCardResolutionResult(
         gameModel = mapRobot(robotId) { it.copy(dir = dir) }, steps = listOf(

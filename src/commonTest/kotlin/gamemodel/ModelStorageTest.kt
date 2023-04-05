@@ -2,21 +2,22 @@ package gamemodel
 
 import com.soywiz.korio.file.std.*
 import com.soywiz.korio.async.suspendTest
-import kotlinx.serialization.json.*
-import kotlinx.serialization.decodeFromString
-import kotlin.test.Test
+import kotlin.test.*
 
-class CourseLibraryTest {
+class ModelStorageTest {
 
     @Test
     fun `ensure deserialization is possible for all courses`() = suspendTest {
-        val json = Json {
-            allowStructuredMapKeys = true
-        }
         resourcesVfs["courses"].listSimple().forEach {
             val data = it.readString()
-            assertNotFails("Unable to parse ${it.path}") { json.decodeFromString<Course>(data) }
+            assertNotFails("Unable to parse ${it.path}") { deserializeCourse(data) }
         }
+    }
+
+    @Test
+    fun `ensure serialisation of the game model works`() = suspendTest {
+        val gameModel = setupGame(PreBuildCourses.Course1, 6)
+        assertEquals(gameModel, deserializeGameModel(serialize(gameModel)))
     }
 }
 

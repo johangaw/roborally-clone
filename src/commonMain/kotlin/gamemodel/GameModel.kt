@@ -26,6 +26,7 @@ fun Direction.quoter(): Direction = when (this) {
     Direction.Left -> Direction.Up
 }
 
+@Serializable
 data class Robot(
     val pos: Pos,
     val dir: Direction,
@@ -36,6 +37,7 @@ data class Robot(
 
 fun Set<Register>.mapToSet(transform: (Register) -> Register): Set<Register> = map(transform).toSet()
 
+@Serializable
 data class Register(
     val card: ActionCard,
     val index: Int,
@@ -52,6 +54,7 @@ fun Collection<Register>.unlocked() = this.filter { !it.locked }
 fun Collection<Register>.cards() = this.map { it.card }
 
 
+@Serializable
 data class Player(
     val robotId: RobotId,
     val hand: List<ActionCard> = emptyList(),
@@ -59,6 +62,7 @@ data class Player(
     val id: PlayerId = PlayerId.create(),
 )
 
+@Serializable
 data class GameModel(
     val course: Course,
     val robots: List<Robot>,

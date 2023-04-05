@@ -9,12 +9,35 @@ enum class PreBuildCourses {
     CoursePalette,
 }
 
-fun serializeCourse(course: Course): String {
+
+fun serialize(gameModel: GameModel): String {
+    val json = Json {
+        allowStructuredMapKeys = true
+    }
+    return json.encodeToString(gameModel)
+}
+
+fun deserializeGameModel(gameModel: String): GameModel {
+    val json = Json {
+        allowStructuredMapKeys = true
+    }
+    return json.decodeFromString(gameModel)
+}
+
+fun serialize(course: Course): String {
     val json = Json {
         allowStructuredMapKeys = true
     }
     return json.encodeToString(course)
 }
+
+fun deserializeCourse(gameModel: String): Course {
+    val json = Json {
+        allowStructuredMapKeys = true
+    }
+    return json.decodeFromString(gameModel)
+}
+
 
 suspend fun loadCourse(course: PreBuildCourses): Course {
     val json = Json {
