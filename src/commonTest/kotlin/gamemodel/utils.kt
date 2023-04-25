@@ -1,6 +1,8 @@
 package gamemodel
 
 import com.soywiz.kmem.*
+import junit.framework.TestCase.assertTrue
+import kotlin.contracts.*
 
 /**
  * Full map (not yet implemented)
@@ -190,3 +192,21 @@ fun GameModel.addConveyorBelts(cb: () ->  Map<Pos, ConveyorBelt>): GameModel =
     copy(course = course.copy(conveyorBelts = cb()))
 
 fun GameModel.checkpoints(): List<Checkpoint> = this.course.checkpoints.sorted()
+
+@OptIn(ExperimentalContracts::class)
+fun assertIsMovementResult(obj: Any) {
+    contract {
+        returns() implies (obj is ActionCardResolutionResult.MovementResult)
+    }
+
+    assertTrue(obj is ActionCardResolutionResult.MovementResult)
+}
+
+@OptIn(ExperimentalContracts::class)
+fun assertIsTurningResult(obj: Any) {
+    contract {
+        returns() implies (obj is ActionCardResolutionResult.TurningResult)
+    }
+
+    assertTrue(obj is ActionCardResolutionResult.TurningResult)
+}

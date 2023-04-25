@@ -1,6 +1,5 @@
 package gamemodel
 
-import gamemodel.ActionCardResolutionStep.MovementStep
 import kotlin.test.*
 
 class ResolveMoveActionCardsTest {
@@ -22,6 +21,8 @@ class ResolveMoveActionCardsTest {
         )
 
         val result = model.resolveActionCard(robot.id, ActionCard.MoveForward(3, 0))
+
+        assertIsMovementResult(result)
 
         assertEquals(
             expectedModel,
@@ -56,6 +57,7 @@ class ResolveMoveActionCardsTest {
 
         val result = model.resolveActionCard(robot.id, ActionCard.MoveForward(3, 0))
 
+        assertIsMovementResult(result)
         assertEquals(
             expectedModel,
             result.gameModel
@@ -87,6 +89,7 @@ class ResolveMoveActionCardsTest {
 
         val result = model.resolveActionCard(pusher.id, ActionCard.MoveForward(3, 0))
 
+        assertIsMovementResult(result)
         assertEquals(
             expectedModel,
             result.gameModel
@@ -125,6 +128,7 @@ class ResolveMoveActionCardsTest {
 
         val result = model.resolveActionCard(pusher.id, ActionCard.MoveForward(3, 0))
 
+        assertIsMovementResult(result)
         assertEquals(
             expectedModel,
             result.gameModel
@@ -158,6 +162,7 @@ class ResolveMoveActionCardsTest {
 
         val result = model.resolveActionCard(robot.id, ActionCard.MoveForward(-1, 0))
 
+        assertIsMovementResult(result)
         assertEquals(
             expectedModel,
             result.gameModel
@@ -184,6 +189,7 @@ class ResolveMoveActionCardsTest {
 
         val result = model.resolveActionCard(r1.id, ActionCard.MoveForward(1, 0))
 
+        assertIsMovementResult(result)
         assertEquals(expectedModel, result.gameModel)
         assertEquals(
             listOf(MovementStep(MovementPart.Move(r1.id, Pos(5, 0), true))),
@@ -207,6 +213,7 @@ class ResolveMoveActionCardsTest {
 
         val result = model.resolveActionCard(r1.id, ActionCard.MoveForward(1, 0))
 
+        assertIsMovementResult(result)
         assertEquals(expectedModel, result.gameModel)
         assertEquals(
             listOf(
@@ -235,6 +242,7 @@ class ResolveMoveActionCardsTest {
 
         val result = model.resolveActionCard(r1.id, ActionCard.MoveForward(3, 0))
 
+        assertIsMovementResult(result)
         assertEquals(expectedModel, result.gameModel)
         assertEquals(
             listOf(

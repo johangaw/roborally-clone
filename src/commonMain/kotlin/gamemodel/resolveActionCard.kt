@@ -21,16 +21,14 @@ private fun GameModel.resolveActionCard(id: RobotId, card: ActionCard.MoveForwar
         .drop(1)
         .filter { movementResolutions -> movementResolutions.parts.isNotEmpty() }
         .let { movementResolutions ->
-            ActionCardResolutionResult(
+            ActionCardResolutionResult.MovementResult(
                 gameModel = movementResolutions.last().gameModel,
-                steps = movementResolutions.map {
-                    ActionCardResolutionStep.MovementStep(it.parts)
-                })
+                steps = movementResolutions.map { MovementStep(it.parts) })
         }
 }
 
 private fun GameModel.resolveMovement(robotId: RobotId, dir: Direction): MovementResolution {
-    if(isDestroyed(robotId)) return MovementResolution(this, emptyList())
+    if (isDestroyed(robotId)) return MovementResolution(this, emptyList())
 
     val robot = getRobot(robotId)
     val maxMovement = max(course.width, course.height) // enough to scan all across the course
@@ -68,12 +66,8 @@ private fun GameModel.resolveActionCard(robotId: RobotId, card: ActionCard.Turn)
     val robot = getRobot(robotId)
     val dir = robot.dir + card.turn
 
-    return ActionCardResolutionResult(
-        gameModel = mapRobot(robotId) { it.copy(dir = dir) }, steps = listOf(
-            ActionCardResolutionStep.TurningStep(
-                robotId = robotId, newDirection = dir
-            )
-        )
+    return ActionCardResolutionResult.TurningResult(
+        gameModel = mapRobot(robotId) { it.copy(dir = dir) }, robotId = robotId, newDirection = dir
     )
 }
 
@@ -107,17 +101,20 @@ private operator fun Direction.plus(rotation: Turn): Direction = when (this) {
 private fun getPath(pos: Pos, dir: Direction, distance: Int): List<Pos> =
     (1..distance).map { Pos(pos.x + dir.dx * it, pos.y + dir.dy * it) }
 
-data class ActionCardResolutionResult(val gameModel: GameModel, val steps: List<ActionCardResolutionStep>)
+sealed class ActionCardResolutionResult {
+    abstract val gameModel: GameModel
 
+    data class TurningResult(override val gameModel: GameModel, val robotId: RobotId, val newDirection: Direction) :
+        ActionCardResolutionResult()
 
-sealed class ActionCardResolutionStep() {
-    data class TurningStep(val robotId: RobotId, val newDirection: Direction) : ActionCardResolutionStep()
+    data class MovementResult(override val gameModel: GameModel, val steps: List<MovementStep>) :
+        ActionCardResolutionResult()
 
-    data class MovementStep(val parts: List<MovementPart>) : ActionCardResolutionStep() {
+}
 
-        constructor(vararg parts: MovementPart) : this(parts.toList())
-        constructor(vararg parts: Pair<RobotId, Pos>) : this(parts.map { (id, pos) -> Move(id, pos) })
-    }
+data class MovementStep(val parts: List<MovementPart>) {
+    constructor(vararg parts: MovementPart) : this(parts.toList())
+    constructor(vararg parts: Pair<RobotId, Pos>) : this(parts.map { (id, pos) -> Move(id, pos) })
 }
 
 sealed class MovementPart {

@@ -39,14 +39,18 @@ class RotateRobotTest {
 
         val result = model.resolveActionCard(r1.id, ActionCard.Turn(rot, 0))
 
+        assertIsTurningResult(result)
         assertEquals(
             model.mapRobot(r1.id) { it.copy(dir = expectedDirection) },
             result.gameModel
         )
-
         assertEquals(
-            listOf(ActionCardResolutionStep.TurningStep(r1.id, expectedDirection)),
-            result.steps
+            r1.id,
+            result.robotId
+        )
+        assertEquals(
+            expectedDirection,
+            result.newDirection
         )
     }
 }

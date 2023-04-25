@@ -1,6 +1,5 @@
 package gamemodel
 
-import gamemodel.ActionCardResolutionStep.*
 import gamemodel.RoundResolution.*
 import kotlin.test.*
 
@@ -64,12 +63,12 @@ class ResolveRoundTest {
         assertEquals(expectedModel, result.gameModel)
         assertEquals(
             listOf(
-                ActionCardResolution(
+                ActionCardMovementResolution(
                     MovementStep(
                         r1.id to Pos(1, 0)
                     )
                 ),
-                ActionCardResolution(
+                ActionCardMovementResolution(
                     MovementStep(r2.id to Pos(3, 0))
                 ),
                 ConveyorBeltsResolution(emptyMap(), emptyMap()),
@@ -81,13 +80,13 @@ class ResolveRoundTest {
                     remainingHealthOfDamagedRobots = mapOf(r1.id to 9, r2.id to 9),
                 ),
                 CheckpointResolution(emptyMap()),
-                ActionCardResolution(
+                ActionCardMovementResolution(
                     MovementStep(r2.id to Pos(2, 0)), MovementStep(
                         r2.id to Pos(1, 0),
                         r1.id to Pos(0, 0),
                     )
                 ),
-                ActionCardResolution(
+                ActionCardMovementResolution(
                     MovementStep(
                         r1.id to Pos(1, 0),
                         r2.id to Pos(2, 0),
@@ -148,7 +147,7 @@ class ResolveRoundTest {
         assertEquals(expectedModel, result.gameModel)
         assertEquals(
             listOf(
-                ActionCardResolution(
+                ActionCardMovementResolution(
                     MovementStep(r1.id to Pos(1, 0)),
                     MovementStep(r1.id to Pos(2, 0)),
                 ),

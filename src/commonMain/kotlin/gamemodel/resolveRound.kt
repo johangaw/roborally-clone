@@ -30,7 +30,7 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
                         .let {
                             RoundResolutionResult(
                                 gameModel = it.gameModel,
-                                resolutions = current.resolutions + ActionCardResolution(it.steps)
+                                resolutions = current.resolutions + it.toResolution()
                             )
                         }
                 }
@@ -138,6 +138,11 @@ fun GameModel.assertValidProgramming(programming: Map<PlayerId, List<ActionCard>
     }
 }
 
+private fun ActionCardResolutionResult.toResolution() = when (this) {
+    is ActionCardResolutionResult.MovementResult -> ActionCardMovementResolution(this.steps)
+    is ActionCardResolutionResult.TurningResult -> ActionCardRotationResolution(this.robotId, this.newDirection)
+}
+
 private fun GameModel.assignRegisters(prog: Map<PlayerId, List<ActionCard>>): GameModel = copy(
     robots = robots.map {
         it.copy(
@@ -199,9 +204,11 @@ private sealed class RoundStep {
 data class RoundResolutionResult(val gameModel: GameModel, val resolutions: List<RoundResolution>)
 
 sealed class RoundResolution {
-    data class ActionCardResolution(val steps: List<ActionCardResolutionStep>) : RoundResolution() {
-        constructor(vararg steps: ActionCardResolutionStep) : this(steps.toList())
+    data class ActionCardMovementResolution(val steps: List<MovementStep>) : RoundResolution() {
+        constructor(vararg steps: MovementStep): this(steps.toList())
     }
+
+    data class ActionCardRotationResolution(val robotId: RobotId, val newDirection: Direction) : RoundResolution()
 
     data class ConveyorBeltsResolution(val movedRobots: Map<RobotId, Pos>, val rotatedRobots: Map<RobotId, Direction>) :
         RoundResolution()

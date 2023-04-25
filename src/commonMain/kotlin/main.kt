@@ -80,6 +80,7 @@ class GameScene : Scene() {
                     Key.ESCAPE -> {
                         println(serialize(gameModel))
                     }
+
                     Key.N0 -> {
                         sceneContainer.changeTo({ CourseBuilderScene() })
                     }
@@ -91,7 +92,9 @@ class GameScene : Scene() {
                     }
 
                     Key.F -> {
-                        programAreas.first().setHealth(Random.nextInt(0..10))
+                        programAreas
+                            .first()
+                            .setHealth(Random.nextInt(0..10))
                     }
 
                     Key.SPACE -> {
@@ -102,7 +105,9 @@ class GameScene : Scene() {
 
                         // TODO include this info in each the resolution and do the update while the animation is running
                         gameModel.robots.forEach { robot ->
-                            programAreas.first { area -> area.robotId == robot.id }.setHealth(robot.health)
+                            programAreas
+                                .first { area -> area.robotId == robot.id }
+                                .setHealth(robot.health)
                         }
                     }
 
@@ -135,7 +140,8 @@ class GameScene : Scene() {
     private fun Animator.animateResolution(resolution: RoundResolution) {
         sequence(defaultTime = 500.milliseconds, defaultSpeed = 256.0) {
             when (resolution) {
-                is RoundResolution.ActionCardResolution -> animateActionCard(resolution)
+                is RoundResolution.ActionCardMovementResolution -> animateMovement(resolution)
+                is RoundResolution.ActionCardRotationResolution -> animateRotation(resolution)
                 is RoundResolution.ConveyorBeltsResolution -> animateConveyorBelts(resolution)
                 is RoundResolution.CheckpointResolution -> animateCaptureCheckpoint(resolution)
                 is RoundResolution.LaserResolution -> animateLasers(resolution)
@@ -202,24 +208,19 @@ class GameScene : Scene() {
         }
     }
 
-    private fun Animator.animateActionCard(
-        resolution: RoundResolution.ActionCardResolution,
+    private fun Animator.animateMovement(
+        resolution: RoundResolution.ActionCardMovementResolution,
     ) {
         resolution.steps.forEachIndexed { stepIndex, step ->
-            when (step) {
-                is ActionCardResolutionStep.MovementStep -> {
-                    val easing = when (stepIndex) {
-                        0 -> Easing.EASE_IN
-                        resolution.steps.lastIndex -> Easing.EASE_OUT
-                        else -> Easing.LINEAR
-                    }
-                    animateMovementParts(step.parts, easing, robots)
-                }
-
-                is ActionCardResolutionStep.TurningStep -> animateTurn(step.robotId, step.newDirection, robots)
+            val easing = when (stepIndex) {
+                0 -> Easing.EASE_IN
+                resolution.steps.lastIndex -> Easing.EASE_OUT
+                else -> Easing.LINEAR
             }
+            animateMovementParts(step.parts, easing, robots)
         }
     }
+
 
     private fun Animator.animateDealActionCards(resolution: RoundResolution.DealCardsResolution) {
         block {
@@ -299,7 +300,11 @@ class GameScene : Scene() {
         }
     }
 
-    private fun Animator.animateTurn(robotId: RobotId, newDirection: Direction, robots: Map<RobotId, RobotView>) {
+    private fun Animator.animateRotation(
+        resolution: RoundResolution.ActionCardRotationResolution,
+    ) = animateRotation(resolution.robotId, resolution.newDirection)
+
+    private fun Animator.animateRotation(robotId: RobotId, newDirection: Direction) {
         val robot = robots.getValue(robotId)
         sequence(defaultTime = 250.milliseconds) {
             moveBy(robot, -8.0, 0.0)
@@ -341,7 +346,7 @@ class GameScene : Scene() {
                         val newPos = robotPosition(part.newPos)
                         sequence {
                             moveTo(viewRobot, newPos.x, newPos.y, easing = easing)
-                            if(part.lethal) {
+                            if (part.lethal) {
                                 viewRobot.destroy(this)
                             }
                         }
