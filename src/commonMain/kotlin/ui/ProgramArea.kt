@@ -4,20 +4,23 @@ import com.soywiz.korge.view.*
 import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.color.*
 import gamemodel.*
+import kotlin.math.*
 
 class ProgramArea(
-    cellSize: Double,
     checkpointIds: List<CheckpointId>,
     val playerId: PlayerId,
     val robotId: RobotId,
     private val bitmapCache: BitmapCache,
 ) : Container() {
 
+    private val _width: Double = 650.0
+    private val _height: Double = 150.0
     private val borderPadding = 10.0
+    private val numberOfCardSlots = 5
 
-    private val programingSlotWidth = cellSize
-    private val programingSlotHeight = cellSize * 1.5
     private val programingSlotMargin = 10.0
+    private val programingSlotWidth = round((((_width / 2.0) - borderPadding) / numberOfCardSlots) - programingSlotMargin)
+    private val programingSlotHeight = round(programingSlotWidth * 1.5)
 
     private val cardWidth = programingSlotWidth / 2
     private val cardHeight = programingSlotHeight / 2
@@ -38,7 +41,7 @@ class ProgramArea(
     private var lockedSlots = emptySet<Int>()
 
     init {
-        roundRect(650.0, 150.0, 0.0) {
+        roundRect(_width, _height, 0.0) {
             programmingSlots = (0..4)
                 .associateWith {
                     roundRect(programingSlotWidth, programingSlotHeight, 3.0, fill = Colors.LIGHTGRAY)
@@ -156,14 +159,13 @@ fun <T : View>Collection<T>.alignOnRow(margin: Double = 0.0, alignFirst: T.() ->
 }
 
 fun Container.programArea(
-    cellSize: Double,
     checkpointIds: List<CheckpointId>,
     playerId: PlayerId,
     robotId: RobotId,
     bmCache: BitmapCache,
     callback: ProgramArea.() -> Unit = {},
 ) =
-    ProgramArea(cellSize, checkpointIds, playerId, robotId, bmCache).addTo(this, callback)
+    ProgramArea(checkpointIds, playerId, robotId, bmCache).addTo(this, callback)
 
 fun <T> Array<T?>.remove(item: T) {
     if (contains(item)) {

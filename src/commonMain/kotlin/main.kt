@@ -34,8 +34,8 @@ class GameScene : Scene() {
 
     override suspend fun SContainer.sceneMain() {
         bitmapCache = BitmapCache.create()
-//        gameModel = setupGame(PreBuildCourses.Course1, playerCount = 1)
-        gameModel = setupGame()
+        gameModel = setupGame(PreBuildCourses.Course1, playerCount = 1)
+//        gameModel = setupGame()
 
         courseView = courseView(gameModel.course, bitmapCache, showStartPositions = false) {
             val programmingAreaHeight = 200.0
@@ -58,7 +58,7 @@ class GameScene : Scene() {
             .toMap()
 
         programAreas = gameModel.players.map { player ->
-            programArea(cellSize, gameModel.course.checkpoints.map { it.id }, player.id, player.robotId, bitmapCache) {
+            programArea(gameModel.course.checkpoints.map { it.id }, player.id, player.robotId, bitmapCache) {
                 zIndex(-1)
                 centerOn(this@sceneMain)
                 alignTopToBottomOf(courseView)
