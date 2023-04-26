@@ -38,10 +38,7 @@ class ResolveRespawnRobotsTest {
             .mapCourse { _, course -> course.copy(starts = listOf(Start(Pos(3, 0), 0))) }
         val newR1 = model.destroyedRobots
             .first()
-            .copy(
-                pos = Pos(3, 0),
-                health = 8,
-            )
+            .copy(pos = Pos(3, 0))
         val expectedModel = model.copy(robots = listOf(newR1), destroyedRobots = emptyList())
 
         val result = model.resolveRespawnRobots()
@@ -71,10 +68,7 @@ class ResolveRespawnRobotsTest {
             }
         val newR1 = model.destroyedRobots
             .first()
-            .copy(
-                pos = Pos(2, 0),
-                health = 8
-            )
+            .copy(pos = Pos(2, 0))
         val expectedModel = model.copy(
             robots = listOf(newR1),
             destroyedRobots = emptyList(),
@@ -116,11 +110,9 @@ class ResolveRespawnRobotsTest {
         )
             .mapCourse { _, _ -> model.course }
             .let {
-                val (r1, r2) = it.robots
                 val (p1, p2) = it.players
                 val (c1) = it.course.checkpoints
                 it.copy(
-                    robots = listOf(r1.copy(health = 8), r2.copy(health = 8)),
                     players = listOf(
                         p1.copy(capturedCheckpoints = listOf(c1.id)),
                         p2.copy(capturedCheckpoints = listOf(c1.id))

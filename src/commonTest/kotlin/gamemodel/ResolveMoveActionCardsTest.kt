@@ -184,7 +184,7 @@ class ResolveMoveActionCardsTest {
         val (r1) = model.robots
         val expectedModel = model.copy(
             robots = emptyList(),
-            destroyedRobots = listOf(r1.copy(pos = Pos(5, 0)))
+            destroyedRobots = listOf(r1.copy(pos = Pos(5, 0), health = 8))
         )
 
         val result = model.resolveActionCard(r1.id, ActionCard.MoveForward(1, 0))
@@ -192,7 +192,10 @@ class ResolveMoveActionCardsTest {
         assertIsMovementResult(result)
         assertEquals(expectedModel, result.gameModel)
         assertEquals(
-            listOf(MovementStep(MovementPart.Move(r1.id, Pos(5, 0), true))),
+            listOf(MovementStep(
+                RobotMove(r1.id, Pos(5, 0)),
+                RobotFall(r1.id, 8),
+            )),
             result.steps
         )
     }
@@ -208,7 +211,7 @@ class ResolveMoveActionCardsTest {
         val (r1, r2) = model.robots
         val expectedModel = model.copy(
             robots = listOf(r1.copy(pos = Pos(4, 0))),
-            destroyedRobots = listOf(r2.copy(pos = Pos(5, 0)))
+            destroyedRobots = listOf(r2.copy(pos = Pos(5, 0), health = 8))
         )
 
         val result = model.resolveActionCard(r1.id, ActionCard.MoveForward(1, 0))
@@ -218,8 +221,9 @@ class ResolveMoveActionCardsTest {
         assertEquals(
             listOf(
                 MovementStep(
-                    MovementPart.Move(r1.id, Pos(4, 0), false),
-                    MovementPart.Move(r2.id, Pos(5, 0), true)
+                    RobotMove(r1.id, Pos(4, 0)),
+                    RobotMove(r2.id, Pos(5, 0)),
+                    RobotFall(r2.id, 8),
                 ),
             ),
             result.steps
@@ -237,7 +241,7 @@ class ResolveMoveActionCardsTest {
         val (r1) = model.robots
         val expectedModel = model.copy(
             robots = emptyList(),
-            destroyedRobots = listOf(r1.copy(pos = Pos(5, 0)))
+            destroyedRobots = listOf(r1.copy(pos = Pos(5, 0), health = 8))
         )
 
         val result = model.resolveActionCard(r1.id, ActionCard.MoveForward(3, 0))
@@ -247,7 +251,8 @@ class ResolveMoveActionCardsTest {
         assertEquals(
             listOf(
                 MovementStep(
-                    MovementPart.Move(r1.id, Pos(5, 0), true),
+                    RobotMove(r1.id, Pos(5, 0)),
+                    RobotFall(r1.id, 8),
                 ),
             ),
             result.steps

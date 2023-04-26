@@ -31,8 +31,8 @@ fun GameModel.resolveRespawnRobots(): ResolveRespawnRobotsResult {
         .groupBy(::preferredSpawnPositions)
         .flatMap { (suggestions, robots) ->
             robots
-                .zip(suggestions.filter { !course.isLethal(it) })
-                .map { (robot, pos) -> robot.copy(pos = pos, health = robot.health - 2) }
+                .zip(suggestions.filter { !course.isMissingFloor(it) })
+                .map { (robot, pos) -> robot.copy(pos = pos) }
         }
 
     return ResolveRespawnRobotsResult(

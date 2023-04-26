@@ -19,7 +19,7 @@ data class Course(
     fun getCheckpoint(id: CheckpointId) =
         checkpoints.firstOrNull { it.id == id } ?: throw AssertionError("No checkpoint with id $id")
 
-    fun isLethal(pos: Pos): Boolean =
+    fun isMissingFloor(pos: Pos): Boolean =
         !(pos.x in 0 until width && pos.y in 0 until height)
 
     init {

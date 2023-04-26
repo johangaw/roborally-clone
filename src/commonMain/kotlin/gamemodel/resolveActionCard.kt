@@ -1,6 +1,5 @@
 package gamemodel
 
-import gamemodel.MovementPart.Move
 import kotlin.math.*
 
 fun GameModel.resolveActionCard(id: RobotId, card: ActionCard): ActionCardResolutionResult {
@@ -15,20 +14,20 @@ private fun GameModel.resolveActionCard(id: RobotId, card: ActionCard.MoveForwar
     val pushDirection = if (card.distance > 0) robot.dir else robot.dir.opposite()
 
     return (1..abs(card.distance))
-        .runningFold(MovementResolution(this, emptyList())) { acc, _ ->
+        .runningFold(MovementResolution(this, emptyList(), emptyList())) { acc, _ ->
             acc.gameModel.resolveMovement(id, pushDirection)
         }
         .drop(1)
-        .filter { movementResolutions -> movementResolutions.parts.isNotEmpty() }
-        .let { movementResolutions ->
+        .filter { resolution -> resolution.moves.isNotEmpty() || resolution.falls.isNotEmpty() }
+        .let { resolution ->
             ActionCardResolutionResult.MovementResult(
-                gameModel = movementResolutions.last().gameModel,
-                steps = movementResolutions.map { MovementStep(it.parts) })
+                gameModel = resolution.last().gameModel,
+                steps = resolution.map { MovementStep(it.moves, it.falls) })
         }
 }
 
 private fun GameModel.resolveMovement(robotId: RobotId, dir: Direction): MovementResolution {
-    if (isDestroyed(robotId)) return MovementResolution(this, emptyList())
+    if (isDestroyed(robotId)) return MovementResolution(this, emptyList(), emptyList())
 
     val robot = getRobot(robotId)
     val maxMovement = max(course.width, course.height) // enough to scan all across the course
@@ -38,29 +37,33 @@ private fun GameModel.resolveMovement(robotId: RobotId, dir: Direction): Movemen
         }
     val canMove = path.count { robotAt(it) == null } > 0
 
-    if (!canMove) return MovementResolution(this, emptyList())
+    if (!canMove) return MovementResolution(this, emptyList(), emptyList())
 
     val robotsToPush = path
         .takeWhile { robotAt(it) != null }
         .mapNotNull { robotAt(it) }
     val newPositions = (listOf(robot) + robotsToPush)
         .associate { it.id to it.pos + dir }
-    val destroyedRobots = newPositions.filterValues { course.isLethal(it) }.keys
+    val destroyedRobotsIds = newPositions.filterValues { course.isMissingFloor(it) }.keys
+
+    val robots = this.robots
+        .filter { it.id !in destroyedRobotsIds }
+        .map { it.copy(pos = newPositions.getOrDefault(it.id, it.pos)) }
+    val destroyedRobots = this.robots
+        .filter { it.id in destroyedRobotsIds }
+        .map { it.copy(pos = newPositions.getValue(it.id), health = it.health - 2) }
 
     return MovementResolution(
         gameModel = this.copy(
-            robots = robots
-                .filter { it.id !in destroyedRobots }
-                .map { it.copy(pos = newPositions.getOrDefault(it.id, it.pos)) },
-            destroyedRobots = this.destroyedRobots + robots
-                .filter { it.id in destroyedRobots }
-                .map { it.copy(pos = newPositions.getValue(it.id)) },
+            robots = robots,
+            destroyedRobots = this.destroyedRobots + destroyedRobots,
         ),
-        parts = newPositions.map { (id, pos) -> Move(id, pos, id in destroyedRobots) },
+        moves = newPositions.map { (id, pos) -> RobotMove(id, pos) },
+        falls = destroyedRobots.map { RobotFall(it.id, it.health) },
     )
 }
 
-private data class MovementResolution(val gameModel: GameModel, val parts: List<MovementPart>)
+private data class MovementResolution(val gameModel: GameModel, val moves: List<RobotMove>, val falls: List<RobotFall>)
 
 private fun GameModel.resolveActionCard(robotId: RobotId, card: ActionCard.Turn): ActionCardResolutionResult {
     val robot = getRobot(robotId)
@@ -112,11 +115,16 @@ sealed class ActionCardResolutionResult {
 
 }
 
-data class MovementStep(val parts: List<MovementPart>) {
-    constructor(vararg parts: MovementPart) : this(parts.toList())
-    constructor(vararg parts: Pair<RobotId, Pos>) : this(parts.map { (id, pos) -> Move(id, pos) })
+data class MovementStep(val moves: List<RobotMove>, val falls: List<RobotFall>) {
+    constructor(vararg parts: MovementStepPart) : this(
+        parts.toList().filterIsInstance<RobotMove>(),
+        parts.toList().filterIsInstance<RobotFall>(),
+    )
+    constructor(vararg moves: Pair<RobotId, Pos>) : this(moves.map { (id, pos) -> RobotMove(id, pos) }, emptyList())
 }
 
-sealed class MovementPart {
-    data class Move(val robotId: RobotId, val newPos: Pos, val lethal: Boolean = false) : MovementPart()
-}
+interface MovementStepPart
+
+data class RobotMove(val robotId: RobotId, val newPos: Pos): MovementStepPart
+
+data class RobotFall(val robotId: RobotId, val remainingHealth: Int): MovementStepPart

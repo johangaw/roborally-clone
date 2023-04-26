@@ -34,8 +34,8 @@ class GameScene : Scene() {
 
     override suspend fun SContainer.sceneMain() {
         bitmapCache = BitmapCache.create()
-//        gameModel = setupGame(PreBuildCourses.Course1, playerCount = 1)
-        gameModel = setupGame()
+        gameModel = setupGame(PreBuildCourses.Course1, playerCount = 1)
+//        gameModel = setupGame()
 
         courseView = courseView(gameModel.course, bitmapCache, showStartPositions = false) {
             val programmingAreaHeight = 200.0
@@ -102,13 +102,6 @@ class GameScene : Scene() {
                         val result = gameModel.resolveRound(cards)
                         animateAllResults(result.resolutions)
                         gameModel = result.gameModel
-
-                        // TODO include this info in each the resolution and do the update while the animation is running
-                        gameModel.robots.forEach { robot ->
-                            programAreas
-                                .first { area -> area.robotId == robot.id }
-                                .setHealth(robot.health)
-                        }
                     }
 
                     else -> Unit
@@ -217,7 +210,28 @@ class GameScene : Scene() {
                 resolution.steps.lastIndex -> Easing.EASE_OUT
                 else -> Easing.LINEAR
             }
-            animateMovementParts(step.parts, easing, robots)
+
+            parallel {
+                step.moves.forEach { move ->
+                    val viewRobot = robots.getValue(move.robotId)
+                    val newPos = robotPosition(move.newPos)
+                    moveTo(viewRobot, newPos.x, newPos.y, easing = easing)
+                    block {
+                        viewRobot.playAnimation(500.milliseconds)
+                    }
+                }
+            }
+
+            parallel {
+                step.falls.forEach { fall ->
+                    val viewRobot = robots.getValue(fall.robotId)
+                    val programArea = programAreas.first { it.robotId == fall.robotId }
+                    viewRobot.destroy(this)
+                    block {
+                        programArea.setHealth(fall.remainingHealth)
+                    }
+                }
+            }
         }
     }
 
@@ -282,8 +296,10 @@ class GameScene : Scene() {
                 beams.forEach { laserAlpha(it, time) }
                 damagedRobots.forEach { laserBurn(it, time) }
                 block {
-                    resolution.remainingHealthOfDamagedRobots.forEach {(id, remainingHealth) ->
-                        programAreas.first { it.robotId == id }.setHealth(remainingHealth)
+                    resolution.remainingHealthOfDamagedRobots.forEach { (id, remainingHealth) ->
+                        programAreas
+                            .first { it.robotId == id }
+                            .setHealth(remainingHealth)
                     }
                 }
             }
@@ -321,32 +337,6 @@ class GameScene : Scene() {
                     block { programArea.markCheckpoint(checkpointId, false) }
                     wait()
                     block { programArea.markCheckpoint(checkpointId, true) }
-                }
-            }
-        }
-    }
-
-    private fun Animator.animateMovementParts(
-        parts: List<MovementPart>,
-        easing: Easing,
-        robots: Map<RobotId, RobotView>,
-    ) {
-        parallel {
-            parts.forEach { part ->
-                when (part) {
-                    is MovementPart.Move -> {
-                        val viewRobot = robots.getValue(part.robotId)
-                        val newPos = robotPosition(part.newPos)
-                        sequence {
-                            moveTo(viewRobot, newPos.x, newPos.y, easing = easing)
-                            if (part.lethal) {
-                                viewRobot.destroy(this)
-                            }
-                        }
-                        block {
-                            viewRobot.playAnimation(500.milliseconds)
-                        }
-                    }
                 }
             }
         }
