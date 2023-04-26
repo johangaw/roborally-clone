@@ -27,20 +27,21 @@ fun GameModel.resolveRespawnRobots(): ResolveRespawnRobotsResult {
                 .map { it.pos }
     }
 
-    val spawnPositions = destroyedRobots
+    val spawnedRobots = destroyedRobots
         .groupBy(::preferredSpawnPositions)
         .flatMap { (suggestions, robots) ->
             robots
                 .zip(suggestions.filter { !course.isMissingFloor(it) })
                 .map { (robot, pos) -> robot.copy(pos = pos) }
         }
+    val spawnedRobotIds = spawnedRobots.map { it.id }.toSet()
 
     return ResolveRespawnRobotsResult(
         this.copy(
-            destroyedRobots = emptyList(),
-            robots = robots + spawnPositions
+            destroyedRobots = destroyedRobots.filter { it.id !in spawnedRobotIds },
+            robots = robots + spawnedRobots
         ),
-        spawnPositions
+        spawnedRobots
     )
 }
 
