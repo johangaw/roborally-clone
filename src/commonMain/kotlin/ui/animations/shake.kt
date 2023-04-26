@@ -1,4 +1,4 @@
-package ui
+package ui.animations
 
 import com.soywiz.klock.*
 import com.soywiz.korge.animate.*
