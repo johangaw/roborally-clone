@@ -34,8 +34,8 @@ class GameScene : Scene() {
 
     override suspend fun SContainer.sceneMain() {
         bitmapCache = BitmapCache.create()
-        gameModel = setupGame(PreBuildCourses.Course1, playerCount = 1)
-//        gameModel = setupGame()
+//        gameModel = setupGame(PreBuildCourses.Course1, playerCount = 1)
+        gameModel = setupGame()
 
         courseView = courseView(gameModel.course, bitmapCache, showStartPositions = false) {
             val programmingAreaHeight = 200.0
@@ -281,6 +281,11 @@ class GameScene : Scene() {
             parallel(time) {
                 beams.forEach { laserAlpha(it, time) }
                 damagedRobots.forEach { laserBurn(it, time) }
+                block {
+                    resolution.remainingHealthOfDamagedRobots.forEach {(id, remainingHealth) ->
+                        programAreas.first { it.robotId == id }.setHealth(remainingHealth)
+                    }
+                }
             }
             block {
                 beams.forEach { it.removeFromParent() }
