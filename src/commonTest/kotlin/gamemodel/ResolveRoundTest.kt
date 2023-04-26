@@ -71,7 +71,7 @@ class ResolveRoundTest {
                 ActionCardMovementResolution(
                     MovementStep(r2.id to Pos(3, 0))
                 ),
-                ConveyorBeltsResolution(emptyMap(), emptyMap()),
+                ConveyorBeltsResolution(emptyMap(), emptyMap(), emptyMap()),
                 LaserResolution(
                     laserPaths = setOf(
                         LaserPath(listOf(Pos(2, 0), Pos(3, 0)), LaserDirection.Right),
@@ -92,7 +92,7 @@ class ResolveRoundTest {
                         r2.id to Pos(2, 0),
                     )
                 ),
-                ConveyorBeltsResolution(emptyMap(), emptyMap()),
+                ConveyorBeltsResolution(emptyMap(), emptyMap(), emptyMap()),
                 LaserResolution(
                     laserPaths = setOf(
                         LaserPath(listOf(Pos(2, 0)), LaserDirection.Right),
@@ -151,7 +151,7 @@ class ResolveRoundTest {
                     MovementStep(r1.id to Pos(1, 0)),
                     MovementStep(r1.id to Pos(2, 0)),
                 ),
-                ConveyorBeltsResolution(emptyMap(), emptyMap()),
+                ConveyorBeltsResolution(emptyMap(), emptyMap(), emptyMap()),
                 LaserResolution(
                     laserPaths = setOf(
                         LaserPath((1..101).map { Pos(2 + it, 0) }, LaserDirection.Right),

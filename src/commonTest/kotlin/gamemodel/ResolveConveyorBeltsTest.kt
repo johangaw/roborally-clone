@@ -16,6 +16,7 @@ class ResolveConveyorBeltsTest {
         val result = model.resolveConveyorBelts()
         assertEquals(model, result.gameModel)
         assertEquals(emptyMap(), result.movedRobots)
+        assertEquals(emptyMap(), result.remainingHealthOfFallenRobots)
         assertEquals(emptyMap(), result.rotatedRobots)
     }
 
@@ -39,6 +40,7 @@ class ResolveConveyorBeltsTest {
         val result = model.resolveConveyorBelts()
         assertEquals(expectedModel, result.gameModel)
         assertEquals(emptyMap(), result.rotatedRobots)
+        assertEquals(emptyMap(), result.remainingHealthOfFallenRobots)
         assertEquals(mapOf(r1.id to Pos(1, 0)), result.movedRobots)
     }
 
@@ -64,6 +66,7 @@ class ResolveConveyorBeltsTest {
 
         assertEquals(expectedModel, result.gameModel)
         assertEquals(mapOf(r1.id to Pos(1, 0)), result.movedRobots)
+        assertEquals(emptyMap(), result.remainingHealthOfFallenRobots)
         assertEquals(mapOf(r1.id to Direction.Up), result.rotatedRobots)
     }
 
@@ -86,6 +89,7 @@ class ResolveConveyorBeltsTest {
 
         assertEquals(model, result.gameModel)
         assertEquals(emptyMap(), result.movedRobots)
+        assertEquals(emptyMap(), result.remainingHealthOfFallenRobots)
         assertEquals(emptyMap(), result.rotatedRobots)
     }
 
@@ -119,6 +123,7 @@ class ResolveConveyorBeltsTest {
             ),
             result.movedRobots,
         )
+        assertEquals(emptyMap(), result.remainingHealthOfFallenRobots)
         assertEquals(emptyMap(), result.rotatedRobots)
     }
 
@@ -142,6 +147,7 @@ class ResolveConveyorBeltsTest {
 
         assertEquals(model, result.gameModel)
         assertEquals(emptyMap(), result.movedRobots)
+        assertEquals(emptyMap(), result.remainingHealthOfFallenRobots)
         assertEquals(emptyMap(), result.rotatedRobots)
     }
 
@@ -162,6 +168,7 @@ class ResolveConveyorBeltsTest {
         val result = model.resolveConveyorBelts()
         assertEquals(emptyMap(), result.movedRobots)
         assertEquals(emptyMap(), result.rotatedRobots)
+        assertEquals(emptyMap(), result.remainingHealthOfFallenRobots)
         assertEquals(model, result.gameModel)
     }
 
@@ -184,11 +191,12 @@ class ResolveConveyorBeltsTest {
 
         assertEquals(emptyMap(), result.movedRobots)
         assertEquals(emptyMap(), result.rotatedRobots)
+        assertEquals(emptyMap(), result.remainingHealthOfFallenRobots)
         assertEquals(model, result.gameModel)
     }
 
     @Test
-    fun `when a robot is blocked by a wall, it it not moved`() {
+    fun `when a robot is blocked by a wall, it is not moved`() {
         val model = gameModel(
             """
             +|+|+|+|+|+|+
@@ -204,6 +212,33 @@ class ResolveConveyorBeltsTest {
 
         assertEquals(emptyMap(), result.movedRobots)
         assertEquals(emptyMap(), result.rotatedRobots)
+        assertEquals(emptyMap(), result.remainingHealthOfFallenRobots)
         assertEquals(model, result.gameModel)
+    }
+
+    @Test
+    fun `when a robot is moved off the course by an conveyor belt, it is destroyed`() {
+        val model = gameModel(
+            """
+            +|+|+|+|+|+|+
+            +     →     +
+        """.trimIndent()
+        ).addConveyorBelts {
+            mapOf(
+                Pos(2, 0) to ConveyorBelt(ConveyorBeltType.Up, ConveyorBeltSpeed.Regular),
+            )
+        }
+        val (r1) = model.robots
+        val expectedModel = model.copy(
+            robots = emptyList(),
+            destroyedRobots = listOf(r1.copy(pos = Pos(2, -1), health = 8))
+        )
+
+        val result = model.resolveConveyorBelts()
+
+        assertEquals(mapOf(r1.id to Pos(2, -1)), result.movedRobots)
+        assertEquals(emptyMap(), result.rotatedRobots)
+        assertEquals(mapOf(r1.id to 8), result.remainingHealthOfFallenRobots)
+        assertEquals(expectedModel, result.gameModel)
     }
 }

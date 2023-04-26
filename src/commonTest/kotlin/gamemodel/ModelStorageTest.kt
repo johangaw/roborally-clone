@@ -16,7 +16,7 @@ class ModelStorageTest {
 
     @Test
     fun `ensure serialisation of the game model works`() = suspendTest {
-        val gameModel = setupGame(PreBuildCourses.Course1, 6)
+        val gameModel = setupGame(PreBuildCourse.Course1, 6)
         assertEquals(gameModel, deserializeGameModel(serialize(gameModel)))
     }
 }

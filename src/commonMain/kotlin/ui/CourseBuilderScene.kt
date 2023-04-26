@@ -155,11 +155,11 @@ class CourseBuilderScene : Scene() {
                     }
 
                     Key.N0 -> {
-                        loadCourse(PreBuildCourses.CoursePalette)
+                        loadCourse(PreBuildCourse.CoursePalette)
                     }
 
                     Key.N1 -> {
-                        loadCourse(PreBuildCourses.Course1)
+                        loadCourse(PreBuildCourse.Course1)
                     }
 
                     else -> Unit
@@ -172,7 +172,7 @@ class CourseBuilderScene : Scene() {
         println(serialize(course))
     }
 
-    private suspend fun loadCourse(course: PreBuildCourses) {
+    private suspend fun loadCourse(course: PreBuildCourse) {
         this.course = loadCourseFromFile(course)
     }
 

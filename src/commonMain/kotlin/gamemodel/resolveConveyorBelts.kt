@@ -4,7 +4,7 @@ fun GameModel.resolveConveyorBelts(): ConveyorBeltsResolutionResult {
 
     val movedRobots = robots
         .withConveyorBelt(this)
-        .moveRobotByConveyorBelt()
+        .withNewPosition()
         .removeMovementsToSamePos()
         .removeMovementsThroughAnotherRobot(this)
         .removeMovementsThroughWalls(this)
@@ -15,23 +15,54 @@ fun GameModel.resolveConveyorBelts(): ConveyorBeltsResolutionResult {
         .removeBeltsWithoutRotation()
         .rotateRobots()
 
+    val robotPartition = robots
+        .applyUpdates(movedRobots, rotatedRobots)
+        .partitionRunning(this)
+        .damageDestroyedRobots()
+
     return ConveyorBeltsResolutionResult(
-        copy(robots = robots.map {
-            it.copy(
-                pos = movedRobots.firstOrNull { (robot) -> robot.id == it.id }?.second ?: it.pos,
-                dir = rotatedRobots.firstOrNull { (robot) -> robot.id == it.id }?.second ?: it.dir,
-            )
-        }),
+        copy(
+            robots = robotPartition.running,
+            destroyedRobots = this.destroyedRobots + robotPartition.destroyed
+        ),
         movedRobots.associate { (robot, pos) -> robot.id to pos },
         rotatedRobots.associate { (robot, dir) -> robot.id to dir },
+        robotPartition.destroyed.associate { it.id to it.health },
     )
 }
 
+private fun DestroyedRunningPartition.damageDestroyedRobots() =
+    copy(
+        destroyed = destroyed.map { it.copy(health = it.health - 2) }
+    )
+
+private data class DestroyedRunningPartition(
+    val destroyed: List<Robot>,
+    val running: List<Robot>,
+)
+
+private fun List<Robot>.partitionRunning(gameModel: GameModel) =
+    partition { gameModel.course.isMissingFloor(it.pos) }
+    .let { DestroyedRunningPartition(it.first, it.second) }
+
+private fun List<Robot>.applyUpdates(
+    movedRobots: List<Pair<Robot, Pos>>,
+    rotatedRobots: List<Pair<Robot, Direction>>,
+): List<Robot> {
+    val movedRobotsMap = movedRobots.associate { (r, p) -> r.id to p }
+    val rotatedRobotsMap = rotatedRobots.associate { (r, d) -> r.id to d }
+    return map {
+        it.copy(
+            pos = movedRobotsMap.getOrDefault(it.id, it.pos),
+            dir = rotatedRobotsMap.getOrDefault(it.id, it.dir),
+        )
+    }
+}
 
 private fun List<Robot>.withConveyorBelt(gameModel: GameModel) =
     mapNotNull { robot -> gameModel.course.conveyorBelts[robot.pos]?.let { belt -> robot to belt } }
 
-private fun List<Pair<Robot, ConveyorBelt>>.moveRobotByConveyorBelt() =
+private fun List<Pair<Robot, ConveyorBelt>>.withNewPosition() =
     map { (robot, belt) -> robot to robot.pos + belt.type.transportDirection }
 
 private fun List<Pair<Robot, Pos>>.removeMovementsToSamePos() = let { list ->
@@ -97,4 +128,5 @@ data class ConveyorBeltsResolutionResult(
     val gameModel: GameModel,
     val movedRobots: Map<RobotId, Pos>,
     val rotatedRobots: Map<RobotId, Direction>,
+    val remainingHealthOfFallenRobots: Map<RobotId, Int>,
 )

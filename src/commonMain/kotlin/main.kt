@@ -34,8 +34,8 @@ class GameScene : Scene() {
 
     override suspend fun SContainer.sceneMain() {
         bitmapCache = BitmapCache.create()
-        gameModel = setupGame(PreBuildCourses.Course1, playerCount = 1)
-//        gameModel = setupGame()
+//        gameModel = setupGame(PreBuildCourses.Course1, playerCount = 1)
+        gameModel = setupGame()
 
         courseView = courseView(gameModel.course, bitmapCache, showStartPositions = false) {
             val programmingAreaHeight = 200.0
@@ -182,6 +182,18 @@ class GameScene : Scene() {
                         it,
                         500.milliseconds
                     )
+                }
+            }
+            parallel {
+                resolution.remainingHealthOfFallenRobots.keys.forEach { robotId ->
+                    val robotView = robots.getValue(robotId)
+                    robotView.destroy(this)
+                }
+                block {
+                    resolution.remainingHealthOfFallenRobots.forEach { (robotId, health) ->
+                        val programArea = programAreas.first { it.robotId == robotId }
+                        programArea.setHealth(health)
+                    }
                 }
             }
             parallel {

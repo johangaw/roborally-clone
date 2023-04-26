@@ -4,7 +4,7 @@ import com.soywiz.korio.file.std.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
-enum class PreBuildCourses {
+enum class PreBuildCourse {
     Course1,
     CoursePalette,
 }
@@ -39,14 +39,14 @@ fun deserializeCourse(gameModel: String): Course {
 }
 
 
-suspend fun loadCourse(course: PreBuildCourses): Course {
+suspend fun loadCourse(course: PreBuildCourse): Course {
     val json = Json {
         allowStructuredMapKeys = true
     }
     return json.decodeFromString(
         when(course) {
-            PreBuildCourses.Course1 -> resourcesVfs["courses/course1.json"]
-            PreBuildCourses.CoursePalette -> resourcesVfs["courses/course_palette.json"]
+            PreBuildCourse.Course1 -> resourcesVfs["courses/course1.json"]
+            PreBuildCourse.CoursePalette -> resourcesVfs["courses/course_palette.json"]
         }.readString()
     )
 }

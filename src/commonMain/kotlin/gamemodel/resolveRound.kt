@@ -97,7 +97,8 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
                             gameModel = it.gameModel,
                             resolutions = current.resolutions + ConveyorBeltsResolution(
                                 it.movedRobots,
-                                it.rotatedRobots
+                                it.rotatedRobots,
+                                it.remainingHealthOfFallenRobots,
                             ),
                         )
                     }
@@ -205,12 +206,16 @@ data class RoundResolutionResult(val gameModel: GameModel, val resolutions: List
 
 sealed class RoundResolution {
     data class ActionCardMovementResolution(val steps: List<MovementStep>) : RoundResolution() {
-        constructor(vararg steps: MovementStep): this(steps.toList())
+        constructor(vararg steps: MovementStep) : this(steps.toList())
     }
 
     data class ActionCardRotationResolution(val robotId: RobotId, val newDirection: Direction) : RoundResolution()
 
-    data class ConveyorBeltsResolution(val movedRobots: Map<RobotId, Pos>, val rotatedRobots: Map<RobotId, Direction>) :
+    data class ConveyorBeltsResolution(
+        val movedRobots: Map<RobotId, Pos>,
+        val rotatedRobots: Map<RobotId, Direction>,
+        val remainingHealthOfFallenRobots: Map<RobotId, Int>,
+    ) :
         RoundResolution()
 
     data class CheckpointResolution(val capturedCheckpoints: Map<PlayerId, CheckpointId>) : RoundResolution()
