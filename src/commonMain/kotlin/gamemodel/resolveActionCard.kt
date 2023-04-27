@@ -19,10 +19,10 @@ private fun GameModel.resolveActionCard(id: RobotId, card: ActionCard.MoveForwar
         }
         .drop(1)
         .filter { resolution -> resolution.moves.isNotEmpty() || resolution.falls.isNotEmpty() }
-        .let { resolution ->
+        .let { resolutions ->
             ActionCardResolutionResult.MovementResult(
-                gameModel = resolution.last().gameModel,
-                steps = resolution.map { MovementStep(it.moves, it.falls) })
+                gameModel = resolutions.lastOrNull()?.gameModel ?: this,
+                steps = resolutions.map { MovementStep(it.moves, it.falls) })
         }
 }
 

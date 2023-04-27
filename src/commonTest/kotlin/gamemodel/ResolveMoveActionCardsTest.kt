@@ -70,6 +70,24 @@ class ResolveMoveActionCardsTest {
         )
     }
 
+
+    @Test
+    fun `when a wall is right next to the robot, it does not move through that wall`() {
+        val model = gameModel(
+            """
+        +|+|+|+|+|+
+        +    |←   +
+        """.trimIndent()
+        )
+        val robot = model.robots.first()
+
+        val result = model.resolveActionCard(robot.id, ActionCard.MoveForward(3, 0))
+
+        assertIsMovementResult(result)
+        assertEquals(model, result.gameModel)
+        assertEquals(emptyList(), result.steps)
+    }
+
     @Test
     fun `when another robot blocks the way it is push along`() {
         val model = gameModel(
