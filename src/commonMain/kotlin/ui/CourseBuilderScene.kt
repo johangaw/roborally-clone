@@ -6,8 +6,10 @@ import com.soywiz.korge.input.*
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
+import com.soywiz.korio.async.*
 import gamemodel.loadCourse as loadCourseFromFile
 import gamemodel.*
+import java.lang.Exception
 import kotlin.math.*
 
 sealed class ControlElement {
@@ -31,6 +33,9 @@ class CourseBuilderScene : Scene() {
         set(value) {
             field = value
             sceneContainer.redrawCourse()
+            launch {
+                storeCourseBuilderAutoSave(value)
+            }
         }
 
     override suspend fun SContainer.sceneMain() {
@@ -130,14 +135,14 @@ class CourseBuilderScene : Scene() {
                 .toMap()
 
 
-            roundRect(75.0, 40.0, 3.0, fill = Colors.DARKGRAY) {
+            roundRect(75.0, 40.0, 3.0, fill = Colors.GREEN) {
                 text("SAVE") {
-                    color = Colors.WHITE
+                    color = Colors.BLACK
                     centerOn(parent!!)
                 }
                 onClick { saveCourse() }
                 centerOn(parent!!)
-                alignBottomToBottomOf(parent!!)
+                alignBottomToBottomOf(parent!!, 4.0)
             }
 
         }
@@ -145,6 +150,8 @@ class CourseBuilderScene : Scene() {
         coursePanel = fixedSizeContainer(views.virtualWidthDouble - controlPanelWidth, views.virtualHeightDouble) {
             alignLeftToRightOf(controlPanel)
         }
+
+        loadLastCourse()
         redrawCourse()
 
         keys {
@@ -165,6 +172,14 @@ class CourseBuilderScene : Scene() {
                     else -> Unit
                 }
             }
+        }
+    }
+
+    private suspend fun loadLastCourse() {
+        course = try {
+            loadCourseBuilderAutoSave()
+        } catch(e: Exception) {
+            course
         }
     }
 

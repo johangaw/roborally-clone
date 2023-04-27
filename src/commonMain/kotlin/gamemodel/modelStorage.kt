@@ -50,3 +50,12 @@ suspend fun loadCourse(course: PreBuildCourse): Course {
         }.readString()
     )
 }
+
+const val COURSE_BUILDER_AUTO_SAVE_FILE = "course_builder_auto_save.json"
+suspend fun storeCourseBuilderAutoSave(course: Course) {
+    resourcesVfs["courses/dynamic/${COURSE_BUILDER_AUTO_SAVE_FILE}"].writeString(serialize(course))
+}
+
+suspend fun loadCourseBuilderAutoSave(): Course {
+    return deserializeCourse(resourcesVfs["courses/dynamic/${COURSE_BUILDER_AUTO_SAVE_FILE}"].readString())
+}
