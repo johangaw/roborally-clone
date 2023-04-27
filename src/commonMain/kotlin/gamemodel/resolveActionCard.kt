@@ -51,7 +51,7 @@ private fun GameModel.resolveMovement(robotId: RobotId, dir: Direction): Movemen
         .map { it.copy(pos = newPositions.getOrDefault(it.id, it.pos)) }
     val destroyedRobots = this.robots
         .filter { it.id in destroyedRobotsIds }
-        .map { it.copy(pos = newPositions.getValue(it.id), health = it.health - 2) }
+        .map { it.copy(pos = newPositions.getValue(it.id), health = it.health - this.course.destroyedDamage) }
 
     return MovementResolution(
         gameModel = this.copy(

@@ -18,7 +18,7 @@ fun GameModel.resolveConveyorBelts(): ConveyorBeltsResolutionResult {
     val robotPartition = robots
         .applyUpdates(movedRobots, rotatedRobots)
         .partitionRunning(this)
-        .damageDestroyedRobots()
+        .damageDestroyedRobots(this)
 
     return ConveyorBeltsResolutionResult(
         copy(
@@ -31,9 +31,9 @@ fun GameModel.resolveConveyorBelts(): ConveyorBeltsResolutionResult {
     )
 }
 
-private fun DestroyedRunningPartition.damageDestroyedRobots() =
+private fun DestroyedRunningPartition.damageDestroyedRobots(gameModel: GameModel) =
     copy(
-        destroyed = destroyed.map { it.copy(health = it.health - 2) }
+        destroyed = destroyed.map { it.copy(health = it.health - gameModel.course.destroyedDamage) }
     )
 
 private data class DestroyedRunningPartition(

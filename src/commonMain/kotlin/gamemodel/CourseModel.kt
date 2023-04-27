@@ -10,6 +10,7 @@ data class Course(
     val walls: List<Wall> = emptyList(),
     val checkpoints: List<Checkpoint> = emptyList(),
     val starts: List<Start> = emptyList(),
+    val destroyedDamage: Int = 2
 ) {
     fun wallAt(pos: Pos, dir: Direction): Wall? {
         return walls.firstOrNull { it.pos == pos && it.dir == dir }
