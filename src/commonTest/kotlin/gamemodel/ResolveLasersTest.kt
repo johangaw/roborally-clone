@@ -104,6 +104,22 @@ class ResolveLasersTest {
     }
 
     @Test
+    fun `laser can't be fired into a wall`() {
+        val model = gameModel(
+            """
+            +|+|+|+|+|+|+
+            +   →|      +
+        """.trimIndent()
+        )
+
+        val result = model.resolveLasers()
+
+        assertEquals(model, result.gameModel)
+        assertEquals(emptyMap(), result.remainingHealthOfDamagedRobots)
+        assertEquals(emptySet(), result.laserPaths)
+    }
+
+    @Test
     fun `when a robot is hit by two robots fire upon each other, both are damaged`() {
         val model = gameModel(
             """

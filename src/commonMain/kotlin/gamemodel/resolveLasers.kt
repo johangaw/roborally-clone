@@ -1,8 +1,14 @@
 package gamemodel
 
+import kotlin.math.max
+
 fun GameModel.resolveLasers(): LaserResolutionResult {
     val laserPaths = robots
-        .map { robot -> laserPath(robot.pos, robot.dir).let { LaserPath(it, laserDirection(robot.pos, it.first())) } }
+        .mapNotNull { robot ->
+            laserPath(robot.pos, robot.dir)
+                .takeIf { it.isNotEmpty() }
+                ?.let { LaserPath(it, laserDirection(robot.pos, it.first())) }
+        }
         .toSet()
     val hitRobots = laserPaths
         .mapNotNull {
@@ -41,9 +47,10 @@ private data class DamagedRobot(
 )
 
 private fun GameModel.laserPath(pos: Pos, dir: Direction): List<Pos> {
-    return (1..100)
-        .runningFold(pos + dir) { acc, _ -> acc + dir }
+    return (1..max(course.width, course.height))
+        .runningFold(pos) { acc, _ -> acc + dir }
         .takeWhileIncludingStop { wallAt(it, dir) == null }
+        .drop(1) // remove firing robot's position
         .takeWhileIncludingStop { robotAt(it) == null }
         .takeWhileIncludingStop { course.isOnCourse(it) }
 }
