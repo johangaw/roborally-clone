@@ -1,4 +1,4 @@
-package ui
+package ui.scenes
 
 import com.soywiz.klock.milliseconds
 import com.soywiz.korev.Key
@@ -14,6 +14,7 @@ import com.soywiz.korma.geom.IPoint
 import com.soywiz.korma.geom.Point
 import com.soywiz.korma.interpolation.Easing
 import gamemodel.*
+import ui.*
 import ui.animations.laserAlpha
 import ui.animations.laserBurn
 import ui.animations.shake

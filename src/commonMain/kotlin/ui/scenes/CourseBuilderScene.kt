@@ -1,4 +1,4 @@
-package ui
+package ui.scenes
 
 import com.soywiz.kmem.*
 import com.soywiz.korev.*
@@ -9,6 +9,7 @@ import com.soywiz.korim.color.*
 import com.soywiz.korio.async.*
 import gamemodel.loadCourse as loadCourseFromFile
 import gamemodel.*
+import ui.*
 import java.lang.Exception
 import kotlin.math.*
 
