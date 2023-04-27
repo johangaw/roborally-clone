@@ -18,7 +18,7 @@ fun GameModel.resolveLasers(): LaserResolutionResult {
         copy(robots = robots.map {
             it.copy(health = hitRobots[it.id]?.health ?: it.health)
         }),
-        hitRobots.mapValues { (robotId, data) -> data.health },
+        hitRobots.mapValues { (_, data) -> data.health },
         laserPaths,
     )
 }
@@ -45,6 +45,7 @@ private fun GameModel.laserPath(pos: Pos, dir: Direction): List<Pos> {
         .runningFold(pos + dir) { acc, _ -> acc + dir }
         .takeWhileIncludingStop { wallAt(it, dir) == null }
         .takeWhileIncludingStop { robotAt(it) == null }
+        .takeWhileIncludingStop { course.isOnCourse(it) }
 }
 
 private fun <T> List<T>.takeWhileIncludingStop(predicate: (T) -> Boolean): List<T> =

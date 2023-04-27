@@ -9,7 +9,7 @@ import com.soywiz.korge.view.*
 import com.soywiz.korim.atlas.readAtlas
 import com.soywiz.korim.color.Colors
 import com.soywiz.korio.async.launchImmediately
-import com.soywiz.korio.file.std.resourcesVfs
+import com.soywiz.korio.file.std.*
 import com.soywiz.korma.geom.IPoint
 import com.soywiz.korma.geom.Point
 import com.soywiz.korma.interpolation.Easing
@@ -79,8 +79,11 @@ class GameScene(var gameModel: GameModel) : Scene() {
                     }
 
                     Key.F -> {
+                        val result = gameModel.resolveLasers()
                         animate {
-                            laserBurn(robots.values.first(), 500.milliseconds)
+                            animateLasers(RoundResolution.LaserResolution(
+                                result.laserPaths, result.remainingHealthOfDamagedRobots
+                            ))
                         }
                     }
 

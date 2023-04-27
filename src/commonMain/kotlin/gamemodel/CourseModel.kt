@@ -20,8 +20,9 @@ data class Course(
     fun getCheckpoint(id: CheckpointId) =
         checkpoints.firstOrNull { it.id == id } ?: throw AssertionError("No checkpoint with id $id")
 
-    fun isMissingFloor(pos: Pos): Boolean =
-        !(pos.x in 0 until width && pos.y in 0 until height)
+    fun isMissingFloor(pos: Pos): Boolean = !isOnCourse(pos)
+
+    fun isOnCourse(pos: Pos): Boolean = pos.x in 0 until width && pos.y in 0 until height
 
     init {
         assert(checkpoints.distinctBy { it.id }.size == checkpoints.size) { "Two checkpoints share the same id" }

@@ -154,7 +154,7 @@ class ResolveRoundTest {
                 ConveyorBeltsResolution(emptyMap(), emptyMap(), emptyMap()),
                 LaserResolution(
                     laserPaths = setOf(
-                        LaserPath((1..101).map { Pos(2 + it, 0) }, LaserDirection.Right),
+                        LaserPath((3..5).map { Pos(it, 0) }, LaserDirection.Right),
                     ),
                     remainingHealthOfDamagedRobots = emptyMap(),
                 ),
