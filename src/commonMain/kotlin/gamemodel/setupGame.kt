@@ -1,5 +1,7 @@
 package gamemodel
 
+import kotlin.math.*
+
 
 fun setupGame(): GameModel {
     val playerOneRobot = Robot(Pos(4, 0), Direction.Down)
@@ -46,7 +48,11 @@ fun setupGame(gameModel: GameModel): GameModel {
 
 fun setupGame(course: Course, playerCount: Int): GameModel {
     val playerRange = 0 until playerCount
-    val robots = playerRange.map { Robot(course.starts.sorted()[it].pos, Direction.Up) }
+    val robots = playerRange.map {
+        val pos = course.starts.sorted()[it].pos
+        val dir = directionTowardsCourseCenter(course, pos)
+        Robot(pos, dir)
+    }
     val players = playerRange.map { Player(robots[it].id) }
     return GameModel(
         course = course,
@@ -58,3 +64,16 @@ fun setupGame(course: Course, playerCount: Int): GameModel {
 suspend fun setupGame(preBuildCourse: PreBuildCourse, playerCount: Int): GameModel =
     setupGame(loadCourse(preBuildCourse), playerCount)
 
+private fun directionTowardsCourseCenter(course: Course, from: Pos): Direction {
+    val courseCenter = Pos(course.width / 2, course.height / 2)
+    val dx = courseCenter.x - from.x
+    val dy = courseCenter.y - from.y
+
+    return when {
+        abs(dx) > abs(dy) -> Direction.values().first { it.dx == dx.normalize() && it.dy == 0 }
+        abs(dx) < abs(dy) -> Direction.values().first { it.dx == 0 && it.dy == dy.normalize() }
+        else -> Direction.values().first { it.dx == dx.normalize() && it.dy == 0 }
+    }
+}
+
+private fun Int.normalize() = if(this == 0) 0 else  this / abs(this)
