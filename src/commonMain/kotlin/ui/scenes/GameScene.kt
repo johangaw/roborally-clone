@@ -20,26 +20,21 @@ import ui.animations.laserBurn
 import ui.animations.shake
 import kotlin.math.min
 
-class GameScene : Scene() {
-
-    private lateinit var gameModel: GameModel
+class GameScene(var gameModel: GameModel) : Scene() {
     private lateinit var robots: Map<RobotId, RobotView>
     private lateinit var programAreas: List<ProgramArea>
     private lateinit var courseView: CourseView
     private lateinit var bitmapCache: BitmapCache
 
-    override suspend fun SContainer.sceneMain() {
+    override suspend fun SContainer.sceneInit() {
         bitmapCache = BitmapCache.create()
-//        gameModel = setupGame(PreBuildCourses.Course1, playerCount = 1)
-        gameModel = setupGame()
-
         courseView = courseView(gameModel.course, bitmapCache, showStartPositions = false) {
             val programmingAreaHeight = 200.0
             val scaleFactor =
                 min(views.virtualWidthDouble / width, (views.virtualHeightDouble - programmingAreaHeight) / height)
             scale = scaleFactor
-            centerOn(this@sceneMain)
-            alignTopToTopOf(this@sceneMain)
+            centerOn(this@sceneInit)
+            alignTopToTopOf(this@sceneInit)
         }
         val cellSize = courseView.cellSize
 
@@ -56,7 +51,7 @@ class GameScene : Scene() {
         programAreas = gameModel.players.map { player ->
             programArea(gameModel.course.checkpoints.map { it.id }, player.id, player.robotId, bitmapCache) {
                 zIndex(-1)
-                centerOn(this@sceneMain)
+                centerOn(this@sceneInit)
                 alignTopToBottomOf(courseView)
                 text(player.id.value.toString(), textSize = 30.0, color = Colors.BLACK) {
                     val textPadding = 10.0
@@ -75,10 +70,6 @@ class GameScene : Scene() {
                 when (it.key) {
                     Key.ESCAPE -> {
                         println(serialize(gameModel))
-                    }
-
-                    Key.N0 -> {
-                        sceneContainer.changeTo({ CourseBuilderScene() })
                     }
 
                     Key.S -> {

@@ -7,7 +7,6 @@ import com.soywiz.korge.scene.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
 import com.soywiz.korio.async.*
-import gamemodel.loadCourse as loadCourseFromFile
 import gamemodel.*
 import ui.*
 import java.lang.Exception
@@ -23,23 +22,23 @@ sealed class ControlElement {
     data class Start(val order: Int) : ControlElement()
 }
 
-class CourseBuilderScene : Scene() {
+class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
 
     private lateinit var bitmapCache: BitmapCache
     private lateinit var coursePanel: Container
     private lateinit var controlElementViews: Map<ControlElement, RoundRect>
     private var courseView: View? = null
     private var selectedControlElement: ControlElement? = null
-    private var course: Course = Course(0, 0)
-        set(value) {
+    var course: Course = initialCourse ?: Course(0, 0)
+        private set(value) {
             field = value
-            sceneContainer.redrawCourse()
+            redrawCourse()
             launch {
                 storeCourseBuilderAutoSave(value)
             }
         }
 
-    override suspend fun SContainer.sceneMain() {
+    override suspend fun SContainer.sceneInit() {
         bitmapCache = BitmapCache.create()
         val controlPanelWidth = 120.0
 
@@ -53,7 +52,7 @@ class CourseBuilderScene : Scene() {
             }
 
         val controlPanel = roundRect(controlPanelWidth, views.virtualHeightDouble, 2.0, fill = Colors.LIGHTGRAY) {
-            alignLeftToLeftOf(this@sceneMain)
+            alignLeftToLeftOf(this@sceneInit)
 
             controlElementViews = emptyList<Pair<ControlElement, RoundRect>>()
                 .plus(
@@ -137,11 +136,11 @@ class CourseBuilderScene : Scene() {
 
 
             roundRect(75.0, 40.0, 3.0, fill = Colors.GREEN) {
-                text("SAVE") {
+                text("PRINT") {
                     color = Colors.BLACK
                     centerOn(parent!!)
                 }
-                onClick { saveCourse() }
+                onClick { printCourse() }
                 centerOn(parent!!)
                 alignBottomToBottomOf(parent!!, 4.0)
             }
@@ -152,7 +151,7 @@ class CourseBuilderScene : Scene() {
             alignLeftToRightOf(controlPanel)
         }
 
-        loadLastCourse()
+        if(initialCourse == null) loadLastCourse()
         redrawCourse()
 
         keys {
@@ -161,13 +160,8 @@ class CourseBuilderScene : Scene() {
                     Key.N -> {
                         course = Course(12, 16)
                     }
-
-                    Key.N0 -> {
-                        loadCourse(PreBuildCourse.CoursePalette)
-                    }
-
-                    Key.N1 -> {
-                        loadCourse(PreBuildCourse.Course1)
+                    Key.ESCAPE -> {
+                        printCourse()
                     }
 
                     else -> Unit
@@ -179,23 +173,20 @@ class CourseBuilderScene : Scene() {
     private suspend fun loadLastCourse() {
         course = try {
             loadCourseBuilderAutoSave()
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             course
         }
     }
 
-    private fun saveCourse() {
+    private fun printCourse() {
         println(serialize(course))
     }
 
-    private suspend fun loadCourse(course: PreBuildCourse) {
-        this.course = loadCourseFromFile(course)
-    }
+    private fun redrawCourse() {
+        if(!this::coursePanel.isInitialized) return
 
-
-    private fun Container.redrawCourse() {
-        courseView?.removeFromParent()
-        courseView = courseView(course, bitmapCache) {
+        coursePanel.removeChildren()
+        courseView = coursePanel.courseView(course, bitmapCache) {
             val scaleFactor = min(views.virtualWidthDouble / width, views.virtualHeightDouble / height)
             scale = scaleFactor
             onClick(::handlePosClick)

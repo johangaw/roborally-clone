@@ -44,9 +44,8 @@ fun setupGame(gameModel: GameModel): GameModel {
     return gameModel.resolveDealActionCards().gameModel
 }
 
-suspend fun setupGame(preBuildCourse: PreBuildCourse, playerCount: Int): GameModel {
+fun setupGame(course: Course, playerCount: Int): GameModel {
     val playerRange = 0 until playerCount
-    val course = loadCourse(preBuildCourse)
     val robots = playerRange.map { Robot(course.starts.sorted()[it].pos, Direction.Up) }
     val players = playerRange.map { Player(robots[it].id) }
     return GameModel(
@@ -55,3 +54,7 @@ suspend fun setupGame(preBuildCourse: PreBuildCourse, playerCount: Int): GameMod
         players = players,
     ).resolveDealActionCards().gameModel
 }
+
+suspend fun setupGame(preBuildCourse: PreBuildCourse, playerCount: Int): GameModel =
+    setupGame(loadCourse(preBuildCourse), playerCount)
+
