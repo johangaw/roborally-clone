@@ -196,44 +196,44 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
 
     private fun handlePosClick(pos: Pos) {
         when (val element = selectedControlElement) {
-            is ControlElement.ConveyorBelt -> handlePosClick(pos, element.type)
-            is ControlElement.Wall -> handlePosClick(pos, element.dir)
-            is ControlElement.Checkpoint -> handlePosClick(pos, element.id)
-            is ControlElement.Start -> handlePosClick(pos, element.order)
+            is ControlElement.ConveyorBelt -> handlePosClick(pos, element)
+            is ControlElement.Wall -> handlePosClick(pos, element)
+            is ControlElement.Checkpoint -> handlePosClick(pos, element)
+            is ControlElement.Start -> handlePosClick(pos, element)
             null -> Unit
         }
     }
 
-    private fun handlePosClick(pos: Pos, startOrder: Int) {
-        val newStart = Start(pos, startOrder)
+    private fun handlePosClick(pos: Pos, element: ControlElement.Start) {
+        val newStart = Start(pos, element.order)
         val previousStartAtPos = course.starts.firstOrNull { it.pos == pos }
 
         course = course.copy(
-            starts = if (previousStartAtPos?.order == startOrder)
+            starts = if (previousStartAtPos?.order == element.order)
                 course.starts - previousStartAtPos
             else if (previousStartAtPos != null) {
-                course.starts.filter { it.order != startOrder } - previousStartAtPos + newStart
+                course.starts.filter { it.order != element.order } - previousStartAtPos + newStart
             } else
-                course.starts.filter { it.order != startOrder } + newStart
+                course.starts.filter { it.order != element.order } + newStart
         )
     }
 
-    private fun handlePosClick(pos: Pos, id: CheckpointId) {
-        val newCheckpoint = Checkpoint(id, pos)
+    private fun handlePosClick(pos: Pos, element: ControlElement.Checkpoint) {
+        val newCheckpoint = Checkpoint(element.id, pos)
         val previousCheckpointAtPos = course.checkpoints.firstOrNull { it.pos == pos }
 
         course = course.copy(
-            checkpoints = if (previousCheckpointAtPos?.id == id)
+            checkpoints = if (previousCheckpointAtPos?.id == element.id)
                 course.checkpoints - previousCheckpointAtPos
             else if (previousCheckpointAtPos != null) {
-                course.checkpoints.filter { it.id != id } - previousCheckpointAtPos + newCheckpoint
+                course.checkpoints.filter { it.id != element.id } - previousCheckpointAtPos + newCheckpoint
             } else
-                course.checkpoints.filter { it.id != id } + newCheckpoint
+                course.checkpoints.filter { it.id != element.id } + newCheckpoint
         )
     }
 
-    private fun handlePosClick(pos: Pos, conveyorBeltType: ConveyorBeltType) {
-        val newBelt = ConveyorBelt(conveyorBeltType, ConveyorBeltSpeed.Regular)
+    private fun handlePosClick(pos: Pos, element: ControlElement.ConveyorBelt) {
+        val newBelt = ConveyorBelt(element.type, ConveyorBeltSpeed.Regular)
 
         course = course.copy(
             conveyorBelts = if (course.conveyorBelts[pos] == newBelt)
@@ -243,8 +243,8 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
         )
     }
 
-    private fun handlePosClick(pos: Pos, wallDirection: Direction) {
-        val newWall = Wall(pos, wallDirection)
+    private fun handlePosClick(pos: Pos, element: ControlElement.Wall) {
+        val newWall = Wall(pos, element.dir)
         val previousWall = course.walls.firstOrNull { wall: Wall -> wall.pos == newWall.pos && wall.dir == newWall.dir }
         course = course.copy(
             walls = if (previousWall != null)
