@@ -20,13 +20,8 @@ class ResolveLasersTest {
         assertEquals(emptyMap(), result.remainingHealthOfDamagedRobots)
         assertEquals(
             setOf(
-                LaserPath(
-                    (-1..-1).map { Pos(0, it) },
-                    Direction.Up,
-                ), LaserPath(
-                    (3..5).map { Pos(it, 0) },
-                    Direction.Right
-                )
+                LaserPath((-1..-1).map { Pos(0, it) }, Direction.Up,1),
+                LaserPath((3..5).map { Pos(it, 0) }, Direction.Right, 1)
             ), result.laserPaths
         )
     }
@@ -50,8 +45,8 @@ class ResolveLasersTest {
         assertEquals(mapOf(r2.id to 9), result.remainingHealthOfDamagedRobots)
         assertEquals(
             setOf(
-                LaserPath((1..4).map { Pos(it, 0) }, Direction.Right),
-                LaserPath((-1..-1).map { Pos(4, it) }, Direction.Up),
+                LaserPath((1..4).map { Pos(it, 0) }, Direction.Right, 1),
+                LaserPath((-1..-1).map { Pos(4, it) }, Direction.Up, 1),
             ), result.laserPaths
         )
     }
@@ -75,9 +70,9 @@ class ResolveLasersTest {
         assertEquals(mapOf(r2.id to 9), result.remainingHealthOfDamagedRobots)
         assertEquals(
             setOf(
-                LaserPath((1..3).map { Pos(it, 0) }, Direction.Right),
-                LaserPath((1..1).map { Pos(3, it) }, Direction.Down),
-                LaserPath((-1..-1).map { Pos(4, it) }, Direction.Up),
+                LaserPath((1..3).map { Pos(it, 0) }, Direction.Right, 1),
+                LaserPath((1..1).map { Pos(3, it) }, Direction.Down, 1),
+                LaserPath((-1..-1).map { Pos(4, it) }, Direction.Up, 1),
             ), result.laserPaths
         )
     }
@@ -97,8 +92,8 @@ class ResolveLasersTest {
         assertEquals(emptyMap(), result.remainingHealthOfDamagedRobots)
         assertEquals(
             setOf(
-                LaserPath(listOf(Pos(1, 0)), Direction.Right),
-                LaserPath((1..1).map { Pos(2, it) }, Direction.Down),
+                LaserPath(listOf(Pos(1, 0)), Direction.Right, 1),
+                LaserPath((1..1).map { Pos(2, it) }, Direction.Down, 1),
             ), result.laserPaths
         )
     }
@@ -158,6 +153,36 @@ class ResolveLasersTest {
     }
 
     @Test
+    fun `when a robot is hit by a powerful laser, it suffers damage equal the the lasers power`() {
+        val model = gameModel(
+            """
+            +|+|+|+|+|+|+
+            +|    →     +
+        """.trimIndent()
+        ).mapCourse { _, course ->
+            course.copy(
+                laserCannons = listOf(LaserCannon(Pos(0, 0), Direction.Right, 3))
+            )
+        }
+        val (r1) = model.robots
+        val expectedModel = model.copy(
+            robots = listOf(r1.copy(health = 7))
+        )
+
+        val result = model.resolveLasers()
+
+        assertEquals(
+            setOf(
+                LaserPath((3..5).map { Pos(it, 0) }, Direction.Right, 1),
+                LaserPath((0..2).map { Pos(it, 0) }, Direction.Right, 3),
+            ),
+            result.laserPaths
+        )
+        assertEquals(mapOf(r1.id to 7), result.remainingHealthOfDamagedRobots)
+        assertEquals(expectedModel, result.gameModel)
+    }
+
+    @Test
     fun `this also fires the cannons on the course`() {
         val model = gameModel(
             """
@@ -166,7 +191,7 @@ class ResolveLasersTest {
         """.trimIndent()
         ).mapCourse { _, course ->
             course.copy(
-                laserCannons = listOf(LaserCannon(Pos(0, 0), Direction.Right))
+                laserCannons = listOf(LaserCannon(Pos(0, 0), Direction.Right, 1))
             )
         }
         val (r1) = model.robots
@@ -178,8 +203,8 @@ class ResolveLasersTest {
 
         assertEquals(
             setOf(
-                LaserPath((3..5).map { Pos(it, 0) }, Direction.Right),
-                LaserPath((0..2).map { Pos(it, 0) }, Direction.Right),
+                LaserPath((3..5).map { Pos(it, 0) }, Direction.Right, 1),
+                LaserPath((0..2).map { Pos(it, 0) }, Direction.Right, 1),
             ),
             result.laserPaths
         )
@@ -196,7 +221,7 @@ class ResolveLasersTest {
         """.trimIndent()
         ).mapCourse { _, course ->
             course.copy(
-                laserCannons = listOf(LaserCannon(Pos(0, 0), Direction.Right))
+                laserCannons = listOf(LaserCannon(Pos(0, 0), Direction.Right, 1))
             )
         }
         val (r1) = model.robots
@@ -208,8 +233,8 @@ class ResolveLasersTest {
 
         assertEquals(
             setOf(
-                LaserPath((1..5).map { Pos(it, 0) }, Direction.Right),
-                LaserPath((0..0).map { Pos(it, 0) }, Direction.Right),
+                LaserPath((1..5).map { Pos(it, 0) }, Direction.Right, 1),
+                LaserPath((0..0).map { Pos(it, 0) }, Direction.Right, 1),
             ),
             result.laserPaths
         )

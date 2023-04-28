@@ -215,7 +215,7 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
     }
 
     private fun handlePosClick(pos: Pos, element: ControlElement.LaserCannon) {
-        val cannon = LaserCannon(pos, element.dir)
+        val cannon = LaserCannon(pos, element.dir, 1)
 
         course = course.copy(
             laserCannons = if (cannon in course.laserCannons) course.laserCannons - cannon
