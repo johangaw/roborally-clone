@@ -33,6 +33,20 @@ class CourseView(val course: Course, bitmapCache: BitmapCache, showStartPosition
             }
         }
 
+        course.walls.forEach {
+            wallView(bitmapCache, it.dir) {
+                setSizeScaled(cellSize, cellSize)
+                position(getPoint(it.pos))
+            }
+        }
+
+        course.laserCannons.forEach {
+            laserCannonView(bitmapCache, it.dir) {
+                setSizeScaled(cellSize, cellSize)
+                position(getPoint(it.pos))
+            }
+        }
+
         if(showStartPositions)
             course.starts.forEach {
                 startView(it.order) {
@@ -40,13 +54,6 @@ class CourseView(val course: Course, bitmapCache: BitmapCache, showStartPosition
                     position(getPoint(it.pos))
                 }
             }
-
-        course.walls.forEach {
-            wallView(bitmapCache, it.dir) {
-                setSizeScaled(cellSize, cellSize)
-                position(getPoint(it.pos))
-            }
-        }
 
         course.checkpoints.forEach {
             checkpointView(it.id, bitmapCache) {

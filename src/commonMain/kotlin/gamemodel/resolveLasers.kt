@@ -5,11 +5,19 @@ import kotlin.math.max
 fun GameModel.resolveLasers(): LaserResolutionResult {
     val laserPaths = robots
         .mapNotNull { robot ->
-            laserPath(robot.pos, robot.dir)
+            laserPath(robot.pos, robot.dir, targetRobotAtStartPosition = false)
                 .takeIf { it.isNotEmpty() }
                 ?.let { LaserPath(it, laserDirection(robot.pos, it.first())) }
         }
+        .plus(
+            course.laserCannons.mapNotNull { cannon ->
+                laserPath(cannon.pos, cannon.dir, targetRobotAtStartPosition = true)
+                    .takeIf { it.isNotEmpty() }
+                    ?.let { LaserPath(it, cannon.dir.toLaserDirection()) }
+            }
+        )
         .toSet()
+
     val hitRobots = laserPaths
         .mapNotNull {
             it
@@ -41,16 +49,16 @@ fun laserDirection(robotPos: Pos, beginningOfLaserPath: Pos): LaserDirection {
 }
 
 private data class DamagedRobot(
-    val id : RobotId,
+    val id: RobotId,
     val health: Int,
     val damage: Int,
 )
 
-private fun GameModel.laserPath(pos: Pos, dir: Direction): List<Pos> {
+private fun GameModel.laserPath(startPosition: Pos, dir: Direction, targetRobotAtStartPosition: Boolean): List<Pos> {
     return (1..max(course.width, course.height))
-        .runningFold(pos) { acc, _ -> acc + dir }
+        .runningFold(startPosition) { acc, _ -> acc + dir }
         .takeWhileIncludingStop { wallAt(it, dir) == null }
-        .drop(1) // remove firing robot's position
+        .let { if (targetRobotAtStartPosition) it else it.drop(1)  }
         .takeWhileIncludingStop { robotAt(it) == null }
         .takeWhileIncludingStop { course.isOnCourse(it) }
 }
@@ -74,5 +82,14 @@ enum class LaserDirection {
     Down,
     Up
 }
+
+fun Direction.toLaserDirection(): LaserDirection =
+    when (this) {
+        Direction.Up -> LaserDirection.Up
+        Direction.Down -> LaserDirection.Down
+        Direction.Right -> LaserDirection.Right
+        Direction.Left -> LaserDirection.Left
+    }
+
 
 data class LaserPath(val path: List<Pos>, val dir: LaserDirection)

@@ -20,6 +20,8 @@ sealed class ControlElement {
     data class Checkpoint(val id: CheckpointId) : ControlElement()
 
     data class Start(val order: Int) : ControlElement()
+
+    data class LaserCannon(val dir: Direction) : ControlElement()
 }
 
 class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
@@ -55,57 +57,63 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
             alignLeftToLeftOf(this@sceneInit)
 
             controlElementViews = emptyList<Pair<ControlElement, RoundRect>>()
-                .plus(
-                    ConveyorBeltType
-                        .values()
-                        .map { type ->
-                            ControlElement.ConveyorBelt(type) to controlPanelElement(ControlElement.ConveyorBelt(type)) {
-                                conveyorBeltView(type, bitmapCache) {
-                                    setSizeScaled(50.0, 50.0)
-                                    centerOn(parent!!)
-                                }
-                            }
+                .plus(ConveyorBeltType
+                          .values()
+                          .map { type ->
+                              ControlElement.ConveyorBelt(type) to controlPanelElement(ControlElement.ConveyorBelt(type)) {
+                                  conveyorBeltView(type, bitmapCache) {
+                                      setSizeScaled(50.0, 50.0)
+                                      centerOn(parent!!)
+                                  }
+                              }
+                          })
+                .plus(Direction
+                          .values()
+                          .map { dir ->
+                              ControlElement.Wall(dir) to controlPanelElement(ControlElement.Wall(dir)) {
+                                  image(bitmapCache.floor) {
+                                      setSizeScaled(50.0, 50.0)
+                                      centerOn(parent!!)
+                                  }
+                                  wallView(bitmapCache, dir) {
+                                      setSizeScaled(50.0, 50.0)
+                                      centerOn(parent!!)
+                                  }
+                              }
+                          })
+                .plus(Direction
+                          .values()
+                          .map { ControlElement.LaserCannon(it) }
+                          .map {
+                              it to controlPanelElement(it) {
+                                  image(bitmapCache.floor) {
+                                      setSizeScaled(50.0, 50.0)
+                                      centerOn(parent!!)
+                                  }
+                                  laserCannonView(bitmapCache, it.dir) {
+                                      setSizeScaled(50.0, 50.0)
+                                      centerOn(parent!!)
+                                  }
+                              }
+                          })
+                .plus((1..6)
+                          .map { CheckpointId(it) }
+                          .map {
+                              ControlElement.Checkpoint(it) to controlPanelElement(ControlElement.Checkpoint(it)) {
+                                  checkpointView(it, bitmapCache) {
+                                      setSizeScaled(50.0, 50.0)
+                                      centerOn(parent!!)
+                                  }
+                              }
+                          })
+                .plus((1..8).map {
+                    ControlElement.Start(it) to controlPanelElement(ControlElement.Start(it)) {
+                        startView(it) {
+                            setSizeScaled(50.0, 50.0)
+                            centerOn(parent!!)
                         }
-                )
-                .plus(
-                    Direction
-                        .values()
-                        .map { dir ->
-                            ControlElement.Wall(dir) to controlPanelElement(ControlElement.Wall(dir)) {
-                                image(bitmapCache.floor) {
-                                    setSizeScaled(50.0, 50.0)
-                                    centerOn(parent!!)
-                                }
-                                wallView(bitmapCache, dir) {
-                                    setSizeScaled(50.0, 50.0)
-                                    centerOn(parent!!)
-                                }
-                            }
-                        }
-                )
-                .plus(
-                    (1..6)
-                        .map { CheckpointId(it) }
-                        .map {
-                            ControlElement.Checkpoint(it) to controlPanelElement(ControlElement.Checkpoint(it)) {
-                                checkpointView(it, bitmapCache) {
-                                    setSizeScaled(50.0, 50.0)
-                                    centerOn(parent!!)
-                                }
-                            }
-                        }
-                )
-                .plus(
-                    (1..8)
-                        .map {
-                            ControlElement.Start(it) to controlPanelElement(ControlElement.Start(it)) {
-                                startView(it) {
-                                    setSizeScaled(50.0, 50.0)
-                                    centerOn(parent!!)
-                                }
-                            }
-                        }
-                )
+                    }
+                })
                 .also { controls ->
                     val (left, right) = controls
                         .map { it.second }
@@ -151,7 +159,7 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
             alignLeftToRightOf(controlPanel)
         }
 
-        if(initialCourse == null) loadLastCourse()
+        if (initialCourse == null) loadLastCourse()
         redrawCourse()
 
         keys {
@@ -160,6 +168,7 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
                     Key.N -> {
                         course = Course(12, 16)
                     }
+
                     Key.ESCAPE -> {
                         printCourse()
                     }
@@ -183,7 +192,7 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
     }
 
     private fun redrawCourse() {
-        if(!this::coursePanel.isInitialized) return
+        if (!this::coursePanel.isInitialized) return
 
         coursePanel.removeChildren()
         courseView = coursePanel.courseView(course, bitmapCache) {
@@ -200,46 +209,47 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
             is ControlElement.Wall -> handlePosClick(pos, element)
             is ControlElement.Checkpoint -> handlePosClick(pos, element)
             is ControlElement.Start -> handlePosClick(pos, element)
+            is ControlElement.LaserCannon -> handlePosClick(pos, element)
             null -> Unit
         }
+    }
+
+    private fun handlePosClick(pos: Pos, element: ControlElement.LaserCannon) {
+        val cannon = LaserCannon(pos, element.dir)
+
+        course = course.copy(
+            laserCannons = if (cannon in course.laserCannons) course.laserCannons - cannon
+            else course.laserCannons + cannon
+        )
     }
 
     private fun handlePosClick(pos: Pos, element: ControlElement.Start) {
         val newStart = Start(pos, element.order)
         val previousStartAtPos = course.starts.firstOrNull { it.pos == pos }
 
-        course = course.copy(
-            starts = if (previousStartAtPos?.order == element.order)
-                course.starts - previousStartAtPos
-            else if (previousStartAtPos != null) {
-                course.starts.filter { it.order != element.order } - previousStartAtPos + newStart
-            } else
-                course.starts.filter { it.order != element.order } + newStart
-        )
+        course = course.copy(starts = if (previousStartAtPos?.order == element.order) course.starts - previousStartAtPos
+        else if (previousStartAtPos != null) {
+            course.starts.filter { it.order != element.order } - previousStartAtPos + newStart
+        } else course.starts.filter { it.order != element.order } + newStart)
     }
 
     private fun handlePosClick(pos: Pos, element: ControlElement.Checkpoint) {
         val newCheckpoint = Checkpoint(element.id, pos)
         val previousCheckpointAtPos = course.checkpoints.firstOrNull { it.pos == pos }
 
-        course = course.copy(
-            checkpoints = if (previousCheckpointAtPos?.id == element.id)
-                course.checkpoints - previousCheckpointAtPos
+        course =
+            course.copy(checkpoints = if (previousCheckpointAtPos?.id == element.id) course.checkpoints - previousCheckpointAtPos
             else if (previousCheckpointAtPos != null) {
                 course.checkpoints.filter { it.id != element.id } - previousCheckpointAtPos + newCheckpoint
-            } else
-                course.checkpoints.filter { it.id != element.id } + newCheckpoint
-        )
+            } else course.checkpoints.filter { it.id != element.id } + newCheckpoint)
     }
 
     private fun handlePosClick(pos: Pos, element: ControlElement.ConveyorBelt) {
         val newBelt = ConveyorBelt(element.type, ConveyorBeltSpeed.Regular)
 
         course = course.copy(
-            conveyorBelts = if (course.conveyorBelts[pos] == newBelt)
-                course.conveyorBelts - pos
-            else
-                course.conveyorBelts + (pos to newBelt)
+            conveyorBelts = if (course.conveyorBelts[pos] == newBelt) course.conveyorBelts - pos
+            else course.conveyorBelts + (pos to newBelt)
         )
     }
 
@@ -247,10 +257,8 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
         val newWall = Wall(pos, element.dir)
         val previousWall = course.walls.firstOrNull { wall: Wall -> wall.pos == newWall.pos && wall.dir == newWall.dir }
         course = course.copy(
-            walls = if (previousWall != null)
-                course.walls - previousWall
-            else
-                course.walls + newWall
+            walls = if (previousWall != null) course.walls - previousWall
+            else course.walls + newWall
         )
     }
 

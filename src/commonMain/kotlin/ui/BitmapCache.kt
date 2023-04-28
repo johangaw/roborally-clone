@@ -20,6 +20,9 @@ data class BitmapCache(
     val conveyorBeltTurnCounterClockwise: Bitmap,
     val wall: Bitmap,
     val heart: Bitmap,
+    val laserCannonX1: Bitmap,
+    val laserCannonX2: Bitmap,
+    val laserCannonX3: Bitmap,
 
     val powerUp: Bitmap,
     val again: Bitmap,
@@ -42,6 +45,9 @@ data class BitmapCache(
             conveyorBeltTurnCounterClockwise = resourcesVfs["conveyor_belt_turn_counter_clockwise.png"].readBitmap(),
             wall = resourcesVfs["wall.png"].readBitmap(),
             heart = resourcesVfs["heart.png"].readBitmap(),
+            laserCannonX1 = resourcesVfs["laser_cannon_x1.png"].readBitmap(),
+            laserCannonX2 = resourcesVfs["laser_cannon_x2.png"].readBitmap(),
+            laserCannonX3 = resourcesVfs["laser_cannon_x3.png"].readBitmap(),
             powerUp = resourcesVfs["power_up.png"].readBitmap(),
             again = resourcesVfs["again.png"].readBitmap(),
         )

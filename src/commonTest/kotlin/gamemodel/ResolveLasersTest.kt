@@ -156,4 +156,64 @@ class ResolveLasersTest {
         assertEquals(expectedModel, result.gameModel)
         assertEquals(mapOf(r2.id to 8), result.remainingHealthOfDamagedRobots)
     }
+
+    @Test
+    fun `this also fires the cannons on the course`() {
+        val model = gameModel(
+            """
+            +|+|+|+|+|+|+
+            +|    →     +
+        """.trimIndent()
+        ).mapCourse { _, course ->
+            course.copy(
+                laserCannons = listOf(LaserCannon(Pos(0, 0), Direction.Right))
+            )
+        }
+        val (r1) = model.robots
+        val expectedModel = model.copy(
+            robots = listOf(r1.copy(health = 9))
+        )
+
+        val result = model.resolveLasers()
+
+        assertEquals(
+            setOf(
+                LaserPath((3..5).map { Pos(it, 0) }, LaserDirection.Right),
+                LaserPath((0..2).map { Pos(it, 0) }, LaserDirection.Right),
+            ),
+            result.laserPaths
+        )
+        assertEquals(mapOf(r1.id to 9), result.remainingHealthOfDamagedRobots)
+        assertEquals(expectedModel, result.gameModel)
+    }
+
+    @Test
+    fun `when a cannon fires, it may hit robots on its same position`() {
+        val model = gameModel(
+            """
+            +|+|+|+|+|+|+
+            +|→         +
+        """.trimIndent()
+        ).mapCourse { _, course ->
+            course.copy(
+                laserCannons = listOf(LaserCannon(Pos(0, 0), Direction.Right))
+            )
+        }
+        val (r1) = model.robots
+        val expectedModel = model.copy(
+            robots = listOf(r1.copy(health = 9))
+        )
+
+        val result = model.resolveLasers()
+
+        assertEquals(
+            setOf(
+                LaserPath((1..5).map { Pos(it, 0) }, LaserDirection.Right),
+                LaserPath((0..0).map { Pos(it, 0) }, LaserDirection.Right),
+            ),
+            result.laserPaths
+        )
+        assertEquals(mapOf(r1.id to 9), result.remainingHealthOfDamagedRobots)
+        assertEquals(expectedModel, result.gameModel)
+    }
 }

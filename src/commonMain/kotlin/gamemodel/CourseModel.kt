@@ -10,6 +10,7 @@ data class Course(
     val walls: List<Wall> = emptyList(),
     val checkpoints: List<Checkpoint> = emptyList(),
     val starts: List<Start> = emptyList(),
+    val laserCannons: List<LaserCannon> = emptyList(),
     val destroyedDamage: Int = 2
 ) {
     fun wallAt(pos: Pos, dir: Direction): Wall? {
@@ -33,6 +34,21 @@ data class Course(
 @Serializable
 data class Start(val pos: Pos, val order: Int): Comparable<Start> {
     override fun compareTo(other: Start): Int = order - other.order
+}
+
+@Serializable
+data class LaserCannon(val pos: Pos, val dir: Direction)
+
+@JvmInline
+@Serializable
+value class LaserCannonLevel(val value: Int) {
+    init {
+        assert(value in 1..MAX_LEVEL) { "LaserCannonLevel of $value is not allowed, needs to be between 1 and $MAX_LEVEL" }
+    }
+
+    companion object {
+        const val MAX_LEVEL: Int = 3
+    }
 }
 
 @Serializable
