@@ -22,10 +22,10 @@ class ResolveLasersTest {
             setOf(
                 LaserPath(
                     (-1..-1).map { Pos(0, it) },
-                    LaserDirection.Up,
+                    Direction.Up,
                 ), LaserPath(
                     (3..5).map { Pos(it, 0) },
-                    LaserDirection.Right
+                    Direction.Right
                 )
             ), result.laserPaths
         )
@@ -50,8 +50,8 @@ class ResolveLasersTest {
         assertEquals(mapOf(r2.id to 9), result.remainingHealthOfDamagedRobots)
         assertEquals(
             setOf(
-                LaserPath((1..4).map { Pos(it, 0) }, LaserDirection.Right),
-                LaserPath((-1..-1).map { Pos(4, it) }, LaserDirection.Up),
+                LaserPath((1..4).map { Pos(it, 0) }, Direction.Right),
+                LaserPath((-1..-1).map { Pos(4, it) }, Direction.Up),
             ), result.laserPaths
         )
     }
@@ -75,9 +75,9 @@ class ResolveLasersTest {
         assertEquals(mapOf(r2.id to 9), result.remainingHealthOfDamagedRobots)
         assertEquals(
             setOf(
-                LaserPath((1..3).map { Pos(it, 0) }, LaserDirection.Right),
-                LaserPath((1..1).map { Pos(3, it) }, LaserDirection.Down),
-                LaserPath((-1..-1).map { Pos(4, it) }, LaserDirection.Up),
+                LaserPath((1..3).map { Pos(it, 0) }, Direction.Right),
+                LaserPath((1..1).map { Pos(3, it) }, Direction.Down),
+                LaserPath((-1..-1).map { Pos(4, it) }, Direction.Up),
             ), result.laserPaths
         )
     }
@@ -97,8 +97,8 @@ class ResolveLasersTest {
         assertEquals(emptyMap(), result.remainingHealthOfDamagedRobots)
         assertEquals(
             setOf(
-                LaserPath(listOf(Pos(1, 0)), LaserDirection.Right),
-                LaserPath((1..1).map { Pos(2, it) }, LaserDirection.Down),
+                LaserPath(listOf(Pos(1, 0)), Direction.Right),
+                LaserPath((1..1).map { Pos(2, it) }, Direction.Down),
             ), result.laserPaths
         )
     }
@@ -178,8 +178,8 @@ class ResolveLasersTest {
 
         assertEquals(
             setOf(
-                LaserPath((3..5).map { Pos(it, 0) }, LaserDirection.Right),
-                LaserPath((0..2).map { Pos(it, 0) }, LaserDirection.Right),
+                LaserPath((3..5).map { Pos(it, 0) }, Direction.Right),
+                LaserPath((0..2).map { Pos(it, 0) }, Direction.Right),
             ),
             result.laserPaths
         )
@@ -208,8 +208,8 @@ class ResolveLasersTest {
 
         assertEquals(
             setOf(
-                LaserPath((1..5).map { Pos(it, 0) }, LaserDirection.Right),
-                LaserPath((0..0).map { Pos(it, 0) }, LaserDirection.Right),
+                LaserPath((1..5).map { Pos(it, 0) }, Direction.Right),
+                LaserPath((0..0).map { Pos(it, 0) }, Direction.Right),
             ),
             result.laserPaths
         )

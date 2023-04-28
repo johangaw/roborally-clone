@@ -7,13 +7,13 @@ fun GameModel.resolveLasers(): LaserResolutionResult {
         .mapNotNull { robot ->
             laserPath(robot.pos, robot.dir, targetRobotAtStartPosition = false)
                 .takeIf { it.isNotEmpty() }
-                ?.let { LaserPath(it, laserDirection(robot.pos, it.first())) }
+                ?.let { LaserPath(it, robot.dir) }
         }
         .plus(
             course.laserCannons.mapNotNull { cannon ->
                 laserPath(cannon.pos, cannon.dir, targetRobotAtStartPosition = true)
                     .takeIf { it.isNotEmpty() }
-                    ?.let { LaserPath(it, cannon.dir.toLaserDirection()) }
+                    ?.let { LaserPath(it, cannon.dir) }
             }
         )
         .toSet()
@@ -35,17 +35,6 @@ fun GameModel.resolveLasers(): LaserResolutionResult {
         hitRobots.mapValues { (_, data) -> data.health },
         laserPaths,
     )
-}
-
-fun laserDirection(robotPos: Pos, beginningOfLaserPath: Pos): LaserDirection {
-    val dx = beginningOfLaserPath.x - robotPos.x
-    val dy = beginningOfLaserPath.y - robotPos.y
-    return if (dx == 0)
-        if (dy > 0) LaserDirection.Down
-        else LaserDirection.Up
-    else
-        if (dx > 0) LaserDirection.Right
-        else LaserDirection.Left
 }
 
 private data class DamagedRobot(
@@ -76,20 +65,4 @@ data class LaserResolutionResult(
 
 data class LockedRegister(val index: Int, val card: ActionCard)
 
-enum class LaserDirection {
-    Right,
-    Left,
-    Down,
-    Up
-}
-
-fun Direction.toLaserDirection(): LaserDirection =
-    when (this) {
-        Direction.Up -> LaserDirection.Up
-        Direction.Down -> LaserDirection.Down
-        Direction.Right -> LaserDirection.Right
-        Direction.Left -> LaserDirection.Left
-    }
-
-
-data class LaserPath(val path: List<Pos>, val dir: LaserDirection)
+data class LaserPath(val path: List<Pos>, val dir: Direction)

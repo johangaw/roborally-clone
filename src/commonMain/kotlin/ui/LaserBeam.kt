@@ -5,7 +5,7 @@ import com.soywiz.korim.color.*
 import com.soywiz.korma.geom.*
 import gamemodel.*
 
-class LaserBeam(cellSize: Double, length: Int, dir: LaserDirection) :
+class LaserBeam(cellSize: Double, length: Int, dir: Direction) :
     FixedSizeContainer(cellSize * length, cellSize) {
     init {
         val laserWidth = 5.0
@@ -20,10 +20,10 @@ class LaserBeam(cellSize: Double, length: Int, dir: LaserDirection) :
         }
 
         val angle = when (dir) {
-            LaserDirection.Right -> Angle.ZERO
-            LaserDirection.Left -> Angle.HALF
-            LaserDirection.Down -> Angle.QUARTER
-            LaserDirection.Up -> Angle.QUARTER + Angle.HALF
+            Direction.Right -> Angle.ZERO
+            Direction.Left -> Angle.HALF
+            Direction.Down -> Angle.QUARTER
+            Direction.Up -> Angle.QUARTER + Angle.HALF
         }
 
         setTransform(
