@@ -4,12 +4,18 @@ import com.soywiz.korge.view.*
 import com.soywiz.korma.geom.*
 import gamemodel.*
 
-class LaserCannonView(bitmapCache: BitmapCache, dir: Direction) : Container() {
+class LaserCannonView(bitmapCache: BitmapCache, dir: Direction, power: Int) : Container() {
 
     private val baseSize: Double = 128.0
 
     init {
-        image(bitmapCache.laserCannonX1) {
+        val bitmap = when(power) {
+            1 -> bitmapCache.laserCannonX1
+            2 -> bitmapCache.laserCannonX2
+            3 -> bitmapCache.laserCannonX3
+            else -> throw IllegalArgumentException("LaserCannon with power=$power is not supported")
+        }
+        image(bitmap) {
             setSize(baseSize, baseSize)
             val angle = when (dir) {
                 Direction.Up -> Angle.HALF
@@ -32,7 +38,8 @@ class LaserCannonView(bitmapCache: BitmapCache, dir: Direction) : Container() {
 fun Container.laserCannonView(
     bitmapCache: BitmapCache,
     dir: Direction,
+    power: Int,
     callback: LaserCannonView.() -> Unit = {},
-): LaserCannonView = LaserCannonView(bitmapCache, dir)
+): LaserCannonView = LaserCannonView(bitmapCache, dir, power)
     .addTo(this)
     .apply(callback)

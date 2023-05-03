@@ -41,7 +41,7 @@ class CourseView(val course: Course, bitmapCache: BitmapCache, showStartPosition
         }
 
         course.laserCannons.forEach {
-            laserCannonView(bitmapCache, it.dir) {
+            laserCannonView(bitmapCache, it.dir, it.power) {
                 setSizeScaled(cellSize, cellSize)
                 position(getPoint(it.pos))
             }

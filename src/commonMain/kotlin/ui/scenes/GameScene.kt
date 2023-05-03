@@ -81,9 +81,11 @@ class GameScene(var gameModel: GameModel) : Scene() {
                     Key.F -> {
                         val result = gameModel.resolveLasers()
                         animate {
-                            animateLasers(RoundResolution.LaserResolution(
-                                result.laserPaths, result.remainingHealthOfDamagedRobots
-                            ))
+                            animateLasers(
+                                RoundResolution.LaserResolution(
+                                    result.laserPaths, result.remainingHealthOfDamagedRobots
+                                )
+                            )
                         }
                     }
 
@@ -284,13 +286,14 @@ class GameScene(var gameModel: GameModel) : Scene() {
     }
 
     private fun Animator.animateLasers(resolution: RoundResolution.LaserResolution) {
-        val beams = resolution.laserPaths.map {
-            LaserBeam(courseView.cellSize, it.path.size, it.dir).apply {
-                alpha = 0.0
-                addTo(this@GameScene.sceneContainer)
-                position(robotPosition(it.path.first(), pos))
+        val beams = resolution.laserPaths
+            .map {
+                LaserBeamView(courseView.cellSize, it.path.size, it.dir, it.power).apply {
+                    alpha = 0.0
+                    addTo(this@GameScene.sceneContainer)
+                    position(robotPosition(it.path.first(), pos))
+                }
             }
-        }
         val damagedRobots = resolution.remainingHealthOfDamagedRobots.keys.map { robots.getValue(it) }
         val time = 500.milliseconds
         sequence {

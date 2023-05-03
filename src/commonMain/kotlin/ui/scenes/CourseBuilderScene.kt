@@ -14,9 +14,7 @@ import java.lang.Exception
 import kotlin.math.*
 
 enum class ConveyorBeltControlElementType(val iconType: ConveyorBeltType) {
-    Straight(gamemodel.ConveyorBeltType.Right),
-    RightTurn(gamemodel.ConveyorBeltType.RightAndDown),
-    LeftTurn(gamemodel.ConveyorBeltType.RightAndUp)
+    Straight(gamemodel.ConveyorBeltType.Right), RightTurn(gamemodel.ConveyorBeltType.RightAndDown), LeftTurn(gamemodel.ConveyorBeltType.RightAndUp)
 }
 
 sealed class ControlElement(val rotatable: Boolean) {
@@ -24,7 +22,7 @@ sealed class ControlElement(val rotatable: Boolean) {
 
     object Wall : ControlElement(true)
 
-    object LaserCannon : ControlElement(true)
+    data class LaserCannon(val power: Int) : ControlElement(true)
 
     data class Checkpoint(val id: CheckpointId) : ControlElement(false)
 
@@ -68,45 +66,43 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
 
             controlElementViews = emptyList<Pair<ControlElement, RoundRect>>()
                 .asSequence()
-                .plus(
-                    ConveyorBeltControlElementType
-                        .values()
-                        .map { ControlElement.ConveyorBelt(it) }
-                        .map {
-                            it to controlPanelElement(it) {
-                                conveyorBeltView(it.type.iconType, bitmapCache) {
-                                    setSizeScaled(50.0, 50.0)
-                                    centerOn(parent!!)
-                                }
-                            }
-                        }
+                .plus(ConveyorBeltControlElementType
+                          .values()
+                          .map { ControlElement.ConveyorBelt(it) }
+                          .map {
+                              it to controlPanelElement(it) {
+                                  conveyorBeltView(it.type.iconType, bitmapCache) {
+                                      setSizeScaled(50.0, 50.0)
+                                      centerOn(parent!!)
+                                  }
+                              }
+                          }
 
                 )
-                .plus(
-                    ControlElement.Wall to controlPanelElement(ControlElement.Wall) {
-                        image(bitmapCache.floor) {
-                            setSizeScaled(50.0, 50.0)
-                            centerOn(parent!!)
-                        }
-                        wallView(bitmapCache, Direction.Right) {
-                            setSizeScaled(50.0, 50.0)
-                            centerOn(parent!!)
-                        }
-                    })
-                .plus(
-                    ControlElement.LaserCannon.let {
-                        it to controlPanelElement(it) {
-                            image(bitmapCache.floor) {
-                                setSizeScaled(50.0, 50.0)
-                                centerOn(parent!!)
-                            }
-                            laserCannonView(bitmapCache, Direction.Right) {
-                                setSizeScaled(50.0, 50.0)
-                                centerOn(parent!!)
-                            }
-                        }
+                .plus(ControlElement.Wall to controlPanelElement(ControlElement.Wall) {
+                    image(bitmapCache.floor) {
+                        setSizeScaled(50.0, 50.0)
+                        centerOn(parent!!)
                     }
-                )
+                    wallView(bitmapCache, Direction.Right) {
+                        setSizeScaled(50.0, 50.0)
+                        centerOn(parent!!)
+                    }
+                })
+                .plus((1..3)
+                          .map { ControlElement.LaserCannon(it) }
+                          .map {
+                              it to controlPanelElement(it) {
+                                  image(bitmapCache.floor) {
+                                      setSizeScaled(50.0, 50.0)
+                                      centerOn(parent!!)
+                                  }
+                                  laserCannonView(bitmapCache, Direction.Right, it.power) {
+                                      setSizeScaled(50.0, 50.0)
+                                      centerOn(parent!!)
+                                  }
+                              }
+                          })
                 .plus((1..6)
                           .map { CheckpointId(it) }
                           .map {
@@ -244,13 +240,14 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
         }
     }
 
-    @Suppress("UNUSED_PARAMETER")
     private fun handlePosClick(pos: Pos, dir: Direction, element: ControlElement.LaserCannon) {
-        val cannon = LaserCannon(pos, dir, 1)
+        val newCannon = LaserCannon(pos, dir, element.power)
+        val cannonAtPos = course.laserCannons.firstOrNull { it.pos == pos }
 
         course = course.copy(
-            laserCannons = if (cannon in course.laserCannons) course.laserCannons - cannon
-            else course.laserCannons + cannon
+            laserCannons = if (cannonAtPos == newCannon) course.laserCannons - cannonAtPos
+            else if(cannonAtPos != null) course.laserCannons - cannonAtPos + newCannon
+            else course.laserCannons + newCannon
         )
     }
 
@@ -310,7 +307,7 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
         }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun handlePosClick(pos: Pos, dir: Direction, π: ControlElement.Wall) {
+    private fun handlePosClick(pos: Pos, dir: Direction, element: ControlElement.Wall) {
         val newWall = Wall(pos, dir)
         val previousWall = course.walls.firstOrNull { wall: Wall -> wall.pos == newWall.pos && wall.dir == newWall.dir }
         course = course.copy(
