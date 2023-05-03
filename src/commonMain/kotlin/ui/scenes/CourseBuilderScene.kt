@@ -7,21 +7,29 @@ import com.soywiz.korge.scene.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
 import com.soywiz.korio.async.*
+import com.soywiz.korma.geom.*
 import gamemodel.*
 import ui.*
 import java.lang.Exception
 import kotlin.math.*
 
-sealed class ControlElement {
-    data class ConveyorBelt(val type: ConveyorBeltType) : ControlElement()
+enum class ConveyorBeltControlElementType(val iconType: ConveyorBeltType) {
+    Straight(gamemodel.ConveyorBeltType.Right),
+    RightTurn(gamemodel.ConveyorBeltType.RightAndDown),
+    LeftTurn(gamemodel.ConveyorBeltType.RightAndUp)
+}
 
-    data class Wall(val dir: Direction) : ControlElement()
+sealed class ControlElement(val rotatable: Boolean) {
+    data class ConveyorBelt(val type: ConveyorBeltControlElementType) : ControlElement(true)
 
-    data class Checkpoint(val id: CheckpointId) : ControlElement()
+    object Wall : ControlElement(true)
 
-    data class Start(val order: Int) : ControlElement()
+    object LaserCannon : ControlElement(true)
 
-    data class LaserCannon(val dir: Direction) : ControlElement()
+    data class Checkpoint(val id: CheckpointId) : ControlElement(false)
+
+    data class Start(val order: Int) : ControlElement(false)
+
 }
 
 class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
@@ -31,6 +39,8 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
     private lateinit var controlElementViews: Map<ControlElement, RoundRect>
     private var courseView: View? = null
     private var selectedControlElement: ControlElement? = null
+    private var controlElementDirection: Direction = Direction.Right
+
     var course: Course = initialCourse ?: Course(0, 0)
         private set(value) {
             field = value
@@ -57,45 +67,46 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
             alignLeftToLeftOf(this@sceneInit)
 
             controlElementViews = emptyList<Pair<ControlElement, RoundRect>>()
-                .plus(ConveyorBeltType
-                          .values()
-                          .map { type ->
-                              ControlElement.ConveyorBelt(type) to controlPanelElement(ControlElement.ConveyorBelt(type)) {
-                                  conveyorBeltView(type, bitmapCache) {
-                                      setSizeScaled(50.0, 50.0)
-                                      centerOn(parent!!)
-                                  }
-                              }
-                          })
-                .plus(Direction
-                          .values()
-                          .map { dir ->
-                              ControlElement.Wall(dir) to controlPanelElement(ControlElement.Wall(dir)) {
-                                  image(bitmapCache.floor) {
-                                      setSizeScaled(50.0, 50.0)
-                                      centerOn(parent!!)
-                                  }
-                                  wallView(bitmapCache, dir) {
-                                      setSizeScaled(50.0, 50.0)
-                                      centerOn(parent!!)
-                                  }
-                              }
-                          })
-                .plus(Direction
-                          .values()
-                          .map { ControlElement.LaserCannon(it) }
-                          .map {
-                              it to controlPanelElement(it) {
-                                  image(bitmapCache.floor) {
-                                      setSizeScaled(50.0, 50.0)
-                                      centerOn(parent!!)
-                                  }
-                                  laserCannonView(bitmapCache, it.dir) {
-                                      setSizeScaled(50.0, 50.0)
-                                      centerOn(parent!!)
-                                  }
-                              }
-                          })
+                .asSequence()
+                .plus(
+                    ConveyorBeltControlElementType
+                        .values()
+                        .map { ControlElement.ConveyorBelt(it) }
+                        .map {
+                            it to controlPanelElement(it) {
+                                conveyorBeltView(it.type.iconType, bitmapCache) {
+                                    setSizeScaled(50.0, 50.0)
+                                    centerOn(parent!!)
+                                }
+                            }
+                        }
+
+                )
+                .plus(
+                    ControlElement.Wall to controlPanelElement(ControlElement.Wall) {
+                        image(bitmapCache.floor) {
+                            setSizeScaled(50.0, 50.0)
+                            centerOn(parent!!)
+                        }
+                        wallView(bitmapCache, Direction.Right) {
+                            setSizeScaled(50.0, 50.0)
+                            centerOn(parent!!)
+                        }
+                    })
+                .plus(
+                    ControlElement.LaserCannon.let {
+                        it to controlPanelElement(it) {
+                            image(bitmapCache.floor) {
+                                setSizeScaled(50.0, 50.0)
+                                centerOn(parent!!)
+                            }
+                            laserCannonView(bitmapCache, Direction.Right) {
+                                setSizeScaled(50.0, 50.0)
+                                centerOn(parent!!)
+                            }
+                        }
+                    }
+                )
                 .plus((1..6)
                           .map { CheckpointId(it) }
                           .map {
@@ -173,9 +184,28 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
                         printCourse()
                     }
 
+                    Key.R -> rotateControlElements()
+
                     else -> Unit
                 }
             }
+        }
+    }
+
+    private fun rotateControlElements() {
+        controlElementDirection = controlElementDirection.quoter()
+        controlElementViews.filter { it.key.rotatable }.values.forEach {
+
+            val dx = it.globalBounds.x + it.scaledWidth / 2
+            val dy = it.globalBounds.y + it.scaledHeight / 2
+
+            it.setTransform(
+                it.localMatrix
+                    .translate(-dx, -dy)
+                    .rotate(Angle.QUARTER)
+                    .translate(dx, dy)
+                    .toTransform()
+            )
         }
     }
 
@@ -205,17 +235,18 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
 
     private fun handlePosClick(pos: Pos) {
         when (val element = selectedControlElement) {
-            is ControlElement.ConveyorBelt -> handlePosClick(pos, element)
-            is ControlElement.Wall -> handlePosClick(pos, element)
+            is ControlElement.ConveyorBelt -> handlePosClick(pos, controlElementDirection, element)
+            is ControlElement.Wall -> handlePosClick(pos, controlElementDirection, element)
+            is ControlElement.LaserCannon -> handlePosClick(pos, controlElementDirection, element)
             is ControlElement.Checkpoint -> handlePosClick(pos, element)
             is ControlElement.Start -> handlePosClick(pos, element)
-            is ControlElement.LaserCannon -> handlePosClick(pos, element)
             null -> Unit
         }
     }
 
-    private fun handlePosClick(pos: Pos, element: ControlElement.LaserCannon) {
-        val cannon = LaserCannon(pos, element.dir, 1)
+    @Suppress("UNUSED_PARAMETER")
+    private fun handlePosClick(pos: Pos, dir: Direction, element: ControlElement.LaserCannon) {
+        val cannon = LaserCannon(pos, dir, 1)
 
         course = course.copy(
             laserCannons = if (cannon in course.laserCannons) course.laserCannons - cannon
@@ -244,8 +275,9 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
             } else course.checkpoints.filter { it.id != element.id } + newCheckpoint)
     }
 
-    private fun handlePosClick(pos: Pos, element: ControlElement.ConveyorBelt) {
-        val newBelt = ConveyorBelt(element.type, ConveyorBeltSpeed.Regular)
+    private fun handlePosClick(pos: Pos, dir: Direction, element: ControlElement.ConveyorBelt) {
+
+        val newBelt = ConveyorBelt(getConveyorBeltType(dir, element), ConveyorBeltSpeed.Regular)
 
         course = course.copy(
             conveyorBelts = if (course.conveyorBelts[pos] == newBelt) course.conveyorBelts - pos
@@ -253,8 +285,33 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
         )
     }
 
-    private fun handlePosClick(pos: Pos, element: ControlElement.Wall) {
-        val newWall = Wall(pos, element.dir)
+    private fun getConveyorBeltType(dir: Direction, element: ControlElement.ConveyorBelt): ConveyorBeltType =
+        when (element.type) {
+            ConveyorBeltControlElementType.Straight -> when (dir) {
+                Direction.Up -> ConveyorBeltType.Up
+                Direction.Down -> ConveyorBeltType.Down
+                Direction.Right -> ConveyorBeltType.Right
+                Direction.Left -> ConveyorBeltType.Left
+            }
+
+            ConveyorBeltControlElementType.RightTurn -> when (dir) {
+                Direction.Right -> ConveyorBeltType.RightAndDown
+                Direction.Down -> ConveyorBeltType.DownAndLeft
+                Direction.Left -> ConveyorBeltType.LeftAndUp
+                Direction.Up -> ConveyorBeltType.UpAndRight
+            }
+
+            ConveyorBeltControlElementType.LeftTurn -> when (dir) {
+                Direction.Right -> ConveyorBeltType.RightAndUp
+                Direction.Down -> ConveyorBeltType.DownAndRight
+                Direction.Left -> ConveyorBeltType.LeftAndDown
+                Direction.Up -> ConveyorBeltType.UpAndLeft
+            }
+        }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun handlePosClick(pos: Pos, dir: Direction, π: ControlElement.Wall) {
+        val newWall = Wall(pos, dir)
         val previousWall = course.walls.firstOrNull { wall: Wall -> wall.pos == newWall.pos && wall.dir == newWall.dir }
         course = course.copy(
             walls = if (previousWall != null) course.walls - previousWall

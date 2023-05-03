@@ -1,27 +1,65 @@
-import com.soywiz.klock.seconds
+import com.soywiz.korev.*
+import com.soywiz.korge.input.*
 import com.soywiz.korge.scene.Scene
-import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
+import com.soywiz.korim.color.*
 import com.soywiz.korim.format.readBitmap
 import com.soywiz.korio.file.std.resourcesVfs
-import com.soywiz.korma.geom.degrees
-import com.soywiz.korma.interpolation.Easing
+import com.soywiz.korma.geom.*
 
 class MyScene : Scene() {
-	override suspend fun SContainer.sceneMain() {
-		val minDegrees = (-16).degrees
-		val maxDegrees = (+16).degrees
+    private lateinit var img2: RoundRect
 
-		val image = image(resourcesVfs["korge.png"].readBitmap()) {
-			rotation = maxDegrees
-			anchor(.5, .5)
-			scale(0.8)
-			position(256, 256)
-		}
+    override suspend fun SContainer.sceneMain() {
 
-		while (true) {
-			image.tween(image::rotation[minDegrees], time = 1.seconds, easing = Easing.EASE_IN_OUT)
-			image.tween(image::rotation[maxDegrees], time = 1.seconds, easing = Easing.EASE_IN_OUT)
-		}
-	}
+        val img1 = solidRect(120.0, 120.0, Colors.RED)
+        img2 = roundRect(120.0, 120.0, 0.0) {
+            zIndex = 1.0
+            alignLeftToRightOf(img1)
+
+            image(resourcesVfs["korge.png"].readBitmap()) {
+                scaledWidth = 120.0
+                scaledHeight = 120.0
+
+            }
+
+            val dx = localMatrix.tx + scaledWidth / 2
+            val dy = localMatrix.ty + scaledHeight / 2
+            setTransform(
+                localMatrix
+                    .copy()
+                    .translate(-dx, -dy)
+                    .rotate(Angle.QUARTER)
+                    .translate(dx, dy)
+                    .toTransform()
+            )
+        }
+        solidRect(120.0, 120.0, Colors.RED) {
+            alignLeftToRightOf(img2)
+        }
+
+        keys {
+            down {
+                when (it.key) {
+                    Key.R -> {
+                        img2.apply {
+                            val dx = this.globalBounds.x + scaledWidth / 2
+                            val dy = this.globalBounds.y + scaledHeight / 2
+
+                            setTransform(
+                                localMatrix
+                                    .copy()
+                                    .translate(-dx, -dy)
+                                    .rotate(Angle.QUARTER)
+                                    .translate(dx, dy)
+                                    .toTransform()
+                            )
+                        }
+                    }
+
+                    else -> Unit
+                }
+            }
+        }
+    }
 }
