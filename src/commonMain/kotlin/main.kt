@@ -10,7 +10,7 @@ suspend fun main() = Korge(width = 1024, height = 1024, bgcolor = Colors["#2b2b2
     val course1Game = setupGame(PreBuildCourse.Course1, playerCount = 1)
     val sceneContainer = sceneContainer()
 
-    sceneContainer.changeTo({ GameScene(course1Game) })
+    sceneContainer.changeTo({ GameScene(setupGame(loadCourseBuilderAutoSave(), 1)) })
 
     keys {
         down {
