@@ -18,7 +18,8 @@ enum class ConveyorBeltControlElementType(val iconType: ConveyorBeltType) {
 }
 
 sealed class ControlElement(val rotatable: Boolean) {
-    data class ConveyorBelt(val type: ConveyorBeltControlElementType) : ControlElement(true)
+    data class ConveyorBelt(val type: ConveyorBeltControlElementType, val speed: ConveyorBeltSpeed) :
+        ControlElement(true)
 
     object Wall : ControlElement(true)
 
@@ -66,18 +67,17 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
 
             controlElementViews = emptyList<Pair<ControlElement, RoundRect>>()
                 .asSequence()
-                .plus(ConveyorBeltControlElementType
-                          .values()
-                          .map { ControlElement.ConveyorBelt(it) }
+                .plus(ConveyorBeltControlElementType.values().toList()
+                          .cartesianProduct(ConveyorBeltSpeed.values().toList())
+                          .map { ControlElement.ConveyorBelt(it.first, it.second) }
                           .map {
                               it to controlPanelElement(it) {
-                                  conveyorBeltView(it.type.iconType, bitmapCache) {
+                                  conveyorBeltView(it.type.iconType, it.speed, bitmapCache) {
                                       setSizeScaled(50.0, 50.0)
                                       centerOn(parent!!)
                                   }
                               }
                           }
-
                 )
                 .plus(ControlElement.Wall to controlPanelElement(ControlElement.Wall) {
                     image(bitmapCache.floor) {
@@ -246,7 +246,7 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
 
         course = course.copy(
             laserCannons = if (cannonAtPos == newCannon) course.laserCannons - cannonAtPos
-            else if(cannonAtPos != null) course.laserCannons - cannonAtPos + newCannon
+            else if (cannonAtPos != null) course.laserCannons - cannonAtPos + newCannon
             else course.laserCannons + newCannon
         )
     }
@@ -274,7 +274,7 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
 
     private fun handlePosClick(pos: Pos, dir: Direction, element: ControlElement.ConveyorBelt) {
 
-        val newBelt = ConveyorBelt(getConveyorBeltType(dir, element), ConveyorBeltSpeed.Regular)
+        val newBelt = ConveyorBelt(getConveyorBeltType(dir, element), element.speed)
 
         course = course.copy(
             conveyorBelts = if (course.conveyorBelts[pos] == newBelt) course.conveyorBelts - pos

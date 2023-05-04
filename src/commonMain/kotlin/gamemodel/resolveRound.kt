@@ -9,7 +9,8 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
     val phases = 1..programming.values.maxOf { it.size }
     return programming
         .map { (id, cards) -> cards.map { ResolveActionCard(id, it) } }
-        .plus(listOf(phases.map { ResolveConveyorBelts }))
+        .plus(listOf(phases.map { ResolveExpressConveyorBelts }))
+        .plus(listOf(phases.map { ResolveAllConveyorBelts }))
         .plus(listOf(phases.map { ResolveLasers }))
         .plus(listOf(phases.map { ResolveCheckpoints }))
         .plus(listOf(phases.map { CheckForWinner }))
@@ -90,8 +91,8 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
                         )
                     }
 
-                ResolveConveyorBelts -> current.gameModel
-                    .resolveConveyorBelts()
+                ResolveAllConveyorBelts -> current.gameModel
+                    .resolveAllConveyorBelts()
                     .let {
                         RoundResolutionResult(
                             gameModel = it.gameModel,
@@ -99,6 +100,21 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
                                 it.movedRobots,
                                 it.rotatedRobots,
                                 it.remainingHealthOfFallenRobots,
+                                it.activatedPositions
+                            ),
+                        )
+                    }
+
+                ResolveExpressConveyorBelts -> current.gameModel
+                    .resolveExpressConveyorBelts()
+                    .let {
+                        RoundResolutionResult(
+                            gameModel = it.gameModel,
+                            resolutions = current.resolutions + ConveyorBeltsResolution(
+                                it.movedRobots,
+                                it.rotatedRobots,
+                                it.remainingHealthOfFallenRobots,
+                                it.activatedPositions
                             ),
                         )
                     }
@@ -169,7 +185,8 @@ private fun List<RoundStep>.sort(): List<RoundStep> =
             ResolveCheckpoints -> Int.MAX_VALUE
             ResolveLasers -> Int.MAX_VALUE
             CheckForWinner -> Int.MAX_VALUE
-            ResolveConveyorBelts -> Int.MAX_VALUE
+            ResolveAllConveyorBelts -> Int.MAX_VALUE
+            ResolveExpressConveyorBelts -> Int.MAX_VALUE
             WipeRegisters -> throw AssertionError("WipeRegisters should not be sorted with other RoundSteps")
             DealCards -> throw AssertionError("DealCards should not be sorted with other RoundSteps")
             RespawnRobots -> throw AssertionError("RespawnRobots should not be sorted with other RoundSteps")
@@ -187,7 +204,9 @@ private sealed class RoundStep {
 
     object ResolveCheckpoints : RoundStep()
 
-    object ResolveConveyorBelts : RoundStep()
+    object ResolveAllConveyorBelts : RoundStep()
+
+    object ResolveExpressConveyorBelts : RoundStep()
 
     object ResolveLasers : RoundStep()
 
@@ -215,6 +234,7 @@ sealed class RoundResolution {
         val movedRobots: Map<RobotId, Pos>,
         val rotatedRobots: Map<RobotId, Direction>,
         val remainingHealthOfFallenRobots: Map<RobotId, Int>,
+        val activatedPositions: Set<Pos>,
     ) :
         RoundResolution()
 

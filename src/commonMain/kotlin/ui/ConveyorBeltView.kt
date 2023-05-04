@@ -5,37 +5,36 @@ import com.soywiz.korma.geom.*
 import gamemodel.*
 import gamemodel.ConveyorBeltType.*
 
-class ConveyorBeltView(type: ConveyorBeltType, bitmapCache: BitmapCache): Container() {
+class ConveyorBeltView(type: ConveyorBeltType, speed: ConveyorBeltSpeed, bitmapCache: BitmapCache) : Container() {
 
     private val baseSize: Double = 128.0
+
     init {
-        val bitmap = when(type) {
-            Up -> bitmapCache.conveyorBelt
-            Right -> bitmapCache.conveyorBelt
-            Left -> bitmapCache.conveyorBelt
-            Down -> bitmapCache.conveyorBelt
-            RightAndDown -> bitmapCache.conveyorBeltTurnClockwise
-            DownAndLeft -> bitmapCache.conveyorBeltTurnClockwise
-            LeftAndUp -> bitmapCache.conveyorBeltTurnClockwise
-            UpAndRight -> bitmapCache.conveyorBeltTurnClockwise
-            RightAndUp -> bitmapCache.conveyorBeltTurnCounterClockwise
-            UpAndLeft -> bitmapCache.conveyorBeltTurnCounterClockwise
-            LeftAndDown -> bitmapCache.conveyorBeltTurnCounterClockwise
-            DownAndRight -> bitmapCache.conveyorBeltTurnCounterClockwise
+        val bitmap = when (speed) {
+            ConveyorBeltSpeed.Regular -> when (type) {
+                Down, Left, Up, Right -> bitmapCache.conveyorBelt
+                UpAndRight, LeftAndUp, RightAndDown, DownAndLeft -> bitmapCache.conveyorBeltTurnClockwise
+                DownAndRight, LeftAndDown, UpAndLeft, RightAndUp -> bitmapCache.conveyorBeltTurnCounterClockwise
+            }
+            ConveyorBeltSpeed.Express -> when (type) {
+                Down, Left, Up, Right -> bitmapCache.expressConveyorBelt
+                UpAndRight, LeftAndUp, RightAndDown, DownAndLeft -> bitmapCache.expressConveyorBeltTurnClockwise
+                DownAndRight, LeftAndDown, UpAndLeft, RightAndUp -> bitmapCache.expressConveyorBeltTurnCounterClockwise
+            }
         }
 
         image(bitmap) {
             size(baseSize, baseSize)
-            val angle = when(type) {
+            val angle = when (type) {
                 Up -> -Angle.QUARTER
                 Right -> Angle.ZERO
                 Left -> Angle.HALF
                 Down -> Angle.QUARTER
 
                 RightAndDown -> Angle.QUARTER
-                DownAndLeft-> Angle.HALF
-                LeftAndUp-> -Angle.QUARTER
-                UpAndRight-> Angle.ZERO
+                DownAndLeft -> Angle.HALF
+                LeftAndUp -> -Angle.QUARTER
+                UpAndRight -> Angle.ZERO
 
                 RightAndUp -> Angle.QUARTER
                 UpAndLeft -> Angle.ZERO
@@ -54,5 +53,12 @@ class ConveyorBeltView(type: ConveyorBeltType, bitmapCache: BitmapCache): Contai
     }
 }
 
-fun Container.conveyorBeltView(type: ConveyorBeltType, bitmapCache: BitmapCache, callback: ConveyorBeltView.() -> Unit = {}) =
-    ConveyorBeltView(type, bitmapCache).addTo(this).apply(callback)
+fun Container.conveyorBeltView(
+    type: ConveyorBeltType,
+    speed: ConveyorBeltSpeed,
+    bitmapCache: BitmapCache,
+    callback: ConveyorBeltView.() -> Unit = {},
+) =
+    ConveyorBeltView(type, speed, bitmapCache)
+        .addTo(this)
+        .apply(callback)

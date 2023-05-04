@@ -27,7 +27,7 @@ class CourseView(val course: Course, bitmapCache: BitmapCache, showStartPosition
         }
 
         conveyorBelts = course.conveyorBelts.mapValues {(pos, belt) ->
-            conveyorBeltView(belt.type, bitmapCache) {
+            conveyorBeltView(belt.type, belt.speed, bitmapCache) {
                 setSizeScaled(cellSize, cellSize)
                 position(getPoint(pos))
             }

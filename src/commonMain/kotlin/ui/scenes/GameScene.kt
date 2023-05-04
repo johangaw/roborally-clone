@@ -169,11 +169,16 @@ class GameScene(var gameModel: GameModel) : Scene() {
                     val newPos = robotPosition(pos)
                     moveTo(viewRobot, newPos.x, newPos.y, easing = Easing.SMOOTH)
                 }
-                if (resolution.movedRobots.isNotEmpty()) courseView.conveyorBelts.values.forEach {
-                    shake(
-                        it,
-                        500.milliseconds
-                    )
+                if (resolution.movedRobots.isNotEmpty()) {
+                    courseView.conveyorBelts
+                        .filter { it.key in resolution.activatedPositions }
+                        .values
+                        .forEach {
+                            shake(
+                                it,
+                                500.milliseconds
+                            )
+                        }
                 }
             }
             parallel {

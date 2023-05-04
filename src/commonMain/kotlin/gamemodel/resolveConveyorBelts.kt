@@ -1,17 +1,22 @@
 package gamemodel
 
-fun GameModel.resolveConveyorBelts(): ConveyorBeltsResolutionResult {
+fun GameModel.resolveAllConveyorBelts() = resolveConveyorBelts(course.conveyorBelts)
+
+fun GameModel.resolveExpressConveyorBelts() =
+    resolveConveyorBelts(course.conveyorBelts.filter { it.value.speed == ConveyorBeltSpeed.Express })
+
+private fun GameModel.resolveConveyorBelts(conveyorBelts: Map<Pos, ConveyorBelt>): ConveyorBeltsResolutionResult {
 
     val movedRobots = robots
-        .withConveyorBelt(this)
+        .withConveyorBelt(conveyorBelts)
         .withNewPosition()
         .removeMovementsToSamePos()
-        .removeMovementsThroughAnotherRobot(this)
+        .removeMovementsThroughAnotherRobot(this, conveyorBelts)
         .removeMovementsThroughWalls(this)
         .removeMovementsBlockedByStationaryRobot(this)
 
     val rotatedRobots = movedRobots
-        .withNewConveyorBelt(this)
+        .withNewConveyorBelt(conveyorBelts)
         .removeBeltsWithoutRotation()
         .rotateRobots()
 
@@ -28,6 +33,7 @@ fun GameModel.resolveConveyorBelts(): ConveyorBeltsResolutionResult {
         movedRobots.associate { (robot, pos) -> robot.id to pos },
         rotatedRobots.associate { (robot, dir) -> robot.id to dir },
         robotPartition.destroyed.associate { it.id to it.health },
+        conveyorBelts.keys
     )
 }
 
@@ -43,7 +49,7 @@ private data class DestroyedRunningPartition(
 
 private fun List<Robot>.partitionRunning(gameModel: GameModel) =
     partition { gameModel.course.isMissingFloor(it.pos) }
-    .let { DestroyedRunningPartition(it.first, it.second) }
+        .let { DestroyedRunningPartition(it.first, it.second) }
 
 private fun List<Robot>.applyUpdates(
     movedRobots: List<Pair<Robot, Pos>>,
@@ -59,8 +65,8 @@ private fun List<Robot>.applyUpdates(
     }
 }
 
-private fun List<Robot>.withConveyorBelt(gameModel: GameModel) =
-    mapNotNull { robot -> gameModel.course.conveyorBelts[robot.pos]?.let { belt -> robot to belt } }
+private fun List<Robot>.withConveyorBelt(conveyorBelts: Map<Pos, ConveyorBelt>) =
+    mapNotNull { robot -> conveyorBelts[robot.pos]?.let { belt -> robot to belt } }
 
 private fun List<Pair<Robot, ConveyorBelt>>.withNewPosition() =
     map { (robot, belt) -> robot to robot.pos + belt.type.transportDirection }
@@ -72,10 +78,13 @@ private fun List<Pair<Robot, Pos>>.removeMovementsToSamePos() = let { list ->
     list.filter { (_, newPos) -> numberOfRobotsMovedToPos.getValue(newPos) == 1 }
 }
 
-private fun List<Pair<Robot, Pos>>.removeMovementsThroughAnotherRobot(gameModel: GameModel) = let { list ->
+private fun List<Pair<Robot, Pos>>.removeMovementsThroughAnotherRobot(
+    gameModel: GameModel,
+    conveyorBelts: Map<Pos, ConveyorBelt>,
+) = let { list ->
     val movingThroughAnotherRobot: (Pair<Robot, Pos>) -> Boolean = { (robot, newPos) ->
-        val robotsBelt = gameModel.course.conveyorBelts[robot.pos]
-        val otherRobotsBelt = gameModel.course.conveyorBelts[newPos]
+        val robotsBelt = conveyorBelts[robot.pos]
+        val otherRobotsBelt = conveyorBelts[newPos]
         gameModel.robotAt(newPos) != null && robotsBelt !== null && otherRobotsBelt != null && robotsBelt.type.transportDirection == otherRobotsBelt.type.transportDirection.opposite()
     }
     list.filter { !movingThroughAnotherRobot(it) }
@@ -101,8 +110,8 @@ private fun List<Pair<Robot, Pos>>.removeMovementsBlockedByStationaryRobot(gameM
 private fun List<Pair<Robot, Pos>>.robotIds() = map { it.first.id }.toSet()
 
 
-fun List<Pair<Robot, Pos>>.withNewConveyorBelt(gameModel: GameModel) =
-    mapNotNull { (robot, newPos) -> gameModel.course.conveyorBelts[newPos]?.let { robot to it } }
+fun List<Pair<Robot, Pos>>.withNewConveyorBelt(conveyorBelts: Map<Pos, ConveyorBelt>) =
+    mapNotNull { (robot, newPos) -> conveyorBelts[newPos]?.let { robot to it } }
 
 fun List<Pair<Robot, ConveyorBelt>>.removeBeltsWithoutRotation() =
     filter { (_, belt) -> belt.type.rotation != Rotation.None }
@@ -129,4 +138,5 @@ data class ConveyorBeltsResolutionResult(
     val movedRobots: Map<RobotId, Pos>,
     val rotatedRobots: Map<RobotId, Direction>,
     val remainingHealthOfFallenRobots: Map<RobotId, Int>,
+    val activatedPositions: Set<Pos>,
 )
