@@ -11,6 +11,7 @@ data class Course(
     val checkpoints: List<Checkpoint> = emptyList(),
     val starts: List<Start> = emptyList(),
     val laserCannons: List<LaserCannon> = emptyList(),
+    val pits: Set<Pos> = emptySet(),
     val destroyedDamage: Int = 2
 ) {
     fun wallAt(pos: Pos, dir: Direction): Wall? {
@@ -21,7 +22,7 @@ data class Course(
     fun getCheckpoint(id: CheckpointId) =
         checkpoints.firstOrNull { it.id == id } ?: throw AssertionError("No checkpoint with id $id")
 
-    fun isMissingFloor(pos: Pos): Boolean = !isOnCourse(pos)
+    fun isMissingFloor(pos: Pos): Boolean = !isOnCourse(pos) || pos in pits
 
     fun isOnCourse(pos: Pos): Boolean = pos.x in 0 until width && pos.y in 0 until height
 

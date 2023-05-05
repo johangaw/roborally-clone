@@ -26,7 +26,25 @@ class CourseView(val course: Course, bitmapCache: BitmapCache, showStartPosition
             }
         }
 
-        conveyorBelts = course.conveyorBelts.mapValues {(pos, belt) ->
+        course.pits.forEach { pitPos ->
+            pitView(
+                SurroundingPits(
+                    upLeft = pitPos + Direction.Up + Direction.Left in course.pits,
+                    up = pitPos + Direction.Up in course.pits,
+                    upRight = pitPos + Direction.Up + Direction.Right in course.pits,
+                    left = pitPos + Direction.Left in course.pits,
+                    right = pitPos + Direction.Right in course.pits,
+                    downLeft = pitPos + Direction.Down + Direction.Left in course.pits,
+                    down = pitPos + Direction.Down in course.pits,
+                    downRight = pitPos + Direction.Down + Direction.Right in course.pits,
+                ), bitmapCache
+            ) {
+                setSizeScaled(cellSize, cellSize)
+                position(getPoint(pitPos))
+            }
+        }
+
+        conveyorBelts = course.conveyorBelts.mapValues { (pos, belt) ->
             conveyorBeltView(belt.type, belt.speed, bitmapCache) {
                 setSizeScaled(cellSize, cellSize)
                 position(getPoint(pos))
@@ -47,7 +65,7 @@ class CourseView(val course: Course, bitmapCache: BitmapCache, showStartPosition
             }
         }
 
-        if(showStartPositions)
+        if (showStartPositions)
             course.starts.forEach {
                 startView(it.order) {
                     setSizeScaled(cellSize, cellSize)
@@ -70,7 +88,12 @@ class CourseView(val course: Course, bitmapCache: BitmapCache, showStartPosition
     }
 }
 
-fun Container.courseView(course: Course, bitmapCache: BitmapCache, showStartPositions: Boolean = true, callback: CourseView.() -> Unit = {}) =
+fun Container.courseView(
+    course: Course,
+    bitmapCache: BitmapCache,
+    showStartPositions: Boolean = true,
+    callback: CourseView.() -> Unit = {},
+) =
     CourseView(course, bitmapCache, showStartPositions)
         .addTo(this)
         .apply(callback)

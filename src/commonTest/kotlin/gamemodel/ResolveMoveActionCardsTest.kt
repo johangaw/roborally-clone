@@ -276,4 +276,62 @@ class ResolveMoveActionCardsTest {
             result.steps
         )
     }
+
+    @Test
+    fun `when a robot moves into a pit, it is destroyed`() {
+        val model = gameModel(
+            """
+            +|+|+|+|+|+|+
+            + →         +
+        """.trimIndent()
+        ).mapCourse { _, course ->
+            course.copy(pits = setOf(Pos(1,0)))
+        }
+        val (r1) = model.robots
+        val expectedModel = model.copy(
+            robots = emptyList(),
+            destroyedRobots = listOf(r1.copy(pos = Pos(1, 0), health = 8))
+        )
+
+        val result = model.resolveActionCard(r1.id, ActionCard.MoveForward(1, 0))
+
+        assertIsMovementResult(result)
+        assertEquals(expectedModel, result.gameModel)
+        assertEquals(
+            listOf(MovementStep(
+                RobotMove(r1.id, Pos(1, 0)),
+                RobotFall(r1.id, 8),
+            )),
+            result.steps
+        )
+    }
+
+    @Test
+    fun `when a robot moves tries to move over a pit, it is destroyed and stops its movement in the pit`() {
+        val model = gameModel(
+            """
+            +|+|+|+|+|+|+
+            + →         +
+        """.trimIndent()
+        ).mapCourse { _, course ->
+            course.copy(pits = setOf(Pos(1,0)))
+        }
+        val (r1) = model.robots
+        val expectedModel = model.copy(
+            robots = emptyList(),
+            destroyedRobots = listOf(r1.copy(pos = Pos(1, 0), health = 8))
+        )
+
+        val result = model.resolveActionCard(r1.id, ActionCard.MoveForward(3, 0))
+
+        assertIsMovementResult(result)
+        assertEquals(expectedModel, result.gameModel)
+        assertEquals(
+            listOf(MovementStep(
+                RobotMove(r1.id, Pos(1, 0)),
+                RobotFall(r1.id, 8),
+            )),
+            result.steps
+        )
+    }
 }

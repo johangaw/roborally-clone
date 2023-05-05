@@ -29,6 +29,8 @@ sealed class ControlElement(val rotatable: Boolean) {
 
     data class Start(val order: Int) : ControlElement(false)
 
+    object Pit : ControlElement(false)
+
 }
 
 class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
@@ -67,8 +69,14 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
 
             controlElementViews = emptyList<Pair<ControlElement, RoundRect>>()
                 .asSequence()
-                .plus(ConveyorBeltControlElementType.values().toList()
-                          .cartesianProduct(ConveyorBeltSpeed.values().toList())
+                .plus(ConveyorBeltControlElementType
+                          .values()
+                          .toList()
+                          .cartesianProduct(
+                              ConveyorBeltSpeed
+                                  .values()
+                                  .toList()
+                          )
                           .map { ControlElement.ConveyorBelt(it.first, it.second) }
                           .map {
                               it to controlPanelElement(it) {
@@ -103,11 +111,19 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
                                   }
                               }
                           })
+                .plus(ControlElement.Pit.let {
+                    it to controlPanelElement(it) {
+                        pitView(SurroundingPits.ALONE_PIT, bitmapCache) {
+                            setSizeScaled(50.0, 50.0)
+                            centerOn(parent!!)
+                        }
+                    }
+                })
                 .plus((1..6)
-                          .map { CheckpointId(it) }
+                          .map { ControlElement.Checkpoint(CheckpointId(it)) }
                           .map {
-                              ControlElement.Checkpoint(it) to controlPanelElement(ControlElement.Checkpoint(it)) {
-                                  checkpointView(it, bitmapCache) {
+                              it to controlPanelElement(it) {
+                                  checkpointView(it.id, bitmapCache) {
                                       setSizeScaled(50.0, 50.0)
                                       centerOn(parent!!)
                                   }
@@ -236,8 +252,16 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
             is ControlElement.LaserCannon -> handlePosClick(pos, controlElementDirection, element)
             is ControlElement.Checkpoint -> handlePosClick(pos, element)
             is ControlElement.Start -> handlePosClick(pos, element)
+            is ControlElement.Pit -> handlePosClick(pos, element)
             null -> Unit
         }
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun handlePosClick(pos: Pos, element: ControlElement.Pit) {
+        course = course.copy(
+            pits = if (pos in course.pits) course.pits - pos else course.pits + pos
+        )
     }
 
     private fun handlePosClick(pos: Pos, dir: Direction, element: ControlElement.LaserCannon) {
