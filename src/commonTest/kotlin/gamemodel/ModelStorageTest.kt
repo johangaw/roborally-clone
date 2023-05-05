@@ -20,8 +20,8 @@ class ModelStorageTest {
 
     @Test
     fun `ensure serialisation of the game model works`() = suspendTest {
-        val gameModel = setupGame(PreBuildCourse.Course1, 6)
-        assertEquals(gameModel, deserializeGameModel(serialize(gameModel)))
+        val res = setupGame(PreBuildCourse.Course1, 6) as SetupGameResult.Success
+        assertEquals(res.gameModel, deserializeGameModel(serialize(res.gameModel)))
     }
 }
 
