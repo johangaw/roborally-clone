@@ -31,13 +31,15 @@ sealed class ControlElement(val rotatable: Boolean) {
 
     object Pit : ControlElement(false)
 
+    data class Gear(val rotation: Rotation) : ControlElement(false)
+
 }
 
 class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
 
     private lateinit var bitmapCache: BitmapCache
     private lateinit var coursePanel: Container
-    private lateinit var controlElementViews: Map<ControlElement, RoundRect>
+    private lateinit var controlElementViews: Map<ControlElement, RoundRect>  // TODO make this a list instead
     private var courseView: View? = null
     private var selectedControlElement: ControlElement? = null
     private var controlElementDirection: Direction = Direction.Right
@@ -111,6 +113,17 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
                                   }
                               }
                           })
+                .plus(
+                    listOf(Rotation.Clockwise, Rotation.CounterClockwise)
+                        .map { ControlElement.Gear(it) }
+                        .map {
+                            it to controlPanelElement(it) {
+                                gearView(it.rotation, bitmapCache) {
+                                    setSizeScaled(50.0, 50.0)
+                                    centerOn(parent!!)
+                                }
+                            }
+                        })
                 .plus(ControlElement.Pit.let {
                     it to controlPanelElement(it) {
                         pitView(SurroundingPits.ALONE_PIT, bitmapCache) {
@@ -250,11 +263,20 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
             is ControlElement.ConveyorBelt -> handlePosClick(pos, controlElementDirection, element)
             is ControlElement.Wall -> handlePosClick(pos, controlElementDirection.opposite(), element)
             is ControlElement.LaserCannon -> handlePosClick(pos, controlElementDirection, element)
+            is ControlElement.Gear -> handlePosClick(pos, element)
             is ControlElement.Checkpoint -> handlePosClick(pos, element)
             is ControlElement.Start -> handlePosClick(pos, element)
             is ControlElement.Pit -> handlePosClick(pos, element)
             null -> Unit
         }
+    }
+
+    private fun handlePosClick(pos: Pos, element: ControlElement.Gear) {
+        val oldGear = course.gears[pos]
+        val newGear = Gear(element.rotation)
+        course = course.copy(
+            gears = if (oldGear == newGear) course.gears - pos else course.gears + (pos to newGear)
+        )
     }
 
     @Suppress("UNUSED_PARAMETER")

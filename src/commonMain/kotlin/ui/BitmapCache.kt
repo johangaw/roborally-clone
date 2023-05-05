@@ -29,6 +29,8 @@ data class BitmapCache(
     val laserCannonX1: Bitmap,
     val laserCannonX2: Bitmap,
     val laserCannonX3: Bitmap,
+    val gearClockwise: Bitmap,
+    val gearCounterClockwise: Bitmap,
 
     val powerUp: Bitmap,
     val again: Bitmap,
@@ -60,6 +62,8 @@ data class BitmapCache(
             laserCannonX1 = resourcesVfs["laser_cannon_x1.png"].readBitmap(),
             laserCannonX2 = resourcesVfs["laser_cannon_x2.png"].readBitmap(),
             laserCannonX3 = resourcesVfs["laser_cannon_x3.png"].readBitmap(),
+            gearClockwise = resourcesVfs["gear_clockwise.png"].readBitmap(),
+            gearCounterClockwise = resourcesVfs["gear_counter_clockwise.png"].readBitmap(),
             powerUp = resourcesVfs["power_up.png"].readBitmap(),
             again = resourcesVfs["again.png"].readBitmap(),
         )

@@ -6,11 +6,26 @@ import kotlinx.serialization.Serializable
 data class Pos(val x: Int, val y: Int)
 
 @Serializable
+enum class Rotation {
+    None,
+    Clockwise,
+    CounterClockwise
+}
+
+@Serializable
 enum class Direction(val dx: Int, val dy: Int) {
     Up(0, -1), Down(0, 1), Right(1, 0), Left(-1, 0);
 }
 
 operator fun Pos.plus(dir: Direction): Pos = Pos(x + dir.dx, y + dir.dy)
+
+fun Direction.rotate(rot: Rotation): Direction = when (rot) {
+    Rotation.None -> this
+    Rotation.Clockwise -> this.quoter()
+    Rotation.CounterClockwise -> this
+        .opposite()
+        .quoter()
+}
 
 fun Direction.opposite(): Direction = when (this) {
     Direction.Up -> Direction.Down

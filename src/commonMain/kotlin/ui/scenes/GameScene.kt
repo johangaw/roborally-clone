@@ -142,6 +142,27 @@ class GameScene(var gameModel: GameModel) : Scene() {
                 is RoundResolution.WipeRegistersResolution -> animateWipeRegisters(resolution)
                 is RoundResolution.DealCardsResolution -> animateDealActionCards(resolution)
                 is RoundResolution.RegisterLockingResolution -> animateRegisterLocking(resolution)
+                is RoundResolution.GearsResolution -> animateGears(resolution)
+            }
+        }
+    }
+
+    private fun Animator.animateGears(resolution: RoundResolution.GearsResolution) {
+        parallel {
+            resolution.rotatedRobots.forEach { (id, dir) ->
+                sequence {
+                    wait(250.milliseconds)
+                    block {
+                        val viewRobot = robots.getValue(id)
+                        viewRobot.direction = dir
+                    }
+                }
+            }
+            if (resolution.rotatedRobots.isNotEmpty()) courseView.gears.values.forEach {
+                shake(
+                    it,
+                    500.milliseconds
+                )
             }
         }
     }

@@ -12,6 +12,7 @@ data class Course(
     val starts: List<Start> = emptyList(),
     val laserCannons: List<LaserCannon> = emptyList(),
     val pits: Set<Pos> = emptySet(),
+    val gears: Map<Pos, Gear> = emptyMap(),
     val destroyedDamage: Int = 2
 ) {
     fun wallAt(pos: Pos, dir: Direction): Wall? {
@@ -85,8 +86,4 @@ enum class ConveyorBeltType(val transportDirection: Direction, val rotation: Rot
 }
 
 @Serializable
-enum class Rotation {
-    None,
-    Clockwise,
-    CounterClockwise
-}
+data class Gear(val rotation: Rotation)

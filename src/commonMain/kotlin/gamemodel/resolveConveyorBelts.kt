@@ -119,15 +119,6 @@ fun List<Pair<Robot, ConveyorBelt>>.removeBeltsWithoutRotation() =
 fun List<Pair<Robot, ConveyorBelt>>.rotateRobots() =
     map { (robot, belt) -> robot to robot.dir.rotate(belt.type.rotation) }
 
-
-private fun Direction.rotate(rot: Rotation): Direction = when (rot) {
-    Rotation.None -> this
-    Rotation.Clockwise -> this.quoter()
-    Rotation.CounterClockwise -> this
-        .opposite()
-        .quoter()
-}
-
 private fun direction(from: Pos, to: Pos): Direction = Direction
     .values()
     .first { it.dx == to.x - from.x && it.dy == to.y - from.y }

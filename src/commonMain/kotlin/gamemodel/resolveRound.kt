@@ -11,6 +11,7 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
         .map { (id, cards) -> cards.map { ResolveActionCard(id, it) } }
         .plus(listOf(phases.map { ResolveExpressConveyorBelts }))
         .plus(listOf(phases.map { ResolveAllConveyorBelts }))
+        .plus(listOf(phases.map { ResolveGears }))
         .plus(listOf(phases.map { ResolveLasers }))
         .plus(listOf(phases.map { ResolveCheckpoints }))
         .plus(listOf(phases.map { CheckForWinner }))
@@ -119,6 +120,15 @@ fun GameModel.resolveRound(programming: Map<PlayerId, List<ActionCard>>): RoundR
                         )
                     }
 
+                ResolveGears -> current.gameModel
+                    .resolveGears()
+                    .let {
+                        RoundResolutionResult(
+                            gameModel = it.gameModel,
+                            resolutions = current.resolutions + GearsResolution(it.rotatedRobots),
+                        )
+                    }
+
                 RespawnRobots -> current.gameModel
                     .resolveRespawnRobots()
                     .let {
@@ -187,6 +197,7 @@ private fun List<RoundStep>.sort(): List<RoundStep> =
             CheckForWinner -> Int.MAX_VALUE
             ResolveAllConveyorBelts -> Int.MAX_VALUE
             ResolveExpressConveyorBelts -> Int.MAX_VALUE
+            ResolveGears -> Int.MAX_VALUE
             WipeRegisters -> throw AssertionError("WipeRegisters should not be sorted with other RoundSteps")
             DealCards -> throw AssertionError("DealCards should not be sorted with other RoundSteps")
             RespawnRobots -> throw AssertionError("RespawnRobots should not be sorted with other RoundSteps")
@@ -207,6 +218,8 @@ private sealed class RoundStep {
     object ResolveAllConveyorBelts : RoundStep()
 
     object ResolveExpressConveyorBelts : RoundStep()
+
+    object ResolveGears : RoundStep()
 
     object ResolveLasers : RoundStep()
 
@@ -237,6 +250,8 @@ sealed class RoundResolution {
         val activatedPositions: Set<Pos>,
     ) :
         RoundResolution()
+
+    data class GearsResolution(val rotatedRobots: Map<RobotId, Direction>): RoundResolution()
 
     data class CheckpointResolution(val capturedCheckpoints: Map<PlayerId, CheckpointId>) : RoundResolution()
 

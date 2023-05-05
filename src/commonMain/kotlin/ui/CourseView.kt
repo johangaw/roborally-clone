@@ -14,6 +14,9 @@ class CourseView(val course: Course, bitmapCache: BitmapCache, showStartPosition
     var conveyorBelts: Map<Pos, ConveyorBeltView> = emptyMap()
         private set
 
+    var gears: Map<Pos, GearView> = emptyMap()
+        private set
+
     init {
         val cellSize = min(COURSE_SIZE / course.width, COURSE_SIZE / course.height)
         repeat(course.width) { x ->
@@ -46,6 +49,13 @@ class CourseView(val course: Course, bitmapCache: BitmapCache, showStartPosition
 
         conveyorBelts = course.conveyorBelts.mapValues { (pos, belt) ->
             conveyorBeltView(belt.type, belt.speed, bitmapCache) {
+                setSizeScaled(cellSize, cellSize)
+                position(getPoint(pos))
+            }
+        }
+
+        gears = course.gears.mapValues { (pos, gear) ->
+            gearView(gear.rotation, bitmapCache) {
                 setSizeScaled(cellSize, cellSize)
                 position(getPoint(pos))
             }
