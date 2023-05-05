@@ -92,7 +92,7 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
                         setSizeScaled(50.0, 50.0)
                         centerOn(parent!!)
                     }
-                    wallView(bitmapCache, Direction.Right) {
+                    wallView(bitmapCache, Direction.Left) {
                         setSizeScaled(50.0, 50.0)
                         centerOn(parent!!)
                     }
@@ -248,7 +248,7 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
     private fun handlePosClick(pos: Pos) {
         when (val element = selectedControlElement) {
             is ControlElement.ConveyorBelt -> handlePosClick(pos, controlElementDirection, element)
-            is ControlElement.Wall -> handlePosClick(pos, controlElementDirection, element)
+            is ControlElement.Wall -> handlePosClick(pos, controlElementDirection.opposite(), element)
             is ControlElement.LaserCannon -> handlePosClick(pos, controlElementDirection, element)
             is ControlElement.Checkpoint -> handlePosClick(pos, element)
             is ControlElement.Start -> handlePosClick(pos, element)
