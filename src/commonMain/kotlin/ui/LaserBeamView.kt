@@ -5,14 +5,23 @@ import com.soywiz.korim.color.*
 import com.soywiz.korma.geom.*
 import gamemodel.*
 
-class LaserBeamView(cellSize: Double, length: Int, dir: Direction, power: Int) :
+class LaserBeamView(cellSize: Double, length: Int, dir: Direction, power: Int, source: LaserPathSource) :
     FixedSizeContainer(cellSize * length, cellSize) {
 
-    private val multipleLaserOffset = 12.0
+    private val laserCannonImageSize = 128.0
+    private val scaleFactor = cellSize / laserCannonImageSize
+    private val multipleLaserOffset = scaleFactor * 32
+    private val robotStartOffset = -cellSize / 2
+    private val cannonStartOffset = scaleFactor * 40.0
+
     init {
-        val b1 = LaserBeam(cellSize, length, dir)
-        val b2 = LaserBeam(cellSize, length, dir)
-        val b3 = LaserBeam(cellSize, length, dir)
+        val sourceOffset = when(source){
+            LaserPathSource.Robot -> robotStartOffset
+            LaserPathSource.Cannon -> cannonStartOffset
+        }
+        val b1 = LaserBeam(cellSize, length, dir, sourceOffset)
+        val b2 = LaserBeam(cellSize, length, dir, sourceOffset)
+        val b3 = LaserBeam(cellSize, length, dir, sourceOffset)
 
         when(power) {
             1 -> b1.addTo(this)
@@ -51,14 +60,14 @@ private fun Direction.isVertical() = when(this) {
     Direction.Left -> false
 }
 
-private class LaserBeam(cellSize: Double, length: Int, dir: Direction) :
+private class LaserBeam(cellSize: Double, length: Int, dir: Direction, sourceOffset: Double) :
     FixedSizeContainer(cellSize * length, cellSize) {
     init {
         val laserWidth = 3.0
         val laserBallRadius = laserWidth * 2
-
-        val beam = roundRect(cellSize * length, laserWidth, 3.0, 3.0, fill = Colors.RED) {
+        val beam = roundRect(cellSize * length - sourceOffset, laserWidth, 3.0, 3.0, fill = Colors.RED) {
             centerOn(parent!!)
+            alignRightToRightOf(parent!!)
         }
         circle(laserBallRadius, fill = Colors.RED, autoScaling = false) {
             centerOn(beam)

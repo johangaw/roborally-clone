@@ -7,13 +7,13 @@ fun GameModel.resolveLasers(): LaserResolutionResult {
         .mapNotNull { robot ->
             laserPath(robot.pos, robot.dir, targetRobotAtStartPosition = false)
                 .takeIf { it.isNotEmpty() }
-                ?.let { LaserPath(it, robot.dir, 1) }
+                ?.let { LaserPath(it, robot.dir, 1, LaserPathSource.Robot) }
         }
         .plus(
             course.laserCannons.mapNotNull { cannon ->
                 laserPath(cannon.pos, cannon.dir, targetRobotAtStartPosition = true)
                     .takeIf { it.isNotEmpty() }
-                    ?.let { LaserPath(it, cannon.dir, cannon.power) }
+                    ?.let { LaserPath(it, cannon.dir, cannon.power, LaserPathSource.Cannon) }
             }
         )
 
@@ -85,4 +85,8 @@ data class LaserResolutionResult(
 
 data class LockedRegister(val index: Int, val card: ActionCard)
 
-data class LaserPath(val path: List<Pos>, val dir: Direction, val power: Int)
+data class LaserPath(val path: List<Pos>, val dir: Direction, val power: Int, val source: LaserPathSource)
+
+enum class LaserPathSource {
+    Robot, Cannon
+}

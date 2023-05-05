@@ -26,6 +26,11 @@ class GameScene(var gameModel: GameModel) : Scene() {
     private lateinit var courseView: CourseView
     private lateinit var bitmapCache: BitmapCache
 
+    private val courseZIndex = 0.0
+    private val programAreaZIndex = 0.0
+    private val robotZIndex = 10.0
+    private val laserZIndex = 9.0
+
     override suspend fun SContainer.sceneInit() {
         bitmapCache = BitmapCache.create()
         courseView = courseView(gameModel.course, bitmapCache, showStartPositions = false) {
@@ -33,6 +38,7 @@ class GameScene(var gameModel: GameModel) : Scene() {
             val scaleFactor =
                 min(views.virtualWidthDouble / width, (views.virtualHeightDouble - programmingAreaHeight) / height)
             scale = scaleFactor
+            zIndex = courseZIndex
             centerOn(this@sceneInit)
             alignTopToTopOf(this@sceneInit)
         }
@@ -44,13 +50,14 @@ class GameScene(var gameModel: GameModel) : Scene() {
                 robot.id to robotView(playerNumber(index), robot.dir, sprites) {
                     setSizeScaled(cellSize, cellSize)
                     position(robotPosition(robot.pos))
+                    zIndex = robotZIndex
                 }
             }
             .toMap()
 
         programAreas = gameModel.players.map { player ->
             programArea(gameModel.course.checkpoints.map { it.id }, player.id, player.robotId, bitmapCache) {
-                zIndex(-1)
+                zIndex = programAreaZIndex
                 centerOn(this@sceneInit)
                 alignTopToBottomOf(courseView)
                 text(player.id.value.toString(), textSize = 30.0, color = Colors.BLACK) {
@@ -273,7 +280,7 @@ class GameScene(var gameModel: GameModel) : Scene() {
 
     private fun Animator.animateShowWinnerPopup(resolution: RoundResolution.WinnerResolution) {
         block {
-            this@GameScene.sceneContainer.apply {
+            this@GameScene.sceneView.apply {
                 val padding = 20.0
                 roundRect(500.0, 300.0, 3.0, 3.0) {
                     val text = text("Congraz player ${resolution.winner.value}") {
@@ -293,9 +300,10 @@ class GameScene(var gameModel: GameModel) : Scene() {
     private fun Animator.animateLasers(resolution: RoundResolution.LaserResolution) {
         val beams = resolution.laserPaths
             .map {
-                LaserBeamView(courseView.cellSize, it.path.size, it.dir, it.power).apply {
+                LaserBeamView(courseView.cellSize, it.path.size, it.dir, it.power, it.source).apply {
                     alpha = 0.0
-                    addTo(this@GameScene.sceneContainer)
+                    zIndex = laserZIndex
+                    addTo(this@GameScene.sceneView)
                     position(robotPosition(it.path.first(), pos))
                 }
             }
