@@ -4,7 +4,7 @@ import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
 import gamemodel.*
 
-private val baseSize = 102.0
+private val baseSize = 128.0
 
 class GearView(rotation: Rotation, bitmapCache: BitmapCache) : Container() {
 
