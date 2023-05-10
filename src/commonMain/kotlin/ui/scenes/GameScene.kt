@@ -190,6 +190,10 @@ class GameScene(var gameModel: GameModel) : Scene() {
     }
 
     private fun Animator.animateConveyorBelts(resolution: RoundResolution.ConveyorBeltsResolution) {
+        val activatedCourseViews = when {
+            resolution.movedRobots.isEmpty() -> emptyList()
+            else -> courseView.conveyorBelts.filter { it.key in resolution.activatedPositions }.values
+        }
         sequence {
             parallel {
                 resolution.movedRobots.forEach { (id, pos) ->
@@ -197,43 +201,39 @@ class GameScene(var gameModel: GameModel) : Scene() {
                     val newPos = robotPosition(pos)
                     moveTo(viewRobot, newPos.x, newPos.y, easing = Easing.SMOOTH)
                 }
-                if (resolution.movedRobots.isNotEmpty()) {
-                    courseView.conveyorBelts
-                        .filter { it.key in resolution.activatedPositions }
-                        .values
-                        .forEach {
-                            shake(
-                                it,
-                                500.milliseconds
-                            )
-                        }
+                activatedCourseViews
+                    .forEach {
+                        shake(
+                            it,
+                            500.milliseconds
+                        )
+                    }
+            }
+        }
+        parallel {
+            resolution.remainingHealthOfFallenRobots.keys.forEach { robotId ->
+                val robotView = robots.getValue(robotId)
+                robotView.destroy(this)
+            }
+            block {
+                resolution.remainingHealthOfFallenRobots.forEach { (robotId, health) ->
+                    val programArea = programAreas.first { it.robotId == robotId }
+                    programArea.setHealth(health)
                 }
             }
-            parallel {
-                resolution.remainingHealthOfFallenRobots.keys.forEach { robotId ->
-                    val robotView = robots.getValue(robotId)
-                    robotView.destroy(this)
-                }
+        }
+        parallel {
+            resolution.rotatedRobots.forEach { (id, dir) ->
+                val viewRobot = robots.getValue(id)
                 block {
-                    resolution.remainingHealthOfFallenRobots.forEach { (robotId, health) ->
-                        val programArea = programAreas.first { it.robotId == robotId }
-                        programArea.setHealth(health)
-                    }
+                    viewRobot.direction = dir
                 }
             }
-            parallel {
-                resolution.rotatedRobots.forEach { (id, dir) ->
-                    val viewRobot = robots.getValue(id)
-                    block {
-                        viewRobot.direction = dir
-                    }
-                }
-                if (resolution.rotatedRobots.isNotEmpty()) courseView.conveyorBelts.values.forEach {
-                    shake(
-                        it,
-                        500.milliseconds
-                    )
-                }
+            activatedCourseViews.forEach {
+                shake(
+                    it,
+                    500.milliseconds
+                )
             }
         }
     }
