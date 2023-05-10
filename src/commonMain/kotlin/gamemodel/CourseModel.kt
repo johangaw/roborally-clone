@@ -66,23 +66,35 @@ enum class ConveyorBeltSpeed {
 }
 
 @Serializable
-enum class ConveyorBeltType(val transportDirection: Direction, val rotation: Rotation) {
-    Up(Direction.Up, Rotation.None),
-    Right(Direction.Right, Rotation.None),
-    Left(Direction.Left, Rotation.None),
-    Down(Direction.Down, Rotation.None),
+enum class ConveyorBeltType(val transportDirection: Direction) {
+    Up(Direction.Up),
+    Right(Direction.Right),
+    Left(Direction.Left),
+    Down(Direction.Down),
 
     // Clockwise
-    RightAndDown(Direction.Down, Rotation.Clockwise),
-    DownAndLeft(Direction.Left, Rotation.Clockwise),
-    LeftAndUp(Direction.Up, Rotation.Clockwise),
-    UpAndRight(Direction.Right, Rotation.Clockwise),
+    RightAndDown(Direction.Down),
+    DownAndLeft(Direction.Left),
+    LeftAndUp(Direction.Up),
+    UpAndRight(Direction.Right),
 
     // Counterclockwise
-    RightAndUp(Direction.Up, Rotation.CounterClockwise),
-    UpAndLeft(Direction.Left, Rotation.CounterClockwise),
-    LeftAndDown(Direction.Down, Rotation.CounterClockwise),
-    DownAndRight(Direction.Right, Rotation.CounterClockwise),
+    RightAndUp(Direction.Up),
+    UpAndLeft(Direction.Left),
+    LeftAndDown(Direction.Down),
+    DownAndRight(Direction.Right),
+
+    // Y conjunctions
+    UpAndRightToDown(Direction.Down),
+    RightAndDownToLeft(Direction.Left),
+    DownAndLeftToUp(Direction.Up),
+    LeftAndUpToRight(Direction.Right),
+
+    // T conjunctions
+    LeftAndRightToUp(Direction.Up),
+    LeftAndRightToDown(Direction.Down),
+    UpAndDownToLeft(Direction.Left),
+    UpAndDownToRight(Direction.Right),
 }
 
 @Serializable

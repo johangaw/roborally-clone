@@ -14,7 +14,11 @@ import java.lang.Exception
 import kotlin.math.*
 
 enum class ConveyorBeltControlElementType(val iconType: ConveyorBeltType) {
-    Straight(gamemodel.ConveyorBeltType.Right), RightTurn(gamemodel.ConveyorBeltType.RightAndDown), LeftTurn(gamemodel.ConveyorBeltType.RightAndUp)
+    Straight(gamemodel.ConveyorBeltType.Right),
+    RightTurn(gamemodel.ConveyorBeltType.RightAndDown),
+    LeftTurn(gamemodel.ConveyorBeltType.RightAndUp),
+    IntersectionY(gamemodel.ConveyorBeltType.LeftAndUpToRight),
+    IntersectionT(gamemodel.ConveyorBeltType.UpAndDownToRight),
 }
 
 sealed class ControlElement(val rotatable: Boolean) {
@@ -349,6 +353,20 @@ class CourseBuilderScene(private val initialCourse: Course? = null) : Scene() {
                 Direction.Down -> ConveyorBeltType.DownAndRight
                 Direction.Left -> ConveyorBeltType.LeftAndDown
                 Direction.Up -> ConveyorBeltType.UpAndLeft
+            }
+
+            ConveyorBeltControlElementType.IntersectionY -> when (dir) {
+                Direction.Right -> ConveyorBeltType.LeftAndUpToRight
+                Direction.Down -> ConveyorBeltType.UpAndRightToDown
+                Direction.Left -> ConveyorBeltType.RightAndDownToLeft
+                Direction.Up -> ConveyorBeltType.DownAndLeftToUp
+            }
+
+            ConveyorBeltControlElementType.IntersectionT -> when(dir){
+                Direction.Up -> ConveyorBeltType.LeftAndRightToUp
+                Direction.Down -> ConveyorBeltType.LeftAndRightToDown
+                Direction.Right -> ConveyorBeltType.UpAndDownToRight
+                Direction.Left -> ConveyorBeltType.UpAndDownToLeft
             }
         }
 

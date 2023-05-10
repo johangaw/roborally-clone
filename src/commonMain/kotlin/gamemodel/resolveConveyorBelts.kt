@@ -1,5 +1,7 @@
 package gamemodel
 
+import kotlin.math.*
+
 fun GameModel.resolveAllConveyorBelts() = resolveConveyorBelts(course.conveyorBelts)
 
 fun GameModel.resolveExpressConveyorBelts() =
@@ -17,7 +19,8 @@ private fun GameModel.resolveConveyorBelts(conveyorBelts: Map<Pos, ConveyorBelt>
 
     val rotatedRobots = movedRobots
         .withNewConveyorBelt(conveyorBelts)
-        .removeBeltsWithoutRotation()
+        .withRotation()
+        .removeRobotsWithoutRotation()
         .rotateRobots()
 
     val robotPartition = robots
@@ -110,14 +113,37 @@ private fun List<Pair<Robot, Pos>>.removeMovementsBlockedByStationaryRobot(gameM
 private fun List<Pair<Robot, Pos>>.robotIds() = map { it.first.id }.toSet()
 
 
-fun List<Pair<Robot, Pos>>.withNewConveyorBelt(conveyorBelts: Map<Pos, ConveyorBelt>) =
-    mapNotNull { (robot, newPos) -> conveyorBelts[newPos]?.let { robot to it } }
+private data class RobotWithNewConveyorBelt(val robot: Robot, val newPos: Pos, val newConveyorBelt: ConveyorBelt)
 
-fun List<Pair<Robot, ConveyorBelt>>.removeBeltsWithoutRotation() =
-    filter { (_, belt) -> belt.type.rotation != Rotation.None }
+private fun List<Pair<Robot, Pos>>.withNewConveyorBelt(conveyorBelts: Map<Pos, ConveyorBelt>) =
+    mapNotNull { (robot, newPos) -> conveyorBelts[newPos]?.let { RobotWithNewConveyorBelt(robot, newPos, it) } }
 
-fun List<Pair<Robot, ConveyorBelt>>.rotateRobots() =
-    map { (robot, belt) -> robot to robot.dir.rotate(belt.type.rotation) }
+private fun List<RobotWithNewConveyorBelt>.withRotation() =
+    map {
+        it.robot to getRotation(getDirection(it.robot.pos, it.newPos), it.newConveyorBelt.type.transportDirection)
+    }
+
+private fun getDirection(p1: Pos, p2: Pos) =
+    Direction.values().first { it.dx == (p2.x - p1.x) && it.dy == (p2.y - p1.y) }
+
+private fun getRotation(d1: Direction, d2: Direction): Rotation {
+    val dx = d1.dx + d2.dx
+    val dy = d1.dy + d2.dy
+
+    return when {
+        dx == 0 && dy == 0 -> Rotation.None
+        dx == dy -> Rotation.Clockwise
+        abs(dx) == abs(dy) -> Rotation.CounterClockwise
+        else -> Rotation.None
+    }
+}
+
+private fun List<Pair<Robot, Rotation>>.removeRobotsWithoutRotation(): List<Pair<Robot, Rotation>> = filter {
+    it.second != Rotation.None
+}
+
+private fun List<Pair<Robot, Rotation>>.rotateRobots() =
+    map { (robot, rotation) -> robot to robot.dir.rotate(rotation) }
 
 private fun direction(from: Pos, to: Pos): Direction = Direction
     .values()

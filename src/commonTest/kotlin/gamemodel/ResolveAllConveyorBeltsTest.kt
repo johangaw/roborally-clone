@@ -241,4 +241,58 @@ class ResolveAllConveyorBeltsTest {
         assertEquals(mapOf(r1.id to 8), result.remainingHealthOfFallenRobots)
         assertEquals(expectedModel, result.gameModel)
     }
+
+    @Test
+    fun `when a robot is transported onto a T conveyor belt, it is turned towards the out path`() {
+        val model = gameModel(
+            """
+            +|+|+|+|+|+|+
+            +     →     +
+        """.trimIndent()
+        ).addConveyorBelts {
+            mapOf(
+                Pos(2, 0) to ConveyorBelt(ConveyorBeltType.Right, ConveyorBeltSpeed.Regular),
+                Pos(3, 0) to ConveyorBelt(ConveyorBeltType.LeftAndRightToUp, ConveyorBeltSpeed.Regular),
+            )
+        }
+
+        val (r1) = model.robots
+        val expectedModel = model.copy(
+            robots = listOf(r1.copy(pos = Pos(3,0), dir = Direction.Up)),
+        )
+
+        val result = model.resolveAllConveyorBelts()
+
+        assertEquals(mapOf(r1.id to Pos(3,0)), result.movedRobots)
+        assertEquals(mapOf(r1.id to Direction.Up), result.rotatedRobots)
+        assertEquals(emptyMap(), result.remainingHealthOfFallenRobots)
+        assertEquals(expectedModel, result.gameModel)
+    }
+
+    @Test
+    fun `when a robot is transported onto a Y conveyor belt, it turns towards the exit`() {
+        val model = gameModel(
+            """
+            +|+|+|+|+|+|+
+            +     →     +
+        """.trimIndent()
+        ).addConveyorBelts {
+            mapOf(
+                Pos(2, 0) to ConveyorBelt(ConveyorBeltType.Right, ConveyorBeltSpeed.Regular),
+                Pos(3, 0) to ConveyorBelt(ConveyorBeltType.DownAndLeftToUp, ConveyorBeltSpeed.Regular),
+            )
+        }
+
+        val (r1) = model.robots
+        val expectedModel = model.copy(
+            robots = listOf(r1.copy(pos = Pos(3,0), dir = Direction.Up)),
+        )
+
+        val result = model.resolveAllConveyorBelts()
+
+        assertEquals(mapOf(r1.id to Pos(3,0)), result.movedRobots)
+        assertEquals(mapOf(r1.id to Direction.Up), result.rotatedRobots)
+        assertEquals(emptyMap(), result.remainingHealthOfFallenRobots)
+        assertEquals(expectedModel, result.gameModel)
+    }
 }

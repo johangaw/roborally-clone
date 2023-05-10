@@ -15,11 +15,15 @@ class ConveyorBeltView(type: ConveyorBeltType, speed: ConveyorBeltSpeed, bitmapC
                 Down, Left, Up, Right -> bitmapCache.conveyorBelt
                 UpAndRight, LeftAndUp, RightAndDown, DownAndLeft -> bitmapCache.conveyorBeltTurnClockwise
                 DownAndRight, LeftAndDown, UpAndLeft, RightAndUp -> bitmapCache.conveyorBeltTurnCounterClockwise
+                UpAndRightToDown, RightAndDownToLeft, DownAndLeftToUp, LeftAndUpToRight -> bitmapCache.conveyorBeltYIntersection
+                LeftAndRightToUp, LeftAndRightToDown, UpAndDownToLeft, UpAndDownToRight -> bitmapCache.conveyorBeltTIntersection
             }
             ConveyorBeltSpeed.Express -> when (type) {
                 Down, Left, Up, Right -> bitmapCache.expressConveyorBelt
                 UpAndRight, LeftAndUp, RightAndDown, DownAndLeft -> bitmapCache.expressConveyorBeltTurnClockwise
                 DownAndRight, LeftAndDown, UpAndLeft, RightAndUp -> bitmapCache.expressConveyorBeltTurnCounterClockwise
+                UpAndRightToDown, RightAndDownToLeft, DownAndLeftToUp, LeftAndUpToRight -> bitmapCache.expressConveyorBeltYIntersection
+                LeftAndRightToUp, LeftAndRightToDown, UpAndDownToLeft, UpAndDownToRight -> bitmapCache.expressConveyorBeltTIntersection
             }
         }
 
@@ -40,6 +44,16 @@ class ConveyorBeltView(type: ConveyorBeltType, speed: ConveyorBeltSpeed, bitmapC
                 UpAndLeft -> Angle.ZERO
                 LeftAndDown -> -Angle.QUARTER
                 DownAndRight -> Angle.HALF
+
+                UpAndRightToDown -> Angle.ZERO
+                RightAndDownToLeft -> Angle.QUARTER
+                DownAndLeftToUp -> Angle.HALF
+                LeftAndUpToRight -> -Angle.QUARTER
+
+                LeftAndRightToUp -> Angle.QUARTER
+                LeftAndRightToDown -> -Angle.QUARTER
+                UpAndDownToLeft -> Angle.ZERO
+                UpAndDownToRight -> Angle.HALF
             }
 
             setTransform(
